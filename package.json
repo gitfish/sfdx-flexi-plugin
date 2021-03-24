@@ -1,9 +1,9 @@
 {
-  "name": "flexi-hooks",
-  "description": "Flexible sfdx hooks",
+  "name": "sfdx-flexi-plugin",
+  "description": "The sfdx flexible plugin",
   "version": "1.0.0",
   "author": "Michael Fisher",
-  "bugs": "https://github.com/the-money/flexi-hooks/issues",
+  "bugs": "https://github.com/gitfish/sfdx-flexi-plugin/issues",
   "dependencies": {
     "@oclif/command": "^1",
     "@oclif/config": "^1",
@@ -36,7 +36,7 @@
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json"
   ],
-  "homepage": "https://github.com/the-money/flexi-hooks",
+  "homepage": "https://github.com/gitfish/sfdx-flexi-plugin",
   "keywords": [
     "force",
     "salesforce",

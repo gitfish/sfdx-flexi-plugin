@@ -1,5 +1,5 @@
 
-sfdx-sample-plugin
+sfdx-flexi-plugin
 ==================
 
 
@@ -19,11 +19,11 @@ sfdx-sample-plugin
 <!-- install -->
 <!-- usage -->
 ```sh-session
-$ npm install -g flexi-hooks
+$ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-flexi-hooks/1.0.0 darwin-x64 node-v14.15.1
+sfdx-flexi-plugin/1.0.0 darwin-x64 node-v14.15.1
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
