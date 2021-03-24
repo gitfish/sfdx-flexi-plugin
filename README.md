@@ -75,7 +75,7 @@ EXAMPLES
   $ sfdx flexi:script --path <script file path> --hookcontextpath <hook context json path>
 ```
 
-_See code: [lib/commands/flexi/script.js](https://github.com/the-money/flexi-hooks/blob/v1.0.0/lib/commands/flexi/script.js)_
+_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v1.0.0/lib/commands/flexi/script.js)_
 <!-- commandsstop -->
 <!-- debugging-your-plugin -->
 # Debugging your plugin
