@@ -5,7 +5,6 @@ import * as path from "path";
 import * as fs from "fs";
 import { ScriptCommand } from "../commands/flexi/script";
 import { HookType, ScriptHookContext } from "../types";
-import { argv } from "process";
 
 export interface HookOptions<R = any> {
   Command: Command.Class;
@@ -27,9 +26,15 @@ export enum ErrorBehaviour {
 
 const DEFAULT_PROJECT_HOOKS_DIR = "hooks";
 
+export enum FlagType {
+  string = "string",
+  boolean = "boolean"
+}
+
 export interface FlagSpec {
   name: string;
   char?: string;
+  type: FlagType;
 }
 
 export const getFlagIndex = (argv: string[], spec: FlagSpec): number => {
@@ -45,9 +50,13 @@ export const containsFlag = (argv: string[], spec: FlagSpec): boolean => {
 };
 
 export const getFlagValue = (argv: string[], spec: FlagSpec): any => {
-  let idx = getFlagIndex(argv, spec);
-  if(idx >= 0 && argv.length > idx + 1) {
-    return argv[idx + 1];
+  const idx = getFlagIndex(argv, spec);
+  if(idx >= 0) {
+    if(spec.type === FlagType.boolean) {
+      return true;
+    } else if(argv.length > idx + 1) {
+      return argv[idx + 1];
+    }
   }
 };
 
@@ -57,7 +66,10 @@ export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec
       if(!containsFlag(dest, spec)) {
         const value = getFlagValue(source, spec);
         if(value) {
-          argv.push(`--${spec.name}`, value);
+          dest.push(`--${spec.name}`);
+          if(spec.type === FlagType.string) {
+            dest.push(value);
+          }
         }
      }
     });
@@ -68,12 +80,13 @@ const scriptCopyFlagSpecs: FlagSpec[] = []
 
 // pass on any flags supported by the script command - this is not ideal - probably a cleaner way
 if(ScriptCommand.requiresUsername) {
-  scriptCopyFlagSpecs.push({ name: 'targetusername', char: 'u' });
-  scriptCopyFlagSpecs.push({ name: 'apiversion'});
+  scriptCopyFlagSpecs.push({ name: 'targetusername', char: 'u', type: FlagType.string });
+  scriptCopyFlagSpecs.push({ name: 'apiversion', type: FlagType.string });
 }
 if(ScriptCommand.requiresDevhubUsername) {
-  scriptCopyFlagSpecs.push({ name: 'targetdevhubusername', char: 'v' });
+  scriptCopyFlagSpecs.push({ name: 'targetdevhubusername', char: 'v', type: FlagType.string });
 }
+scriptCopyFlagSpecs.push({ name: 'json', type: FlagType.boolean });
 
 /**
  * Creates a hook function that delegates to a script with the sfdx project.
