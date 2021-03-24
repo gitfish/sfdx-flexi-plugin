@@ -73,7 +73,7 @@ export class ScriptCommand extends SfdxCommand {
       : path.join(this.project.getPath(), scriptPath);
 
     if (!fs.existsSync(scriptPath)) {
-      throw new SfdxError(`Unable to find hook script: ${scriptPath}`);
+      throw new SfdxError(`Unable to find script: ${scriptPath}`);
     }
 
     this.ux.log(`Executing Script: ${scriptPath}`);

@@ -136,6 +136,10 @@ export const createScriptDelegate = <R = any>(
       ? scriptPath
       : path.join(project.getPath(), scriptPath);
 
+    if(!fs.existsSync(scriptPath)) {
+      return;
+    }
+
     // setup our error handler
     let errorBehaviour = hookConfig?.errorBehaviour as ErrorBehaviour;
     if (!errorBehaviour) {
