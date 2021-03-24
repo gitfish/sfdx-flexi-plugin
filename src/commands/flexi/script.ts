@@ -1,20 +1,20 @@
-import { FlagsConfig, SfdxCommand, flags } from "@salesforce/command";
-import { Messages, SfdxError } from "@salesforce/core";
-import { AnyJson } from "@salesforce/ts-types";
-import { sync as resolveSync } from "resolve";
-import * as path from "path";
-import * as fs from "fs";
-import { ScriptContext, ScriptHookContext } from "../../types";
+import { FlagsConfig, flags, SfdxCommand } from '@salesforce/command';
+import { Messages, SfdxError } from '@salesforce/core';
+import { AnyJson } from '@salesforce/ts-types';
+import { sync as resolveSync } from 'resolve';
+import { ScriptContext, ScriptHookContext } from '../../types';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
 
 // Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
 // or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages("sfdx-flexi-plugin", "org");
+const messages = Messages.loadMessages('sfdx-flexi-plugin', 'org');
 
 export class ScriptCommand extends SfdxCommand {
-  public static description = messages.getMessage("commandDescription");
+  public static description = messages.getMessage('commandDescription');
 
   public static examples = [
     `$ sfdx flexi:script --path <script file path>`,
@@ -30,35 +30,36 @@ export class ScriptCommand extends SfdxCommand {
 
   protected static flagsConfig: FlagsConfig = {
     path: flags.string({
-      char: "p",
+      char: 'p',
       required: true,
-      description: messages.getMessage("pathFlagDescription"),
+      description: messages.getMessage('pathFlagDescription'),
     }),
     hookcontext: flags.string({
-      char: "h",
+      char: 'h',
       required: false,
-      description: messages.getMessage("hookContextFlagDescription"),
+      description: messages.getMessage('hookContextFlagDescription'),
     }),
     hookcontextpath: flags.string({
-      char: "d",
+      char: 'd',
       required: false,
-      description: messages.getMessage("hookContextPathFlagDescription"),
+      description: messages.getMessage('hookContextPathFlagDescription'),
     }),
   };
 
-
   public get hook(): ScriptHookContext {
     const hookContext = this.flags.hookcontext;
-    if(hookContext) {
+    if (hookContext) {
       return JSON.parse(hookContext);
     }
     let hookContextPath = this.flags.hookcontextpath;
-    if(hookContextPath) {
+    if (hookContextPath) {
       hookContextPath = path.isAbsolute(hookContextPath)
         ? hookContextPath
         : path.join(this.project.getPath(), hookContextPath);
-      if(fs.existsSync(hookContextPath)) {
-        return JSON.parse(fs.readFileSync(hookContextPath, { encoding: "utf8" }));
+      if (fs.existsSync(hookContextPath)) {
+        return JSON.parse(
+          fs.readFileSync(hookContextPath, { encoding: 'utf8' })
+        );
       }
     }
     return undefined;
@@ -77,8 +78,8 @@ export class ScriptCommand extends SfdxCommand {
 
     this.ux.log(`Executing Script: ${scriptPath}`);
 
-    if (scriptPath.endsWith(".ts")) {
-      const tsNodeModule = resolveSync("ts-node", {
+    if (scriptPath.endsWith('.ts')) {
+      const tsNodeModule = resolveSync('ts-node', {
         basedir: this.project.getPath(),
         preserveSymLinks: true,
       });
@@ -88,12 +89,12 @@ export class ScriptCommand extends SfdxCommand {
           transpileOnly: true,
           skipProject: true,
           compilerOptions: {
-            target: "es2017",
-            module: "commonjs",
+            target: 'es2017',
+            module: 'commonjs',
             strict: false,
             skipLibCheck: true,
             skipDefaultLibCheck: true,
-            moduleResolution: "node",
+            moduleResolution: 'node',
             allowJs: true,
             esModuleInterop: true,
           },
@@ -118,12 +119,12 @@ export class ScriptCommand extends SfdxCommand {
         org: this.org,
         project: this.project,
         varargs: this.varargs,
-        hook: this.hook
+        hook: this.hook,
       };
 
       const scriptModule = require(scriptPath);
       let result;
-      if (typeof scriptModule === "function") {
+      if (typeof scriptModule === 'function') {
         result = await Promise.resolve(scriptModule(context));
       } else if (scriptModule.run) {
         result = await Promise.resolve(scriptModule.run(context));

@@ -60,7 +60,7 @@
       "@oclif/plugin-help"
     ]
   },
-  "repository": "the-money/flexi-hooks",
+  "repository": "gitfish/sfdx-flexi-plugin",
   "scripts": {
     "lint": "tslint --project . --config tslint.json --format stylish",
     "postpack": "rm -f oclif.manifest.json",
