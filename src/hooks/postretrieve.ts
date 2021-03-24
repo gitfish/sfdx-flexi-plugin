@@ -1,12 +1,4 @@
-import { createScriptDelegate, HookType } from "./common";
-
-export interface PostRetrieveItem {
-    mdapiFilePath: string;
-}
-
-export interface PostRetrieveResult {
-    [itemName: string]: PostRetrieveItem;
-}
-
+import { createScriptDelegate } from "./common";
+import { HookType, PostRetrieveItem } from "../types";
 
 export const hook = createScriptDelegate<PostRetrieveItem>(HookType.postretrieve);

@@ -1,8 +1,4 @@
-import { createScriptDelegate, HookType } from "./common";
-
-export interface PreRetrieveResult {
-    packageXmlPath: string;
-}
-
+import { HookType, PreRetrieveResult } from "../types";
+import { createScriptDelegate } from "./common";
 
 export const hook = createScriptDelegate<PreRetrieveResult>(HookType.preretrieve);

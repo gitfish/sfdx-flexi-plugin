@@ -1,4 +1,6 @@
 {
     "commandDescription": "Executes a script that is provided sfdx context",
-    "pathFlagDescription": "The path of the script to execute"
+    "pathFlagDescription": "The path of the script to execute",
+    "hookContextFlagDescription": "The hook context - typically passed from the hook script or can be provided for testing",
+    "hookContextPathFlagDescription": "The path to hook context - this is typically used for testing"
 }

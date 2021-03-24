@@ -4,6 +4,8 @@ import { JsonMap } from "@salesforce/ts-types";
 import * as path from "path";
 import * as fs from "fs";
 import { ScriptCommand } from "../commands/flexi/script";
+import { HookType, ScriptHookContext } from "../types";
+import { argv } from "process";
 
 export interface HookOptions<R = any> {
   Command: Command.Class;
@@ -17,15 +19,6 @@ export interface HookFunction<R = any> {
   (this: Hook.Context, options: HookOptions<R>): Promise<any>;
 }
 
-export enum HookType {
-  predeploy = "predeploy",
-  postdeploy = "postdeploy",
-  preretrieve = "preretrieve",
-  postretrieve = "postretrieve",
-  postsourceupdate = "postsourceupdate",
-  postorgcreate = "postorgcreate",
-}
-
 export enum ErrorBehaviour {
   exit = "exit",
   log = "log",
@@ -33,6 +26,54 @@ export enum ErrorBehaviour {
 }
 
 const DEFAULT_PROJECT_HOOKS_DIR = "hooks";
+
+export interface FlagSpec {
+  name: string;
+  char?: string;
+}
+
+export const getFlagIndex = (argv: string[], spec: FlagSpec): number => {
+  let idx = argv.indexOf(`--${spec.name}`);
+  if(idx < 0 && spec.char) {
+    idx = argv.indexOf(`-${spec.char}`);
+  }
+  return idx;
+};
+
+export const containsFlag = (argv: string[], spec: FlagSpec): boolean => {
+  return getFlagIndex(argv, spec) >= 0;
+};
+
+export const getFlagValue = (argv: string[], spec: FlagSpec): any => {
+  let idx = getFlagIndex(argv, spec);
+  if(idx >= 0 && argv.length > idx + 1) {
+    return argv[idx + 1];
+  }
+};
+
+export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec[]) => {
+  if(specs) {
+    specs.forEach(spec => {
+      if(!containsFlag(dest, spec)) {
+        const value = getFlagValue(source, spec);
+        if(value) {
+          argv.push(`--${spec.name}`, value);
+        }
+     }
+    });
+  }
+};
+
+const scriptCopyFlagSpecs: FlagSpec[] = []
+
+// pass on any flags supported by the script command - this is not ideal - probably a cleaner way
+if(ScriptCommand.requiresUsername) {
+  scriptCopyFlagSpecs.push({ name: 'targetusername', char: 'u' });
+  scriptCopyFlagSpecs.push({ name: 'apiversion'});
+}
+if(ScriptCommand.requiresDevhubUsername) {
+  scriptCopyFlagSpecs.push({ name: 'targetdevhubusername', char: 'v' });
+}
 
 /**
  * Creates a hook function that delegates to a script with the sfdx project.
@@ -116,17 +157,19 @@ export const createScriptDelegate = <R = any>(
       };
     }
 
-    ScriptCommand.hook = {
+    const hookContext: ScriptHookContext = {
       hookType,
       commandId: hookOpts.commandId,
-      commandArgs: hookOpts.argv,
-      result: hookOpts.result,
-      context: this
+      result: hookOpts.result as any
     };
+
+    // build our script command arguments
+    const scriptCommandArgs: string[] = [`--path`, scriptPath, '--hookcontext', JSON.stringify(hookContext)];
+    copyFlagValues(hookOpts.argv, scriptCommandArgs, scriptCopyFlagSpecs);
 
     // run our script command
     try {
-      await ScriptCommand.run(['--path', scriptPath])
+      await ScriptCommand.run(scriptCommandArgs);
     } catch(error) {
       errorHandler(error);
     }

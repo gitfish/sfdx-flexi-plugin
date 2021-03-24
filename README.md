@@ -31,9 +31,9 @@ USAGE
 ```
 <!-- usagestop -->
 <!-- commands -->
-* [`sfdx flexi:script -p <string> [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript--p-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:script -p <string> [-h <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript--p-string--h-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
-## `sfdx flexi:script -p <string> [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:script -p <string> [-h <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Executes a script that is provided sfdx context
 
@@ -41,15 +41,25 @@ Executes a script that is provided sfdx context
 Executes a script that is provided sfdx context
 
 USAGE
-  $ sfdx flexi:script -p <string> [-u <string>] [--apiversion <string>] [--json] [--loglevel 
-  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+  $ sfdx flexi:script -p <string> [-h <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
+  [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
+  -d, --hookcontextpath=hookcontextpath                                             The path to hook context - this is
+                                                                                    typically used for testing
+
+  -h, --hookcontext=hookcontext                                                     The hook context - typically passed
+                                                                                    from the hook script or can be
+                                                                                    provided for testing
+
   -p, --path=path                                                                   (required) The path of the script to
                                                                                     execute
 
   -u, --targetusername=targetusername                                               username or alias for the target
                                                                                     org; overrides default target org
+
+  -v, --targetdevhubusername=targetdevhubusername                                   username or alias for the dev hub
+                                                                                    org; overrides default dev hub org
 
   --apiversion=apiversion                                                           override the api version used for
                                                                                     api requests made by this command
@@ -59,8 +69,10 @@ OPTIONS
   --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging level for
                                                                                     this command invocation
 
-EXAMPLE
+EXAMPLES
   $ sfdx flexi:script --path <script file path>
+  $ sfdx flexi:script --path <script file path> --hookcontext <hook context json>
+  $ sfdx flexi:script --path <script file path> --hookcontextpath <hook context json path>
 ```
 
 _See code: [lib/commands/flexi/script.js](https://github.com/the-money/flexi-hooks/blob/v1.0.0/lib/commands/flexi/script.js)_
