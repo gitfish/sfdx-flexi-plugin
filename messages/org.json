@@ -1,0 +1,4 @@
+{
+    "commandDescription": "Executes a script that is provided sfdx context",
+    "pathFlagDescription": "The path of the script to execute"
+}

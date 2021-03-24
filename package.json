@@ -1,0 +1,72 @@
+{
+  "name": "flexi-hooks",
+  "description": "Flexible sfdx hooks",
+  "version": "1.0.0",
+  "author": "Michael Fisher",
+  "bugs": "https://github.com/the-money/flexi-hooks/issues",
+  "dependencies": {
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/errors": "^1",
+    "@salesforce/command": "^2",
+    "@salesforce/core": "^2",
+    "resolve": "^1.20.0",
+    "tslib": "^1"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1",
+    "@oclif/plugin-help": "^2",
+    "@oclif/test": "^1",
+    "@salesforce/dev-config": "1.4.1",
+    "@types/chai": "^4",
+    "@types/mocha": "^5",
+    "@types/node": "^10",
+    "chai": "^4",
+    "globby": "^8",
+    "mocha": "^5",
+    "nyc": "^14",
+    "tslint": "^5"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/lib",
+    "/messages",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://github.com/the-money/flexi-hooks",
+  "keywords": [
+    "force",
+    "salesforce",
+    "sfdx",
+    "salesforcedx",
+    "sfdx-plugin"
+  ],
+  "license": "MIT",
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "sfdx",
+    "hooks": {
+      "predeploy": "./lib/hooks/predeploy",
+      "postdeploy": "./lib/hooks/postdeploy",
+      "preretrieve": "./lib/hooks/preretrieve",
+      "postretrieve": "./lib/hooks/postretrieve",
+      "postsourceupdate": "./lib/postsourceupdate",
+      "postorgcreate": "./lib/postorgcreate"
+    },
+    "devPlugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "repository": "the-money/flexi-hooks",
+  "scripts": {
+    "lint": "tslint --project . --config tslint.json --format stylish",
+    "postpack": "rm -f oclif.manifest.json",
+    "posttest": "tslint -p test -t stylish",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "test": "nyc --extension .ts mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif-dev readme && git add README.md"
+  }
+}
