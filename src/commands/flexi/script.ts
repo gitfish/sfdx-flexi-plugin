@@ -1,6 +1,6 @@
 import { FlagsConfig, flags, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError } from '@salesforce/core';
-import { AnyJson } from '@salesforce/ts-types';
+import { AnyJson, Optional } from '@salesforce/ts-types';
 import { sync as resolveSync } from 'resolve';
 import { ScriptContext, ScriptHookContext } from '../../types';
 import * as fs from 'fs';
@@ -46,11 +46,12 @@ export class ScriptCommand extends SfdxCommand {
     }),
   };
 
-  public get hook(): ScriptHookContext {
+  private _resolveHookContext(): ScriptHookContext {
     const hookContext = this.flags.hookcontext;
     if (hookContext) {
       return JSON.parse(hookContext);
     }
+
     let hookContextPath = this.flags.hookcontextpath;
     if (hookContextPath) {
       hookContextPath = path.isAbsolute(hookContextPath)
@@ -62,7 +63,26 @@ export class ScriptCommand extends SfdxCommand {
         );
       }
     }
-    return undefined;
+    
+    return null;
+  }
+
+  private _hook: ScriptHookContext;
+  public get hook(): ScriptHookContext {
+    if(this._hook === undefined) {
+      this._hook = this._resolveHookContext();
+    }
+    return this._hook;
+  }
+
+  protected async finally(err: Optional<Error>): Promise<void> {
+    // we don't want to output anything when we're in a hook
+    if(!this.hook) {
+      return super.finally(err);
+    }
+    if(!this.flags.json) {
+      this.result.display();
+    }
   }
 
   public async run(): Promise<AnyJson> {
