@@ -5,6 +5,8 @@ import { OutputArgs, OutputFlags } from '@oclif/parser';
 import { SfdxResult, UX } from '@salesforce/command';
 
 export enum HookType {
+  prerun = "prerun",
+  postrun = "postrun",
   predeploy = "predeploy",
   postdeploy = "postdeploy",
   preretrieve = "preretrieve",

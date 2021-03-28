@@ -176,7 +176,7 @@ export const createScriptDelegate = <R = any>(
 
     const hookContext: ScriptHookContext = {
       hookType,
-      commandId: hookOpts.commandId,
+      commandId: hookOpts.commandId || hookOpts.Command.id,
       result: hookOpts.result as any
     };
 

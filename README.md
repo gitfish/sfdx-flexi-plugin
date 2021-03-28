@@ -23,7 +23,7 @@ $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-sfdx-flexi-plugin/1.0.0 darwin-x64 node-v14.15.1
+sfdx-flexi-plugin/2.0.0 darwin-x64 node-v14.15.1
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -75,7 +75,7 @@ EXAMPLES
   $ sfdx flexi:script --path <script file path> --hookcontextpath <hook context json path>
 ```
 
-_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v1.0.0/lib/commands/flexi/script.js)_
+_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v2.0.0/lib/commands/flexi/script.js)_
 <!-- commandsstop -->
 <!-- debugging-your-plugin -->
 # Debugging your plugin
