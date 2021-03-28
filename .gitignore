@@ -6,3 +6,7 @@
 /package-lock.json
 /tmp
 node_modules
+.editorconfig
+.vscode/launch.json
+.vscode/settings.json
+.vscode/tasks.json
