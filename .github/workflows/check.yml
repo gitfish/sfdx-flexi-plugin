@@ -6,7 +6,7 @@ on:
       - main
 jobs:
   lint:
-    name: prettier
+    name: lint
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -21,7 +21,7 @@ jobs:
       run: npm run lint
     
   build:
-    name: typescript-build
+    name: build
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
