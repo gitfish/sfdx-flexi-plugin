@@ -4,14 +4,11 @@ sfdx-flexi-plugin
 
 
 
-[![Version](https://img.shields.io/npm/v/sfdx-sample-plugin.svg)](https://npmjs.org/package/sfdx-sample-plugin)
-[![CircleCI](https://circleci.com/gh/the-money/sfdx-sample-plugin/tree/master.svg?style=shield)](https://circleci.com/gh/the-money/sfdx-sample-plugin/tree/master)
+[![Version](https://img.shields.io/npm/v/sfdx-flexi-plugin.svg)](https://npmjs.org/package/sfdx-flexi-plugin)
 [![Appveyor CI](https://ci.appveyor.com/api/projects/status/github/the-money/sfdx-sample-plugin?branch=master&svg=true)](https://ci.appveyor.com/project/heroku/sfdx-sample-plugin/branch/master)
 [![Codecov](https://codecov.io/gh/the-money/sfdx-sample-plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/the-money/sfdx-sample-plugin)
-[![Greenkeeper](https://badges.greenkeeper.io/the-money/sfdx-sample-plugin.svg)](https://greenkeeper.io/)
-[![Known Vulnerabilities](https://snyk.io/test/github/the-money/sfdx-sample-plugin/badge.svg)](https://snyk.io/test/github/the-money/sfdx-sample-plugin)
-[![Downloads/week](https://img.shields.io/npm/dw/sfdx-sample-plugin.svg)](https://npmjs.org/package/sfdx-sample-plugin)
-[![License](https://img.shields.io/npm/l/sfdx-sample-plugin.svg)](https://github.com/the-money/sfdx-sample-plugin/blob/master/package.json)
+[![Downloads/week](https://img.shields.io/npm/dw/sfdx-flexi-plugin.svg)](https://npmjs.org/package/sfdx-flexi-plugin)
+[![License](https://img.shields.io/npm/l/sfdx-flexi-plugin.svg)](https://github.com/the-money/sfdx-flexi-plugin/blob/master/package.json)
 
 <!-- toc -->
 * [Debugging your plugin](#debugging-your-plugin)
