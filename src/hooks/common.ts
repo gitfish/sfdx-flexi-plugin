@@ -174,6 +174,9 @@ export const createScriptDelegate = <R = any>(
       };
     }
 
+    console.log('-- Hook Command');
+    console.log(hookOpts.Command);
+
     const hookContext: ScriptHookContext = {
       hookType,
       commandId: hookOpts.commandId || hookOpts.Command.id,

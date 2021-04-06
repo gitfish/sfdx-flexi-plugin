@@ -64,6 +64,7 @@
   },
   "repository": "gitfish/sfdx-flexi-plugin",
   "scripts": {
+    "build": "tsc",
     "lint": "tslint --project . --config tslint.json --format stylish",
     "postpack": "rm -f oclif.manifest.json",
     "posttest": "tslint -p test -t stylish",
