@@ -1,18 +1,17 @@
-import { DeployResult } from "jsforce";
+import { SfdxResult, UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { OutputArgs, OutputFlags } from '@oclif/parser';
-import { SfdxResult, UX } from '@salesforce/command';
+import { DeployResult } from 'jsforce';
 
 export enum HookType {
-  prerun = "prerun",
-  postrun = "postrun",
-  predeploy = "predeploy",
-  postdeploy = "postdeploy",
-  preretrieve = "preretrieve",
-  postretrieve = "postretrieve",
-  postsourceupdate = "postsourceupdate",
-  postorgcreate = "postorgcreate",
+  prerun = 'prerun',
+  postrun = 'postrun',
+  predeploy = 'predeploy',
+  postdeploy = 'postdeploy',
+  preretrieve = 'preretrieve',
+  postretrieve = 'postretrieve',
+  postsourceupdate = 'postsourceupdate',
+  postorgcreate = 'postorgcreate'
 }
 
 export interface WorkspaceElement {
@@ -65,23 +64,26 @@ export interface PostRetrieveResult {
   [itemName: string]: PostRetrieveItem;
 }
 
-export interface PostDeployResult extends DeployResult {}
+export type PostDeployResult = DeployResult;
+
+export type HookResult =
+  | PreDeployResult
+  | PostDeployResult
+  | PreRetrieveResult
+  | PostRetrieveResult
+  | PostOrgCreateResult
+  | PostSourceUpdateResult
+  | unknown;
 
 export interface ScriptHookContext {
   hookType: HookType;
   commandId: string;
-  result:
-    | PreDeployResult
-    | PostDeployResult
-    | PreRetrieveResult
-    | PostRetrieveResult
-    | PostOrgCreateResult
-    | PostSourceUpdateResult;
+  result: HookResult;
 }
 
 /**
-* This is the context provided to the script
-*/
+ * This is the context provided to the script
+ */
 export interface ScriptContext {
   logger: Logger;
   ux: UX;
@@ -90,8 +92,8 @@ export interface ScriptContext {
   hubOrg?: Org;
   project?: SfdxProject;
   result: SfdxResult;
-  flags: OutputFlags<any>;
-  args: OutputArgs<any>;
+  flags: unknown;
+  args: unknown;
   varargs?: JsonMap;
   hook?: ScriptHookContext; // if we're running from a hook
 }

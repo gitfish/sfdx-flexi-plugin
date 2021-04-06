@@ -16,9 +16,9 @@ jobs:
       with:
         node-version: '14.x'
     - name: Install packages
-      run: npm install prettier
-    - name: Run Style Check
-      run: npx prettier -c **.ts
+      run: npm i
+    - name: Run Linter
+      run: npm run lint
     
   build:
     name: typescript-build

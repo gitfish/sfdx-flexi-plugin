@@ -1,34 +1,31 @@
-import { Command, Hook } from "@oclif/config";
-import { SfdxProject, SfdxProjectJson } from "@salesforce/core";
-import { JsonMap } from "@salesforce/ts-types";
-import * as path from "path";
-import * as fs from "fs";
-import { ScriptCommand } from "../commands/flexi/script";
-import { HookType, ScriptHookContext } from "../types";
+import { Command, Hook } from '@oclif/config';
+import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
+import { JsonMap } from '@salesforce/ts-types';
+import * as fs from 'fs';
+import * as path from 'path';
+import { ScriptCommand } from '../commands/flexi/script';
+import { HookResult, HookType, ScriptHookContext } from '../types';
 
-export interface HookOptions<R = any> {
+export interface HookOptions {
   Command: Command.Class;
   argv: string[];
   commandId: string;
-  result?: R;
+  result?: HookResult;
 }
 
-// tslint:disable-next-line:no-any
-export interface HookFunction<R = any> {
-  (this: Hook.Context, options: HookOptions<R>): Promise<any>;
-}
+export type HookFunction = (this: Hook.Context, options: HookOptions) => Promise<unknown>;
 
 export enum ErrorBehaviour {
-  exit = "exit",
-  log = "log",
-  throw = "throw",
+  exit = 'exit',
+  log = 'log',
+  throw = 'throw'
 }
 
-const DEFAULT_PROJECT_HOOKS_DIR = "hooks";
+const DEFAULT_PROJECT_HOOKS_DIR = 'hooks';
 
 export enum FlagType {
-  string = "string",
-  boolean = "boolean"
+  string = 'string',
+  boolean = 'boolean'
 }
 
 export interface FlagSpec {
@@ -39,7 +36,7 @@ export interface FlagSpec {
 
 export const getFlagIndex = (argv: string[], spec: FlagSpec): number => {
   let idx = argv.indexOf(`--${spec.name}`);
-  if(idx < 0 && spec.char) {
+  if (idx < 0 && spec.char) {
     idx = argv.indexOf(`-${spec.char}`);
   }
   return idx;
@@ -49,26 +46,26 @@ export const containsFlag = (argv: string[], spec: FlagSpec): boolean => {
   return getFlagIndex(argv, spec) >= 0;
 };
 
-export const getFlagValue = (argv: string[], spec: FlagSpec): any => {
+export const getFlagValue = (argv: string[], spec: FlagSpec): unknown => {
   const idx = getFlagIndex(argv, spec);
-  if(idx >= 0) {
-    if(spec.type === FlagType.boolean) {
+  if (idx >= 0) {
+    if (spec.type === FlagType.boolean) {
       return true;
-    } else if(argv.length > idx + 1) {
+    } else if (argv.length > idx + 1) {
       return argv[idx + 1];
     }
   }
 };
 
 export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec[]) => {
-  if(specs) {
+  if (specs) {
     specs.forEach(spec => {
-      if(!containsFlag(dest, spec)) {
+      if (!containsFlag(dest, spec)) {
         const value = getFlagValue(source, spec);
-        if(value) {
+        if (value) {
           dest.push(`--${spec.name}`);
-          if(spec.type === FlagType.string) {
-            dest.push(value);
+          if (spec.type === FlagType.string) {
+            dest.push(value as string);
           }
         }
      }
@@ -76,14 +73,14 @@ export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec
   }
 };
 
-const scriptCopyFlagSpecs: FlagSpec[] = []
+const scriptCopyFlagSpecs: FlagSpec[] = [];
 
 // pass on any flags supported by the script command - this is not ideal - probably a cleaner way
-if(ScriptCommand.requiresUsername) {
+if (ScriptCommand.requiresUsername) {
   scriptCopyFlagSpecs.push({ name: 'targetusername', char: 'u', type: FlagType.string });
   scriptCopyFlagSpecs.push({ name: 'apiversion', type: FlagType.string });
 }
-if(ScriptCommand.requiresDevhubUsername) {
+if (ScriptCommand.requiresDevhubUsername) {
   scriptCopyFlagSpecs.push({ name: 'targetdevhubusername', char: 'v', type: FlagType.string });
 }
 scriptCopyFlagSpecs.push({ name: 'json', type: FlagType.boolean });
@@ -95,11 +92,11 @@ scriptCopyFlagSpecs.push({ name: 'json', type: FlagType.boolean });
  * @param hookType the type of hook to create
  * @returns a HookFunction
  */
-export const createScriptDelegate = <R = any>(
+export const createScriptDelegate = (
   hookType: HookType
 ): HookFunction => {
   // Note that we're using a standard function as arrow functions are bound to the current 'this'.
-  return async function (hookOpts: HookOptions<R>) {
+  return async function(hookOpts: HookOptions) {
     const project = await SfdxProject.resolve();
 
     if (!project) {
@@ -117,7 +114,7 @@ export const createScriptDelegate = <R = any>(
     let scriptPath;
     // NOTE that a script config can be a string or an object of the
     if (scriptConfig) {
-      if (typeof scriptConfig === "string") {
+      if (typeof scriptConfig === 'string') {
         scriptPath = scriptConfig as string;
       } else {
         // if disabled return
@@ -149,7 +146,7 @@ export const createScriptDelegate = <R = any>(
       ? scriptPath
       : path.join(project.getPath(), scriptPath);
 
-    if(!fs.existsSync(scriptPath)) {
+    if (!fs.existsSync(scriptPath)) {
       return;
     }
 
@@ -159,38 +156,35 @@ export const createScriptDelegate = <R = any>(
       errorBehaviour = ErrorBehaviour.exit;
     }
 
-    let errorHandler: (error: any) => void;
+    let errorHandler: (error: string | Error) => void;
     if (errorBehaviour === ErrorBehaviour.throw) {
-      errorHandler = (error) => {
+      errorHandler = error => {
         throw error;
       };
     } else if (errorBehaviour === ErrorBehaviour.log) {
-      errorHandler = (error) => {
+      errorHandler = error => {
         this.log(error);
       };
     } else {
-      errorHandler = (error) => {
+      errorHandler = error => {
         this.error(error);
       };
     }
 
-    console.log('-- Hook Command');
-    console.log(hookOpts.Command);
-
     const hookContext: ScriptHookContext = {
       hookType,
       commandId: hookOpts.commandId || hookOpts.Command.id,
-      result: hookOpts.result as any
+      result: hookOpts.result
     };
 
     // build our script command arguments
-    const scriptCommandArgs: string[] = [`--path`, scriptPath, '--hookcontext', JSON.stringify(hookContext)];
+    const scriptCommandArgs: string[] = ['--path', scriptPath, '--hookcontext', JSON.stringify(hookContext)];
     copyFlagValues(hookOpts.argv, scriptCommandArgs, scriptCopyFlagSpecs);
 
     // run our script command
     try {
       await ScriptCommand.run(scriptCommandArgs);
-    } catch(error) {
+    } catch (error) {
       errorHandler(error);
     }
   };

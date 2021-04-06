@@ -1,10 +1,10 @@
-import { FlagsConfig, flags, SfdxCommand } from '@salesforce/command';
+import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError } from '@salesforce/core';
 import { AnyJson, Optional } from '@salesforce/ts-types';
-import { sync as resolveSync } from 'resolve';
-import { ScriptContext, ScriptHookContext } from '../../types';
 import * as fs from 'fs';
 import * as path from 'path';
+import { sync as resolveSync } from 'resolve';
+import { ScriptContext, ScriptHookContext } from '../../types';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -14,76 +14,45 @@ Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'org');
 
 export class ScriptCommand extends SfdxCommand {
+  public get hook(): ScriptHookContext {
+    if (this._hook === undefined) {
+      this._hook = this._resolveHookContext();
+    }
+    return this._hook;
+  }
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
-    `$ sfdx flexi:script --path <script file path>`,
-    `$ sfdx flexi:script --path <script file path> --hookcontext <hook context json>`,
-    `$ sfdx flexi:script --path <script file path> --hookcontextpath <hook context json path>`,
+    '$ sfdx flexi:script --path <script file path>',
+    '$ sfdx flexi:script --path <script file path> --hookcontext <hook context json>',
+    '$ sfdx flexi:script --path <script file path> --hookcontextpath <hook context json path>'
   ];
 
-  static requiresUsername = true;
+  public static requiresUsername = true;
 
-  static requiresDevhubUsername = true;
+  public static requiresDevhubUsername = true;
 
-  static requiresProject = true;
+  public static requiresProject = true;
 
   protected static flagsConfig: FlagsConfig = {
     path: flags.string({
       char: 'p',
       required: true,
-      description: messages.getMessage('pathFlagDescription'),
+      description: messages.getMessage('pathFlagDescription')
     }),
     hookcontext: flags.string({
       char: 'h',
       required: false,
-      description: messages.getMessage('hookContextFlagDescription'),
+      description: messages.getMessage('hookContextFlagDescription')
     }),
     hookcontextpath: flags.string({
       char: 'd',
       required: false,
-      description: messages.getMessage('hookContextPathFlagDescription'),
-    }),
+      description: messages.getMessage('hookContextPathFlagDescription')
+    })
   };
 
-  private _resolveHookContext(): ScriptHookContext {
-    const hookContext = this.flags.hookcontext;
-    if (hookContext) {
-      return JSON.parse(hookContext);
-    }
-
-    let hookContextPath = this.flags.hookcontextpath;
-    if (hookContextPath) {
-      hookContextPath = path.isAbsolute(hookContextPath)
-        ? hookContextPath
-        : path.join(this.project.getPath(), hookContextPath);
-      if (fs.existsSync(hookContextPath)) {
-        return JSON.parse(
-          fs.readFileSync(hookContextPath, { encoding: 'utf8' })
-        );
-      }
-    }
-    
-    return null;
-  }
-
   private _hook: ScriptHookContext;
-  public get hook(): ScriptHookContext {
-    if(this._hook === undefined) {
-      this._hook = this._resolveHookContext();
-    }
-    return this._hook;
-  }
-
-  protected async finally(err: Optional<Error>): Promise<void> {
-    // we don't want to output anything when we're in a hook
-    if(!this.hook) {
-      return super.finally(err);
-    }
-    if(!this.flags.json) {
-      this.result.display();
-    }
-  }
 
   public async run(): Promise<AnyJson> {
     let scriptPath = this.flags.path;
@@ -101,7 +70,7 @@ export class ScriptCommand extends SfdxCommand {
     if (scriptPath.endsWith('.ts')) {
       const tsNodeModule = resolveSync('ts-node', {
         basedir: this.project.getPath(),
-        preserveSymLinks: true,
+        preserveSymLinks: true
       });
       if (tsNodeModule) {
         const tsNode = require(tsNodeModule);
@@ -116,9 +85,9 @@ export class ScriptCommand extends SfdxCommand {
             skipDefaultLibCheck: true,
             moduleResolution: 'node',
             allowJs: true,
-            esModuleInterop: true,
+            esModuleInterop: true
           },
-          files: [scriptPath],
+          files: [scriptPath]
         });
       } else {
         throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
@@ -139,7 +108,7 @@ export class ScriptCommand extends SfdxCommand {
         org: this.org,
         project: this.project,
         varargs: this.varargs,
-        hook: this.hook,
+        hook: this.hook
       };
 
       const scriptModule = require(scriptPath);
@@ -151,5 +120,36 @@ export class ScriptCommand extends SfdxCommand {
       }
       return result;
     }
+  }
+
+  protected async finally(err: Optional<Error>): Promise<void> {
+    // we don't want to output anything when we're in a hook
+    if (!this.hook) {
+      return super.finally(err);
+    }
+    if (!this.flags.json) {
+      this.result.display();
+    }
+  }
+
+  private _resolveHookContext(): ScriptHookContext {
+    const hookContext = this.flags.hookcontext;
+    if (hookContext) {
+      return JSON.parse(hookContext);
+    }
+
+    let hookContextPath = this.flags.hookcontextpath;
+    if (hookContextPath) {
+      hookContextPath = path.isAbsolute(hookContextPath)
+        ? hookContextPath
+        : path.join(this.project.getPath(), hookContextPath);
+      if (fs.existsSync(hookContextPath)) {
+        return JSON.parse(
+          fs.readFileSync(hookContextPath, { encoding: 'utf8' })
+        );
+      }
+    }
+
+    return null;
   }
 }
