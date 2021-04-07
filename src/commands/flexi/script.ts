@@ -1,9 +1,9 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError } from '@salesforce/core';
 import { AnyJson, Optional } from '@salesforce/ts-types';
-import * as fs from 'fs';
 import * as pathUtils from 'path';
 import { sync as resolveSync } from 'resolve';
+import FileServiceRef from '../../service/FileServiceRef';
 import { ScriptContext, ScriptHookContext, ScriptModule, ScriptModuleFunc } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -12,10 +12,6 @@ Messages.importMessagesDirectory(__dirname);
 // Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'org');
-
-export const defaultFileExistsCheck = (filePath: string) => {
-  return fs.existsSync(filePath);
-};
 
 export class ScriptCommand extends SfdxCommand {
   public get hook(): ScriptHookContext {
@@ -39,8 +35,6 @@ export class ScriptCommand extends SfdxCommand {
   public static requiresProject = true;
 
   public static requireFunc: NodeRequireFunction = require;
-
-  public static fileExistsCheck: (path: string) => boolean = defaultFileExistsCheck;
 
   protected static flagsConfig: FlagsConfig = {
     path: flags.string({
@@ -69,7 +63,7 @@ export class ScriptCommand extends SfdxCommand {
       ? scriptPath
       : pathUtils.join(this.project.getPath(), scriptPath);
 
-    if (!ScriptCommand.fileExistsCheck(scriptPath)) {
+    if (!FileServiceRef.current.existsSync(scriptPath)) {
       throw new SfdxError(`Unable to find script: ${scriptPath}`);
     }
 
@@ -156,9 +150,9 @@ export class ScriptCommand extends SfdxCommand {
       hookContextPath = pathUtils.isAbsolute(hookContextPath)
         ? hookContextPath
         : pathUtils.join(this.project.getPath(), hookContextPath);
-      if (fs.existsSync(hookContextPath)) {
+      if (FileServiceRef.current.existsSync(hookContextPath)) {
         return JSON.parse(
-          fs.readFileSync(hookContextPath, { encoding: 'utf8' })
+          FileServiceRef.current.readFileSync(hookContextPath)
         );
       }
     }

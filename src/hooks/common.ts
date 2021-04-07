@@ -1,9 +1,9 @@
 import { Command, Hook } from '@oclif/config';
 import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import * as fs from 'fs';
 import * as path from 'path';
 import { ScriptCommand } from '../commands/flexi/script';
+import FileServiceRef from '../service/FileServiceRef';
 import { HookResult, HookType, ScriptHookContext } from '../types';
 
 export interface HookOptions {
@@ -132,7 +132,7 @@ export const createScriptDelegate = (
         DEFAULT_PROJECT_HOOKS_DIR,
         `${hookType}.js`
       );
-      if (!fs.existsSync(scriptPath)) {
+      if (!FileServiceRef.current.existsSync(scriptPath)) {
         scriptPath = path.join(
           project.getPath(),
           DEFAULT_PROJECT_HOOKS_DIR,
@@ -146,7 +146,7 @@ export const createScriptDelegate = (
       ? scriptPath
       : path.join(project.getPath(), scriptPath);
 
-    if (!fs.existsSync(scriptPath)) {
+    if (!FileServiceRef.current.existsSync(scriptPath)) {
       return;
     }
 
