@@ -3,7 +3,8 @@ import { Messages, SfdxError } from '@salesforce/core';
 import { AnyJson, Optional } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { sync as resolveSync } from 'resolve';
-import FileServiceRef from '../../service/FileServiceRef';
+import { FileService, fileServiceRef } from '../../common/FileService';
+import { requireFunctionRef } from '../../common/Require';
 import { ScriptContext, ScriptHookContext, ScriptModule, ScriptModuleFunc } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -15,11 +16,35 @@ const messages = Messages.loadMessages('sfdx-flexi-plugin', 'org');
 
 export class ScriptCommand extends SfdxCommand {
   public get hook(): ScriptHookContext {
-    if (this._hook === undefined) {
+    if (!this._hook) {
       this._hook = this._resolveHookContext();
     }
     return this._hook;
   }
+  public set hook(value: ScriptHookContext) {
+    this._hook = value;
+  }
+
+  public get requireFunc(): NodeRequireFunction {
+    if (!this._requireFunc) {
+      return requireFunctionRef.current;
+    }
+    return this._requireFunc;
+  }
+  public set requireFunc(value: NodeRequireFunction) {
+    this._requireFunc = value;
+  }
+
+  public get fileService(): FileService {
+    if (!this._fileService) {
+      return fileServiceRef.current;
+    }
+    return this._fileService;
+  }
+  public set fileService(value: FileService) {
+    this._fileService = value;
+  }
+
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
@@ -33,8 +58,6 @@ export class ScriptCommand extends SfdxCommand {
   public static requiresDevhubUsername = true;
 
   public static requiresProject = true;
-
-  public static requireFunc: NodeRequireFunction = require;
 
   protected static flagsConfig: FlagsConfig = {
     path: flags.string({
@@ -55,6 +78,8 @@ export class ScriptCommand extends SfdxCommand {
   };
 
   private _hook: ScriptHookContext;
+  private _requireFunc: NodeRequireFunction;
+  private _fileService: FileService;
 
   public async run(): Promise<AnyJson> {
     let scriptPath = this.flags.path;
@@ -63,7 +88,7 @@ export class ScriptCommand extends SfdxCommand {
       ? scriptPath
       : pathUtils.join(this.project.getPath(), scriptPath);
 
-    if (!FileServiceRef.current.existsSync(scriptPath)) {
+    if (!this.fileService.existsSync(scriptPath)) {
       throw new SfdxError(`Unable to find script: ${scriptPath}`);
     }
 
@@ -101,7 +126,7 @@ export class ScriptCommand extends SfdxCommand {
         preserveSymLinks: true
       });
       if (tsNodeModule) {
-        const tsNode = ScriptCommand.requireFunc(tsNodeModule);
+        const tsNode = this.requireFunc(tsNodeModule);
         tsNode.register({
           transpileOnly: true,
           skipProject: true,
@@ -126,7 +151,7 @@ export class ScriptCommand extends SfdxCommand {
       }
     }
 
-    return ScriptCommand.requireFunc(scriptPath) as ScriptModule | ScriptModuleFunc;
+    return this.requireFunc(scriptPath) as ScriptModule | ScriptModuleFunc;
   }
 
   protected async finally(err: Optional<Error>): Promise<void> {
@@ -150,9 +175,9 @@ export class ScriptCommand extends SfdxCommand {
       hookContextPath = pathUtils.isAbsolute(hookContextPath)
         ? hookContextPath
         : pathUtils.join(this.project.getPath(), hookContextPath);
-      if (FileServiceRef.current.existsSync(hookContextPath)) {
+      if (this.fileService.existsSync(hookContextPath)) {
         return JSON.parse(
-          FileServiceRef.current.readFileSync(hookContextPath)
+          this.fileService.readFileSync(hookContextPath)
         );
       }
     }

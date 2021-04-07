@@ -6,7 +6,7 @@ import { createScriptDelegate } from "./common";
 */
 
 describe('Hook Common', () => {
-    
+
     test('hook delegate default', () => {
         /*
         const mockResolveProject = jest.fn();

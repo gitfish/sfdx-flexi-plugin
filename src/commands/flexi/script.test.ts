@@ -1,5 +1,6 @@
 import { Org, SfdxProject } from '@salesforce/core';
-import FileServiceRef from '../../service/FileServiceRef';
+import { fileServiceRef } from '../../common/FileService';
+import { requireFunctionRef } from '../../common/Require';
 import { HookType, PreDeployResult, ScriptContext, ScriptHookContext } from '../../types';
 import { ScriptCommand } from './script';
 
@@ -32,7 +33,7 @@ describe('flexi:script', () => {
 
         Org.create = mockOrgCreate;
 
-        FileServiceRef.current = {
+        fileServiceRef.current = {
             existsSync(path: string) {
                 return true;
             },
@@ -45,7 +46,8 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: ScriptContext;
         let tsNodeRegisterOpts;
-        ScriptCommand.requireFunc = (id: string) => {
+
+        requireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {
@@ -89,7 +91,7 @@ describe('flexi:script', () => {
 
         Org.create = mockOrgCreate;
 
-        FileServiceRef.current = {
+        fileServiceRef.current = {
             existsSync() {
                 return true;
             },
@@ -102,7 +104,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: ScriptContext;
         let tsNodeRegisterOpts;
-        ScriptCommand.requireFunc = (id: string) => {
+        requireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {
@@ -128,7 +130,7 @@ describe('flexi:script', () => {
         expect(runContext.hook).toBeFalsy();
     });
 
-    test("hook context", async () => {
+    test('hook context', async () => {
         const mockResolveProject = jest.fn();
         mockResolveProject.mockResolvedValue({
             getPath() {
@@ -147,7 +149,7 @@ describe('flexi:script', () => {
 
         Org.create = mockOrgCreate;
 
-        FileServiceRef.current = {
+        fileServiceRef.current = {
             existsSync() {
                 return true;
             },
@@ -160,7 +162,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: ScriptContext;
         let tsNodeRegisterOpts;
-        ScriptCommand.requireFunc = (id: string) => {
+        requireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {
@@ -175,7 +177,7 @@ describe('flexi:script', () => {
         };
 
         const preDeployResult: PreDeployResult = {
-            'woo': {
+            woo: {
                 mdapiFilePath: 'poo/woo/xml',
                 workspaceElements: [
                     {

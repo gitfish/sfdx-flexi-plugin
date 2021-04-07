@@ -1,9 +1,9 @@
 import { Command, Hook } from '@oclif/config';
 import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import * as path from 'path';
+import * as pathUtils from 'path';
 import { ScriptCommand } from '../commands/flexi/script';
-import FileServiceRef from '../service/FileServiceRef';
+import { fileServiceRef } from '../common/FileService';
 import { HookResult, HookType, ScriptHookContext } from '../types';
 
 export interface HookOptions {
@@ -127,13 +127,13 @@ export const createScriptDelegate = (
 
     if (!scriptPath) {
       // by default we look for a script under a hooks directory in the project
-      scriptPath = path.join(
+      scriptPath = pathUtils.join(
         project.getPath(),
         DEFAULT_PROJECT_HOOKS_DIR,
         `${hookType}.js`
       );
-      if (!FileServiceRef.current.existsSync(scriptPath)) {
-        scriptPath = path.join(
+      if (!fileServiceRef.current.existsSync(scriptPath)) {
+        scriptPath = pathUtils.join(
           project.getPath(),
           DEFAULT_PROJECT_HOOKS_DIR,
           `${hookType}.ts`
@@ -142,11 +142,11 @@ export const createScriptDelegate = (
     }
 
     // make our script path absolute
-    scriptPath = path.isAbsolute(scriptPath)
+    scriptPath = pathUtils.isAbsolute(scriptPath)
       ? scriptPath
-      : path.join(project.getPath(), scriptPath);
+      : pathUtils.join(project.getPath(), scriptPath);
 
-    if (!FileServiceRef.current.existsSync(scriptPath)) {
+    if (!fileServiceRef.current.existsSync(scriptPath)) {
       return;
     }
 
