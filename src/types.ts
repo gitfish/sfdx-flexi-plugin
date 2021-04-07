@@ -92,8 +92,8 @@ export interface ScriptContext {
   hubOrg?: Org;
   project?: SfdxProject;
   result: SfdxResult;
-  flags: unknown;
-  args: unknown;
+  flags: { [key: string]: unknown };
+  args: { [key: string]: unknown };
   varargs?: JsonMap;
   hook?: ScriptHookContext; // if we're running from a hook
 }

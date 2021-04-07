@@ -13,44 +13,7 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'org');
 
-export type ModuleLoader = (modulePath: string, resolveBaseDir: string) => ScriptModule | ScriptModuleFunc;
-
-export const defaultModuleLoader: ModuleLoader = (modulePath: string, resolveBaseDir: string) => {
-  if (modulePath.endsWith('.ts')) {
-    const tsNodeModule = resolveSync('ts-node', {
-      basedir: resolveBaseDir,
-      preserveSymLinks: true
-    });
-    if (tsNodeModule) {
-      const tsNode = require(tsNodeModule);
-      tsNode.register({
-        transpileOnly: true,
-        skipProject: true,
-        compilerOptions: {
-          target: 'es2017',
-          module: 'commonjs',
-          strict: false,
-          skipLibCheck: true,
-          skipDefaultLibCheck: true,
-          moduleResolution: 'node',
-          allowJs: true,
-          esModuleInterop: true
-        },
-        files: [modulePath]
-      });
-    } else {
-      throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
-        npm install -D ts-node
-      or
-        yarn add -D ts-node
-      `);
-    }
-  }
-
-  return require(modulePath);
-};
-
-const defaultFileExistsCheck = (filePath: string) => {
+export const defaultFileExistsCheck = (filePath: string) => {
   return fs.existsSync(filePath);
 };
 
@@ -75,7 +38,7 @@ export class ScriptCommand extends SfdxCommand {
 
   public static requiresProject = true;
 
-  public static loadModule: ModuleLoader = defaultModuleLoader;
+  public static requireFunc: NodeRequireFunction = require;
 
   public static fileExistsCheck: (path: string) => boolean = defaultFileExistsCheck;
 
@@ -126,7 +89,8 @@ export class ScriptCommand extends SfdxCommand {
       hook: this.hook
     };
 
-    const scriptModule = ScriptCommand.loadModule(scriptPath, this.project.getPath());
+    const scriptModule = this.loadScriptModule(scriptPath);
+
     let result;
     if (typeof scriptModule === 'function') {
       result = await Promise.resolve(scriptModule(context));
@@ -134,6 +98,41 @@ export class ScriptCommand extends SfdxCommand {
       result = await Promise.resolve(scriptModule.run(context));
     }
     return result;
+  }
+
+  protected loadScriptModule(scriptPath: string): ScriptModule | ScriptModuleFunc {
+    if (scriptPath.endsWith('.ts')) {
+      const tsNodeModule = resolveSync('ts-node', {
+        basedir: this.project.getPath(),
+        preserveSymLinks: true
+      });
+      if (tsNodeModule) {
+        const tsNode = ScriptCommand.requireFunc(tsNodeModule);
+        tsNode.register({
+          transpileOnly: true,
+          skipProject: true,
+          compilerOptions: {
+            target: 'es2017',
+            module: 'commonjs',
+            strict: false,
+            skipLibCheck: true,
+            skipDefaultLibCheck: true,
+            moduleResolution: 'node',
+            allowJs: true,
+            esModuleInterop: true
+          },
+          files: [scriptPath]
+        });
+      } else {
+        throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
+          npm install -D ts-node
+        or
+          yarn add -D ts-node
+        `);
+      }
+    }
+
+    return ScriptCommand.requireFunc(scriptPath) as ScriptModule | ScriptModuleFunc;
   }
 
   protected async finally(err: Optional<Error>): Promise<void> {
