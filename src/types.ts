@@ -97,3 +97,9 @@ export interface ScriptContext {
   varargs?: JsonMap;
   hook?: ScriptHookContext; // if we're running from a hook
 }
+
+export type ScriptModuleFunc = (context: ScriptContext) => unknown | Promise<unknown>;
+
+export interface ScriptModule {
+  run(context: ScriptContext): unknown | Promise<unknown>;
+}
