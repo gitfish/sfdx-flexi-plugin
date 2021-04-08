@@ -75,16 +75,16 @@ export type HookResult =
   | PostSourceUpdateResult
   | unknown;
 
-export interface ScriptHookContext {
+export interface ScriptHookContext<R extends HookResult = HookResult> {
   hookType: HookType;
   commandId: string;
-  result: HookResult;
+  result: R;
 }
 
 /**
  * This is the context provided to the script
  */
-export interface ScriptContext {
+export interface ScriptContext<R extends HookResult = HookResult> {
   logger: Logger;
   ux: UX;
   configAggregator: ConfigAggregator;
@@ -92,8 +92,14 @@ export interface ScriptContext {
   hubOrg?: Org;
   project?: SfdxProject;
   result: SfdxResult;
-  flags: unknown;
-  args: unknown;
+  flags: { [key: string]: unknown };
+  args: { [key: string]: unknown };
   varargs?: JsonMap;
-  hook?: ScriptHookContext; // if we're running from a hook
+  hook?: ScriptHookContext<R>;
+}
+
+export type ScriptModuleFunc<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;
+
+export interface ScriptModule<R extends HookResult = HookResult> {
+  run(context: ScriptContext<R>): unknown | Promise<unknown>;
 }
