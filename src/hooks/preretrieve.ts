@@ -1,4 +1,4 @@
-import { HookType } from '../types';
+import { HookType, PreRetrieveResult } from '../types';
 import { createScriptDelegate } from './common';
 
-export const hook = createScriptDelegate(HookType.preretrieve);
+export const hook = createScriptDelegate<PreRetrieveResult>({ hookType: HookType.preretrieve });

@@ -3,25 +3,23 @@ import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { ScriptCommand } from '../commands/flexi/script';
-import { fileServiceRef } from '../common/FileService';
+import { FileService, fileServiceRef } from '../common/FileService';
 import { HookResult, HookType, ScriptHookContext } from '../types';
 
-export interface HookOptions {
+export interface HookOptions<R extends HookResult> {
   Command: Command.Class;
   argv: string[];
   commandId: string;
-  result?: HookResult;
+  result?: R;
 }
 
-export type HookFunction = (this: Hook.Context, options: HookOptions) => Promise<unknown>;
+export type HookFunction<R extends HookResult> = (this: Hook.Context, options: HookOptions<R>) => Promise<unknown>;
 
 export enum ErrorBehaviour {
   exit = 'exit',
   log = 'log',
   throw = 'throw'
 }
-
-const DEFAULT_PROJECT_HOOKS_DIR = 'hooks';
 
 export enum FlagType {
   string = 'string',
@@ -85,6 +83,16 @@ if (ScriptCommand.requiresDevhubUsername) {
 }
 scriptCopyFlagSpecs.push({ name: 'json', type: FlagType.boolean });
 
+export interface CreateScriptDelegateOptions {
+  hookType: HookType;
+  fileService?: FileService;
+  hooksDir?: string;
+}
+
+export const defaultScriptDelegateOptions: Partial<CreateScriptDelegateOptions> = {
+  hooksDir: 'hooks'
+};
+
 /**
  * Creates a hook function that delegates to a script with the sfdx project.
  * NOTE: By default if an exception is caught when executing the delegate script, the plugin will exit.
@@ -92,20 +100,28 @@ scriptCopyFlagSpecs.push({ name: 'json', type: FlagType.boolean });
  * @param hookType the type of hook to create
  * @returns a HookFunction
  */
-export const createScriptDelegate = (
-  hookType: HookType
-): HookFunction => {
+export const createScriptDelegate = <R extends HookResult = HookResult>(
+  opts: CreateScriptDelegateOptions
+): HookFunction<R> => {
+  opts = { ...defaultScriptDelegateOptions, ...opts };
+
   // Note that we're using a standard function as arrow functions are bound to the current 'this'.
-  return async function(hookOpts: HookOptions) {
+  return async function(hookOpts: HookOptions<R>) {
     const project = await SfdxProject.resolve();
 
     if (!project) {
       return;
     }
 
+    const { hookType, hooksDir } = opts;
+    let { fileService } = opts;
+    if (!fileService) {
+      fileService = fileServiceRef.current;
+    }
+
     // we try to find any hook configuration from the project file
-    const projectJson: SfdxProjectJson = await project.retrieveSfdxProjectJson();
-    const projectConfig = await projectJson.read();
+    const projectJson: SfdxProjectJson = project.getSfdxProjectJson();
+    const projectConfig = projectJson.getContents();
     // the flexi hooks config will be configured against the flexiHooks key in the project config
     const hookConfig = (projectConfig.hooks ||
       projectConfig.flexiHooks) as JsonMap;
@@ -126,17 +142,15 @@ export const createScriptDelegate = (
     }
 
     if (!scriptPath) {
-      // by default we look for a script under a hooks directory in the project
+      const basePath = pathUtils.isAbsolute(hooksDir) ? hooksDir : pathUtils.join(project.getPath(), hooksDir);
       scriptPath = pathUtils.join(
-        project.getPath(),
-        DEFAULT_PROJECT_HOOKS_DIR,
-        `${hookType}.js`
+       basePath,
+        `${opts.hookType}.js`
       );
-      if (!fileServiceRef.current.existsSync(scriptPath)) {
+      if (!fileService.existsSync(scriptPath)) {
         scriptPath = pathUtils.join(
-          project.getPath(),
-          DEFAULT_PROJECT_HOOKS_DIR,
-          `${hookType}.ts`
+          basePath,
+          `${opts.hookType}.ts`
         );
       }
     }
@@ -146,7 +160,7 @@ export const createScriptDelegate = (
       ? scriptPath
       : pathUtils.join(project.getPath(), scriptPath);
 
-    if (!fileServiceRef.current.existsSync(scriptPath)) {
+    if (!fileService.existsSync(scriptPath)) {
       return;
     }
 
@@ -172,8 +186,8 @@ export const createScriptDelegate = (
     }
 
     const hookContext: ScriptHookContext = {
-      hookType,
-      commandId: hookOpts.commandId || hookOpts.Command.id,
+      hookType: opts.hookType,
+      commandId: hookOpts.commandId || hookOpts.Command?.id,
       result: hookOpts.result
     };
 
