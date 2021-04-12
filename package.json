@@ -1,7 +1,7 @@
 {
   "name": "sfdx-flexi-plugin",
   "description": "The sfdx flexible plugin",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "author": "Michael Fisher",
   "bugs": "https://github.com/gitfish/sfdx-flexi-plugin/issues",
   "dependencies": {

@@ -4,6 +4,7 @@ import { AnyJson, Optional } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { sync as resolveSync } from 'resolve';
 import { FileService, fileServiceRef } from '../../common/FileService';
+import hookContextStore from '../../common/hookContextStore';
 import { requireFunctionRef } from '../../common/Require';
 import { ScriptContext, ScriptHookContext, ScriptModule, ScriptModuleFunc } from '../../types';
 
@@ -12,7 +13,7 @@ Messages.importMessagesDirectory(__dirname);
 
 // Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
 // or any library that is using the messages framework can also be loaded this way.
-const messages = Messages.loadMessages('sfdx-flexi-plugin', 'org');
+const messages = Messages.loadMessages('sfdx-flexi-plugin', 'script');
 
 export class ScriptCommand extends SfdxCommand {
   public get hook(): ScriptHookContext {
@@ -50,7 +51,7 @@ export class ScriptCommand extends SfdxCommand {
   public static examples = [
     '$ sfdx flexi:script --path <script file path>',
     '$ sfdx flexi:script --path <script file path> --hookcontext <hook context json>',
-    '$ sfdx flexi:script --path <script file path> --hookcontextpath <hook context json path>'
+    '$ sfdx flexi:script --path <script file path> --hookcontextid <hook context json path>'
   ];
 
   public static requiresUsername = true;
@@ -65,15 +66,15 @@ export class ScriptCommand extends SfdxCommand {
       required: true,
       description: messages.getMessage('pathFlagDescription')
     }),
+    hookcontextid: flags.string({
+      char: 'i',
+      required: false,
+      description: messages.getMessage('hookContextIdDescription')
+    }),
     hookcontext: flags.string({
       char: 'h',
       required: false,
       description: messages.getMessage('hookContextFlagDescription')
-    }),
-    hookcontextpath: flags.string({
-      char: 'd',
-      required: false,
-      description: messages.getMessage('hookContextPathFlagDescription')
     })
   };
 
@@ -165,21 +166,29 @@ export class ScriptCommand extends SfdxCommand {
   }
 
   private _resolveHookContext(): ScriptHookContext {
-    const hookContext = this.flags?.hookcontext;
-    if (hookContext) {
-      return JSON.parse(hookContext);
+    console.log('-- hook')
+    const hookContextId = this.flags.hookcontextid;
+    if (hookContextId) {
+      let hookContext = hookContextStore[hookContextId];
+      if (!hookContext) {
+        const hookContextPath = pathUtils.isAbsolute(hookContextId)
+        ? hookContextId
+        : pathUtils.join(this.project.getPath(), hookContextId);
+        if (this.fileService.existsSync(hookContextPath)) {
+          hookContext = JSON.parse(
+            this.fileService.readFileSync(hookContextPath)
+          );
+        }
+      }
+      if (!hookContext) {
+        throw new SfdxError(`Unable to resolve hook context from id: ${hookContextId}`);
+      }
+
+      return hookContext;
     }
 
-    let hookContextPath = this.flags?.hookcontextpath;
-    if (hookContextPath) {
-      hookContextPath = pathUtils.isAbsolute(hookContextPath)
-        ? hookContextPath
-        : pathUtils.join(this.project.getPath(), hookContextPath);
-      if (this.fileService.existsSync(hookContextPath)) {
-        return JSON.parse(
-          this.fileService.readFileSync(hookContextPath)
-        );
-      }
+    if (this.flags.hookcontext) {
+      return JSON.parse(this.flags.hookcontext);
     }
 
     return null;

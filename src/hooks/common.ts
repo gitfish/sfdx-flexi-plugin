@@ -4,6 +4,8 @@ import { JsonMap } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { ScriptCommand } from '../commands/flexi/script';
 import { FileService, fileServiceRef } from '../common/FileService';
+import hookContextStore from '../common/hookContextStore';
+import { next } from '../common/Id';
 import { HookResult, HookType, ScriptHookContext } from '../types';
 
 export interface HookOptions<R extends HookResult> {
@@ -123,23 +125,9 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
     const projectJson: SfdxProjectJson = project.getSfdxProjectJson();
     const projectConfig = projectJson.getContents();
     // the flexi hooks config will be configured against the flexiHooks key in the project config
-    const hookConfig = (projectConfig.hooks ||
-      projectConfig.flexiHooks) as JsonMap;
+    const hookConfig = projectConfig.hooks as JsonMap;
 
-    const scriptConfig = hookConfig?.scripts?.[hookType];
-    let scriptPath;
-    // NOTE that a script config can be a string or an object of the
-    if (scriptConfig) {
-      if (typeof scriptConfig === 'string') {
-        scriptPath = scriptConfig as string;
-      } else {
-        // if disabled return
-        if (scriptConfig.disabled) {
-          return;
-        }
-        scriptPath = scriptConfig.path as string;
-      }
-    }
+    let scriptPath = hookConfig?.[hookType] as string;
 
     if (!scriptPath) {
       const basePath = pathUtils.isAbsolute(hooksDir) ? hooksDir : pathUtils.join(project.getPath(), hooksDir);
@@ -191,8 +179,11 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
       result: hookOpts.result
     };
 
+    const hookContextId = next('hook');
+    hookContextStore[hookContextId] = hookContext;
+
     // build our script command arguments
-    const scriptCommandArgs: string[] = ['--path', scriptPath, '--hookcontext', JSON.stringify(hookContext)];
+    const scriptCommandArgs: string[] = ['--path', scriptPath, '--hookcontextid', hookContextId];
     copyFlagValues(hookOpts.argv, scriptCommandArgs, scriptCopyFlagSpecs);
 
     // run our script command

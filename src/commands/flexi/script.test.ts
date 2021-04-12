@@ -289,7 +289,7 @@ describe('flexi:script', () => {
             };
         };
 
-        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontextpath', 'testhookcontext.json']);
+        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontextid', 'testhookcontext.json']);
 
         expect(tsNodeRegisterOpts).toBeTruthy();
         expect(requiredId).toBe(pathUtils.join(projectPath, 'test.ts'));
