@@ -1,12 +1,8 @@
 {
-  "commandDescription": "import data to your org",
-  "pullDescription": "Exports records from the object specified.",
-  "pushDescription": "Imports records from the object specified.",
-  "pushAllDescription": "Imports records from all objects specified in the config file.",
-  "pullAllDescription": "Exports records from all objects specified in the config file.",
+  "commandDescription": "Import data to your org",
   "objectFlagDescription": "The sobject(s) that you wish to import data for.",
-  "configFileFlagDescription": "[REQUIRED] The configuration JSON file location.",
-  "dataDirFlagDescription": "The path where the reference data resides. The default is 'data'.",
-  "removeObjects": "Delete the record(s) from the target within the specified directory.",
-  "allowPartial": "Allows the operation to continue when a failure occurs."
+  "configFileFlagDescription": "[REQUIRED] The configuration file location.",
+  "dataDirFlagDescription": "The path where the reference data resides.",
+  "removeFlagDescription": "Delete the record(s) from the target within the specified directory.",
+  "allowPartialFlagDescription": "Allows the operation to continue when a failure occurs."
 }

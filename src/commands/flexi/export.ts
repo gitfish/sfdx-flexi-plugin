@@ -42,7 +42,7 @@ export default class Export extends SfdxCommand implements DataService {
       : pathUtils.join(this.project.getPath(), r);
   }
 
-  public static description = messages.getMessage('pullDescription');
+  public static description = messages.getMessage('commandDescription');
 
   public static examples = [
     `$ sfdx bourne:export -o Product2 -u myOrg -c config/cpq-cli-def.json
@@ -78,15 +78,16 @@ export default class Export extends SfdxCommand implements DataService {
   protected static flagsConfig = {
     object: flags.string({
       char: 'o',
-      description: messages.getMessage('objectDescription')
+      description: messages.getMessage('objectFlagDescription')
     }),
     configfile: flags.string({
       char: 'c',
-      description: messages.getMessage('configFileDescription')
+      description: messages.getMessage('configFileFlagDescription')
     }),
-    processall: flags.boolean({
-      char: 'a',
-      description: messages.getMessage('pullAllDescription')
+    datadir: flags.string({
+      char: 'd',
+      description: messages.getMessage('dataDirFlagDescription'),
+      default: 'data'
     })
   };
 

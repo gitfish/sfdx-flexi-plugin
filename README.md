@@ -29,14 +29,106 @@ USAGE
 ```
 <!-- usagestop -->
 <!-- commands -->
+* [`sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport--o-string--c-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport--o-array--c-string--d-string--r--p--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript--p-string--i-string--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+
+## `sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
+Export data from your org.
+
+```
+Export data from your org.
+
+USAGE
+  $ sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
+  [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+
+OPTIONS
+  -c, --configfile=configfile                                                       [REQUIRED] The configuration file
+                                                                                    location.
+
+  -d, --datadir=datadir                                                             [default: data] The path where the
+                                                                                    data resides.
+
+  -o, --object=object                                                               The sobject(s) that you wish to
+                                                                                    export data for.
+
+  -u, --targetusername=targetusername                                               username or alias for the target
+                                                                                    org; overrides default target org
+
+  -v, --targetdevhubusername=targetdevhubusername                                   username or alias for the dev hub
+                                                                                    org; overrides default dev hub org
+
+  --apiversion=apiversion                                                           override the api version used for
+                                                                                    api requests made by this command
+
+  --json                                                                            format output as json
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging level for
+                                                                                    this command invocation
+
+EXAMPLE
+  $ sfdx bourne:export -o Product2 -u myOrg -c config/cpq-cli-def.json
+       Requesting data, please wait.... Request completed! Received X records.
+```
+
+_See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v5.0.0/lib/commands/flexi/export.js)_
+
+## `sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
+Import data to your org
+
+```
+Import data to your org
+
+USAGE
+  $ sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-v <string>] [-u <string>] [--apiversion 
+  <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+
+OPTIONS
+  -c, --configfile=configfile                                                       [REQUIRED] The configuration file
+                                                                                    location.
+
+  -d, --datadir=datadir                                                             [default: data] The path where the
+                                                                                    reference data resides.
+
+  -o, --object=object                                                               The sobject(s) that you wish to
+                                                                                    import data for.
+
+  -p, --allowpartial                                                                Allows the operation to continue
+                                                                                    when a failure occurs.
+
+  -r, --remove                                                                      Delete the record(s) from the target
+                                                                                    within the specified directory.
+
+  -u, --targetusername=targetusername                                               username or alias for the target
+                                                                                    org; overrides default target org
+
+  -v, --targetdevhubusername=targetdevhubusername                                   username or alias for the dev hub
+                                                                                    org; overrides default dev hub org
+
+  --apiversion=apiversion                                                           override the api version used for
+                                                                                    api requests made by this command
+
+  --json                                                                            format output as json
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging level for
+                                                                                    this command invocation
+
+EXAMPLE
+  $ sfdx bourne:import -o Product2 -u myOrg -c config/cpq-cli-def.json
+       Deploying data, please wait.... Deployment completed!
+```
+
+_See code: [lib/commands/flexi/import.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v5.0.0/lib/commands/flexi/import.js)_
 
 ## `sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-Executes a script that is provided with sfdx context
+Executes a script that is provided with sfdx context.
 
 ```
-Executes a script that is provided with sfdx context
+Executes a script that is provided with sfdx context.
 
 USAGE
   $ sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
@@ -45,15 +137,15 @@ USAGE
 OPTIONS
   -h, --hookcontext=hookcontext                                                     The hook context - a json string
                                                                                     containing details of the hook
-                                                                                    context
+                                                                                    context.
 
   -i, --hookcontextid=hookcontextid                                                 The id of the hook context - if a
                                                                                     hook can't be found in the hook
                                                                                     context store, then this will be
-                                                                                    treated as a file path
+                                                                                    treated as a file path.
 
   -p, --path=path                                                                   (required) The path of the script to
-                                                                                    execute
+                                                                                    execute.
 
   -u, --targetusername=targetusername                                               username or alias for the target
                                                                                     org; overrides default target org
