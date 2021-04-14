@@ -166,7 +166,7 @@ export class ScriptCommand extends SfdxCommand {
   }
 
   private _resolveHookContext(): ScriptHookContext {
-    console.log('-- hook')
+    console.log('-- hook');
     const hookContextId = this.flags.hookcontextid;
     if (hookContextId) {
       let hookContext = hookContextStore[hookContextId];

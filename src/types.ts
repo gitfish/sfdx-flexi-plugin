@@ -1,7 +1,7 @@
 import { SfdxResult, UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { DeployResult } from 'jsforce';
+import { DeployResult, Record } from 'jsforce';
 
 export enum HookType {
   prerun = 'prerun',
@@ -66,6 +66,104 @@ export interface PostRetrieveResult {
 
 export type PostDeployResult = DeployResult;
 
+export interface ObjectConfig {
+  sObjectType?: string;
+  query?: string;
+  externalid?: string;
+  directory?: string;
+  filename?: string;
+  cleanupFields?: string[];
+  hasRecordTypes?: boolean;
+  enableMultiThreading?: boolean;
+}
+
+export interface Config {
+  pollTimeout?: number;
+  pollBatchSize?: number;
+  maxPollCount?: number;
+  payloadLength?: number;
+  importRetries?: number;
+  useManagedPackage?: boolean;
+  allObjects?: string[]; // NOTE: to support legacy config
+  objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
+  allowPartial?: boolean;
+}
+
+export interface ImportRequest {
+  sObjectType: string;
+  operation: string;
+  payload: Record[];
+  extIdField: string;
+}
+
+export interface RecordSaveResult {
+  recordId?: string;
+  externalId?: string;
+  message?: string;
+  result?: 'SUCCESS' | 'FAILED';
+}
+
+export interface ObjectSaveResult {
+  sObjectType: string;
+  path: string;
+  records?: Record[];
+  results?: RecordSaveResult[];
+  total?: number;
+  failure?: number;
+  success?: number;
+  failureResults?: RecordSaveResult[];
+  [key: string]: unknown;
+}
+
+export interface DataService {
+  getRecords(objectNameOrConfig: string | ObjectConfig): Promise<Record[]>;
+  saveRecords(
+    objectNameOrConfig: string | ObjectConfig,
+    records: Record[]
+  ): Promise<ObjectSaveResult>;
+}
+
+export interface DataSession {
+  config: Config;
+  objectConfigs: ObjectConfig[];
+  state: {
+    [key: string]: unknown;
+  };
+}
+
+export interface PreImportResult extends DataSession {
+  service: DataService;
+}
+
+export interface PreObjectImportResult extends PreImportResult {
+  objectConfig: ObjectConfig;
+  records: Record[];
+}
+
+export interface PostObjectImportResult extends PreObjectImportResult {
+  importResult: ObjectSaveResult;
+}
+
+export interface PostImportResult extends PreImportResult {
+  results: ObjectSaveResult[];
+}
+
+export interface PreExportResult extends DataSession {
+  service: DataService;
+}
+
+export interface PreObjectExportResult extends PreExportResult {
+  objectConfig: ObjectConfig;
+}
+
+export interface PostObjectExportResult extends PreExportResult {
+  result: ObjectSaveResult;
+}
+
+export interface PostExportResult extends DataSession {
+  results: ObjectSaveResult[];
+}
+
 export type HookResult =
   | PreDeployResult
   | PostDeployResult
@@ -73,6 +171,14 @@ export type HookResult =
   | PostRetrieveResult
   | PostOrgCreateResult
   | PostSourceUpdateResult
+  | PreImportResult
+  | PreObjectImportResult
+  | PostObjectImportResult
+  | PostImportResult
+  | PreExportResult
+  | PreObjectExportResult
+  | PostObjectExportResult
+  | PostExportResult
   | unknown;
 
 export interface ScriptHookContext<R extends HookResult = HookResult> {
