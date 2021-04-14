@@ -93,7 +93,7 @@ export class ScriptCommand extends SfdxCommand {
       throw new SfdxError(`Unable to find script: ${scriptPath}`);
     }
 
-    this.ux.log(`Executing Script: ${scriptPath}`);
+    this.ux.startSpinner(`Executing Script: ${scriptPath}`);
 
     const context: ScriptContext = {
       args: this.args,
@@ -117,6 +117,9 @@ export class ScriptCommand extends SfdxCommand {
     } else if (scriptModule.run) {
       result = await Promise.resolve(scriptModule.run(context));
     }
+
+    this.ux.stopSpinner();
+
     return result;
   }
 
@@ -166,7 +169,6 @@ export class ScriptCommand extends SfdxCommand {
   }
 
   private _resolveHookContext(): ScriptHookContext {
-    console.log('-- hook');
     const hookContextId = this.flags.hookcontextid;
     if (hookContextId) {
       let hookContext = hookContextStore[hookContextId];

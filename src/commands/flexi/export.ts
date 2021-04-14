@@ -14,7 +14,11 @@ import {
   Config,
   DataService,
   ObjectConfig,
-  ObjectSaveResult
+  ObjectSaveResult,
+  PostExportObjectResult,
+  PostExportResult,
+  PreExportObjectResult,
+  PreExportResult
 } from '../../types';
 
 const fsp = fs.promises;
@@ -30,9 +34,11 @@ export default class Export extends SfdxCommand implements DataService {
     }
     return this._dataConfig;
   }
-
   protected get objectsToProcess(): ObjectConfig[] {
-    return getObjectsToProcess(this.flags, this.dataConfig);
+    if (!this._objectsToProcess) {
+      this._objectsToProcess = getObjectsToProcess(this.flags, this.dataConfig);
+    }
+    return this._objectsToProcess;
   }
 
   protected get dataDir(): string {
@@ -64,12 +70,20 @@ export default class Export extends SfdxCommand implements DataService {
           label: 'SObject Type'
         },
         {
+          key: 'path',
+          label: 'Path'
+        },
+        {
           key: 'total',
           label: 'Total'
         },
         {
-          key: 'path',
-          label: 'Path'
+          key: 'success',
+          label: 'Success'
+        },
+        {
+          key: 'failure',
+          label: 'Failure'
         }
       ]
     }
@@ -91,29 +105,18 @@ export default class Export extends SfdxCommand implements DataService {
     })
   };
 
+  private _objectsToProcess: ObjectConfig[];
+
+  private _execState: {
+    [key: string]: unknown;
+  } = {};
+
   private _dataConfig: Config;
 
   public async run(): Promise<AnyJson> {
+    this.ux.log(`Export records from org ${this.org.getOrgId()} (${this.org.getUsername()}) to ${this.dataDir}`);
+
     const objectConfigs = this.objectsToProcess;
-    /*
-    this.context = {
-      command: {
-        args: this.args,
-        configAggregator: this.configAggregator,
-        flags: this.flags,
-        logger: this.logger,
-        ux: this.ux,
-        hubOrg: this.hubOrg,
-        org: this.org,
-        project: this.project,
-        varargs: this.varargs,
-        result: this.result,
-      },
-      config: this.dataConfig,
-      objectConfigs,
-      state: {},
-    };
-    */
 
     await this.preExport();
 
@@ -245,41 +248,39 @@ export default class Export extends SfdxCommand implements DataService {
   }
 
   private async preExportObject(objectConfig: ObjectConfig) {
-    await this.config.runHook('preexportobject', {});
-    /*
-    const scriptPath = this.dataConfig?.script?.preimportobject;
-    if (scriptPath) {
-      const context: PreExportObjectContext = {
-        ...this.context,
-        objectConfig,
-      };
-
-      await runScript<PreExportObjectContext>(scriptPath, context, {
-        tsResolveBaseDir: this.dataConfig.script.tsResolveBaseDir,
-      });
-    }
-    */
+    const hookResult: PreExportObjectResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      objectConfig,
+      service: this,
+      state: this._execState
+    };
+    await this.config.runHook('preexportobject', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 
   private async postExportObject(
     objectConfig: ObjectConfig,
     result: ObjectSaveResult
   ) {
-    await this.config.runHook('postexportobject', {});
-    /*
-    const scriptPath = this.dataConfig?.script?.postimportobject;
-    if (scriptPath) {
-      const context: PostExportObjectContext = {
-        ...this.context,
-        objectConfig,
-        records,
-      };
-
-      await runScript<PostExportObjectContext>(scriptPath, context, {
-        tsResolveBaseDir: this.dataConfig.script.tsResolveBaseDir,
-      });
-    }
-    */
+    const hookResult: PostExportObjectResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      objectConfig,
+      result,
+      service: this,
+      state: this._execState
+    };
+    await this.config.runHook('postexportobject', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 
   private getObjectPath(objectConfig: ObjectConfig): string {
@@ -297,7 +298,7 @@ export default class Export extends SfdxCommand implements DataService {
     this.ux.stopSpinner();
 
     this.ux.startSpinner(
-      `Exporting ${colors.blue(objectConfig.sObjectType)} records`
+      `Exporting ${colors.green(objectConfig.sObjectType)} records`
     );
 
     const records = await this.getRecords(objectConfig);
@@ -314,27 +315,33 @@ export default class Export extends SfdxCommand implements DataService {
   }
 
   private async preExport(): Promise<void> {
-    await this.config.runHook('preexport', {});
-    /*
-    const scriptPath = this.dataConfig?.script?.preexport;
-    if (scriptPath) {
-      await runScript<PreExportContext>(scriptPath, this.context, {
-        tsResolveBaseDir: this.dataConfig.script.tsResolveBaseDir,
-      });
-    }
-    */
+    const hookResult: PreExportResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      service: this,
+      state: this._execState
+    };
+    await this.config.runHook('preexport', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 
   private async postExport(results: ObjectSaveResult[]): Promise<void> {
-    await this.config.runHook('postexport', {});
-    /*
-    const scriptPath = this.dataConfig?.script?.postexport;
-    if (scriptPath) {
-      const context: PostExportContext = { ...this.context, results };
-      await runScript<PostExportContext>(scriptPath, context, {
-        tsResolveBaseDir: this.dataConfig.script.tsResolveBaseDir,
-      });
-    }
-    */
+    const hookResult: PostExportResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      results,
+      service: this,
+      state: this._execState
+    };
+    await this.config.runHook('postexport', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 }

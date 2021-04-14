@@ -11,7 +11,15 @@ export enum HookType {
   preretrieve = 'preretrieve',
   postretrieve = 'postretrieve',
   postsourceupdate = 'postsourceupdate',
-  postorgcreate = 'postorgcreate'
+  postorgcreate = 'postorgcreate',
+  preimport = 'preimport',
+  preimportobject = 'preimportobject',
+  postimportobject = 'postimportobject',
+  postimport = 'postimport',
+  preexport = 'preexport',
+  preexportobject = 'preexportobject',
+  postexportobject = 'postexportobject',
+  postexport = 'postexport'
 }
 
 export interface WorkspaceElement {
@@ -135,12 +143,13 @@ export interface PreImportResult extends DataSession {
   service: DataService;
 }
 
-export interface PreObjectImportResult extends PreImportResult {
+export interface PreImportObjectResult extends PreImportResult {
   objectConfig: ObjectConfig;
   records: Record[];
 }
 
-export interface PostObjectImportResult extends PreObjectImportResult {
+export interface PostImportObjectResult extends PreImportResult {
+  objectConfig: ObjectConfig;
   importResult: ObjectSaveResult;
 }
 
@@ -152,15 +161,15 @@ export interface PreExportResult extends DataSession {
   service: DataService;
 }
 
-export interface PreObjectExportResult extends PreExportResult {
+export interface PreExportObjectResult extends PreExportResult {
   objectConfig: ObjectConfig;
 }
 
-export interface PostObjectExportResult extends PreExportResult {
+export interface PostExportObjectResult extends PreExportObjectResult {
   result: ObjectSaveResult;
 }
 
-export interface PostExportResult extends DataSession {
+export interface PostExportResult extends PreExportResult {
   results: ObjectSaveResult[];
 }
 
@@ -172,12 +181,12 @@ export type HookResult =
   | PostOrgCreateResult
   | PostSourceUpdateResult
   | PreImportResult
-  | PreObjectImportResult
-  | PostObjectImportResult
+  | PreImportObjectResult
+  | PostImportObjectResult
   | PostImportResult
   | PreExportResult
-  | PreObjectExportResult
-  | PostObjectExportResult
+  | PreExportObjectResult
+  | PostExportObjectResult
   | PostExportResult
   | unknown;
 

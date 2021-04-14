@@ -17,6 +17,10 @@ import {
   ImportRequest,
   ObjectConfig,
   ObjectSaveResult,
+  PostImportObjectResult,
+  PostImportResult,
+  PreImportObjectResult,
+  PreImportResult,
   RecordSaveResult
 } from '../../types';
 
@@ -40,10 +44,15 @@ export default class Import extends SfdxCommand implements DataService {
     }
     return this._dataConfig;
   }
-
   protected get objectsToProcess(): ObjectConfig[] {
-    const sObjects = getObjectsToProcess(this.flags, this.dataConfig);
-    return this.flags.remove ? sObjects.reverse() : sObjects;
+    if (!this._objectsToProcess) {
+      const items = getObjectsToProcess(this.flags, this.dataConfig);
+      if (this.flags.remove) {
+        items.reverse();
+      }
+      this._objectsToProcess = items;
+    }
+    return this._objectsToProcess;
   }
 
   protected get dataDir(): string {
@@ -73,6 +82,10 @@ export default class Import extends SfdxCommand implements DataService {
         {
           key: 'sObjectType',
           label: 'SObject Type'
+        },
+        {
+          key: 'path',
+          label: 'Path'
         },
         {
           key: 'total',
@@ -121,6 +134,12 @@ export default class Import extends SfdxCommand implements DataService {
     splitRecords.push(records.slice(halfSize));
     return splitRecords;
   }
+
+  private _objectsToProcess: ObjectConfig[];
+
+  private _execState: {
+    [key: string]: unknown;
+  } = {};
 
   private _dataConfig: Config;
 
@@ -179,7 +198,7 @@ export default class Import extends SfdxCommand implements DataService {
     }
 
     this.ux.startSpinner(
-      `Importing ${colors.blue(objectConfig.sObjectType)} records`
+      `Importing ${colors.green(objectConfig.sObjectType)} records`
     );
 
     let retries = 0;
@@ -188,11 +207,11 @@ export default class Import extends SfdxCommand implements DataService {
     while (retries < this.dataConfig.importRetries) {
       if (retries > 0) {
         this.ux.log(
-          `Retrying ${colors.blue(objectConfig.sObjectType)} import...`
+          `Retrying ${colors.green(objectConfig.sObjectType)} import...`
         );
       }
 
-      importResult = await this.saveRecords(objectConfig, records);
+      importResult = await this.saveRecordsAttempt(objectConfig, records);
 
       if (importResult.failure === 0) {
         break;
@@ -219,27 +238,9 @@ export default class Import extends SfdxCommand implements DataService {
   }
 
   public async run(): Promise<AnyJson> {
+    this.ux.log(`Importing records from ${this.dataDir} to org ${this.org.getOrgId()} (${this.org.getUsername()})`);
+
     const objectConfigs = this.objectsToProcess;
-    /*
-    this.context = {
-      command: {
-        args: this.args,
-        configAggregator: this.configAggregator,
-        flags: this.flags,
-        logger: this.logger,
-        ux: this.ux,
-        hubOrg: this.hubOrg,
-        org: this.org,
-        project: this.project,
-        varargs: this.varargs,
-        result: this.result,
-      },
-      config: this.dataConfig,
-      objectConfigs,
-      service: this,
-      state: {},
-    };
-    */
 
     await this.preImport();
 
@@ -387,29 +388,40 @@ export default class Import extends SfdxCommand implements DataService {
   };
 
   private async preImportObject(objectConfig: ObjectConfig, records: Record[]) {
-    await this.config.runHook('preimportobject', {});
+    const hookResult: PreImportObjectResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      objectConfig,
+      records,
+      service: this,
+      state: this._execState
+    };
+    await this.config.runHook('preimportobject', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 
   private async postImportObject(
     objectConfig: ObjectConfig,
     importResult: ObjectSaveResult
   ) {
-    await this.config.runHook('postimportobject', {});
-    /*
-    const scriptPath = this.dataConfig?.script?.postimportobject;
-    if (scriptPath) {
-      const context: PostImportObjectContext = {
-        ...this.context,
-        objectConfig,
-        records,
-        importResult,
-      };
-
-      await runScript<PostImportObjectContext>(scriptPath, context, {
-        tsResolveBaseDir: this.dataConfig.script.tsResolveBaseDir,
-      });
-    }
-    */
+    const hookResult: PostImportObjectResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      objectConfig,
+      importResult,
+      service: this,
+      state: this._execState
+    };
+    await this.config.runHook('postimportobject', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 
   private async importRecordsForObject(
@@ -427,27 +439,33 @@ export default class Import extends SfdxCommand implements DataService {
   }
 
   private async preImport(): Promise<void> {
-    await this.config.runHook('preimport', {});
-    /*
-    const scriptPath = this.dataConfig?.script?.preimport;
-    if (scriptPath) {
-      await runScript<PreImportResult>(scriptPath, this.context, {
-        tsResolveBaseDir: this.dataConfig.script.tsResolveBaseDir,
-      });
-    }
-    */
+    const hookResult: PreImportResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      service: this,
+      state: this._execState
+    };
+    await this.config.runHook('preimport', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 
   private async postImport(results: ObjectSaveResult[]): Promise<void> {
-    await this.config.runHook('postimport', {});
-    /*
-    const scriptPath = this.dataConfig?.script?.postimport;
-    if (scriptPath) {
-      const context: PostImportContext = { ...this.context, results };
-      await runScript<PostImportContext>(scriptPath, context, {
-        tsResolveBaseDir: this.dataConfig.script.tsResolveBaseDir,
-      });
-    }
-    */
+    const hookResult: PostImportResult = {
+      config: this.dataConfig,
+      objectConfigs: this.objectsToProcess,
+      service: this,
+      state: this._execState,
+      results
+    };
+    await this.config.runHook('postimport', {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: hookResult
+    });
   }
 }

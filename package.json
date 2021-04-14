@@ -53,8 +53,16 @@
       "postdeploy": "./lib/hooks/postdeploy",
       "preretrieve": "./lib/hooks/preretrieve",
       "postretrieve": "./lib/hooks/postretrieve",
-      "postsourceupdate": "./lib/postsourceupdate",
-      "postorgcreate": "./lib/postorgcreate"
+      "postsourceupdate": "./lib/hooks/postsourceupdate",
+      "postorgcreate": "./lib/hooks/postorgcreate",
+      "preimport": "./lib/hooks/preimport",
+      "preimportobject": "./lib/hooks/preimportobject",
+      "postimportobject": "./lib/hooks/postimportobject",
+      "postimport": "./lib/hooks/postimport",
+      "preexport": "./lib/hooks/preexport",
+      "preexportobject": "./lib/hooks/preexportobject",
+      "postexportobject": "./lib/hooks/postexportobject",
+      "postexport": "./lib/hooks/postexport"
     },
     "devPlugins": [
       "@oclif/plugin-help"
