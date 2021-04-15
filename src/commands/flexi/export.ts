@@ -107,10 +107,6 @@ export default class Export extends SfdxCommand implements DataService {
 
   private _objectsToProcess: ObjectConfig[];
 
-  private _execState: {
-    [key: string]: unknown;
-  } = {};
-
   private _dataConfig: Config;
 
   public async run(): Promise<AnyJson> {
@@ -250,10 +246,8 @@ export default class Export extends SfdxCommand implements DataService {
   private async preExportObject(objectConfig: ObjectConfig) {
     const hookResult: PreExportObjectResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
-      objectConfig,
-      service: this,
-      state: this._execState
+      scope: this.objectsToProcess,
+      objectConfig
     };
     await this.config.runHook('preexportobject', {
       Command: this.ctor,
@@ -269,11 +263,9 @@ export default class Export extends SfdxCommand implements DataService {
   ) {
     const hookResult: PostExportObjectResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
+      scope: this.objectsToProcess,
       objectConfig,
-      result,
-      service: this,
-      state: this._execState
+      result
     };
     await this.config.runHook('postexportobject', {
       Command: this.ctor,
@@ -317,9 +309,7 @@ export default class Export extends SfdxCommand implements DataService {
   private async preExport(): Promise<void> {
     const hookResult: PreExportResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
-      service: this,
-      state: this._execState
+      scope: this.objectsToProcess
     };
     await this.config.runHook('preexport', {
       Command: this.ctor,
@@ -332,10 +322,8 @@ export default class Export extends SfdxCommand implements DataService {
   private async postExport(results: ObjectSaveResult[]): Promise<void> {
     const hookResult: PostExportResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
-      results,
-      service: this,
-      state: this._execState
+      scope: this.objectsToProcess,
+      results
     };
     await this.config.runHook('postexport', {
       Command: this.ctor,

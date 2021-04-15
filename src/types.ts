@@ -131,16 +131,9 @@ export interface DataService {
   ): Promise<ObjectSaveResult>;
 }
 
-export interface DataSession {
+export interface PreImportResult {
   config: Config;
-  objectConfigs: ObjectConfig[];
-  state: {
-    [key: string]: unknown;
-  };
-}
-
-export interface PreImportResult extends DataSession {
-  service: DataService;
+  scope: ObjectConfig[];
 }
 
 export interface PreImportObjectResult extends PreImportResult {
@@ -157,9 +150,7 @@ export interface PostImportResult extends PreImportResult {
   results: ObjectSaveResult[];
 }
 
-export interface PreExportResult extends DataSession {
-  service: DataService;
-}
+export type PreExportResult = PreImportResult;
 
 export interface PreExportObjectResult extends PreExportResult {
   objectConfig: ObjectConfig;

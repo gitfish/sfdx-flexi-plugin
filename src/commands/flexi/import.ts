@@ -137,10 +137,6 @@ export default class Import extends SfdxCommand implements DataService {
 
   private _objectsToProcess: ObjectConfig[];
 
-  private _execState: {
-    [key: string]: unknown;
-  } = {};
-
   private _dataConfig: Config;
 
   public async getRecords(
@@ -220,6 +216,10 @@ export default class Import extends SfdxCommand implements DataService {
       retries++;
     }
 
+    this.ux.stopSpinner(`${importResult.total} records processed`);
+
+    this.ux.table(importResult.results, objectImportResultTableOptions);
+
     if (
       importResult.failure > 0 &&
       !this.dataConfig.allowPartial &&
@@ -229,10 +229,6 @@ export default class Import extends SfdxCommand implements DataService {
         `Import was unsuccessful after ${this.dataConfig.importRetries} attempts`
       );
     }
-
-    this.ux.stopSpinner(`${importResult.total} records processed`);
-
-    this.ux.table(importResult.results, objectImportResultTableOptions);
 
     return importResult;
   }
@@ -390,11 +386,9 @@ export default class Import extends SfdxCommand implements DataService {
   private async preImportObject(objectConfig: ObjectConfig, records: Record[]) {
     const hookResult: PreImportObjectResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
+      scope: this.objectsToProcess,
       objectConfig,
-      records,
-      service: this,
-      state: this._execState
+      records
     };
     await this.config.runHook('preimportobject', {
       Command: this.ctor,
@@ -410,11 +404,9 @@ export default class Import extends SfdxCommand implements DataService {
   ) {
     const hookResult: PostImportObjectResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
+      scope: this.objectsToProcess,
       objectConfig,
-      importResult,
-      service: this,
-      state: this._execState
+      importResult
     };
     await this.config.runHook('postimportobject', {
       Command: this.ctor,
@@ -441,9 +433,7 @@ export default class Import extends SfdxCommand implements DataService {
   private async preImport(): Promise<void> {
     const hookResult: PreImportResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
-      service: this,
-      state: this._execState
+      scope: this.objectsToProcess
     };
     await this.config.runHook('preimport', {
       Command: this.ctor,
@@ -456,9 +446,7 @@ export default class Import extends SfdxCommand implements DataService {
   private async postImport(results: ObjectSaveResult[]): Promise<void> {
     const hookResult: PostImportResult = {
       config: this.dataConfig,
-      objectConfigs: this.objectsToProcess,
-      service: this,
-      state: this._execState,
+      scope: this.objectsToProcess,
       results
     };
     await this.config.runHook('postimport', {
