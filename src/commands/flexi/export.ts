@@ -2,14 +2,14 @@ import { flags, SfdxCommand, SfdxResult } from '@salesforce/command';
 import { Messages, SfdxError } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import * as colors from 'colors';
-import * as fs from 'fs';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
 import {
-  getDataConfig,
   getObjectsToProcess,
+  getProjectDataConfig,
   removeField
 } from '../../common/dataHelper';
+import { FileService, fileServiceRef } from '../../common/FileService';
 import {
   Config,
   DataService,
@@ -21,24 +21,32 @@ import {
   PreExportResult
 } from '../../types';
 
-const fsp = fs.promises;
-
 Messages.importMessagesDirectory(__dirname);
 
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'export');
 
 export default class Export extends SfdxCommand implements DataService {
-  protected get dataConfig(): Config {
-    if (!this._dataConfig) {
-      this._dataConfig = getDataConfig(this.flags);
+  public get fileService(): FileService {
+    if (!this.fileServiceInternal) {
+      return fileServiceRef.current;
     }
-    return this._dataConfig;
+    return this.fileServiceInternal;
+  }
+  public set fileService(value: FileService) {
+    this.fileServiceInternal = value;
+  }
+
+  protected get dataConfig(): Config {
+    if (!this.dataConfigInternal) {
+      this.dataConfigInternal = getProjectDataConfig(this.project, this.flags, this.fileService);
+    }
+    return this.dataConfigInternal;
   }
   protected get objectsToProcess(): ObjectConfig[] {
-    if (!this._objectsToProcess) {
-      this._objectsToProcess = getObjectsToProcess(this.flags, this.dataConfig);
+    if (!this.objectsToProcessInternal) {
+      this.objectsToProcessInternal = getObjectsToProcess(this.flags, this.dataConfig);
     }
-    return this._objectsToProcess;
+    return this.objectsToProcessInternal;
   }
 
   protected get dataDir(): string {
@@ -104,12 +112,13 @@ export default class Export extends SfdxCommand implements DataService {
       default: 'data'
     })
   };
+  private fileServiceInternal: FileService;
 
-  private _hookState: { [key: string]: unknown } = {};
+  private hookState: { [key: string]: unknown } = {};
 
-  private _objectsToProcess: ObjectConfig[];
+  private objectsToProcessInternal: ObjectConfig[];
 
-  private _dataConfig: Config;
+  private dataConfigInternal: Config;
 
   public async run(): Promise<AnyJson> {
     this.ux.log(`Export records from org ${this.org.getOrgId()} (${this.org.getUsername()}) to ${this.dataDir}`);
@@ -209,7 +218,7 @@ export default class Export extends SfdxCommand implements DataService {
         dirPath,
         `${fileName.replace(/\s+/g, '-')}.json`
       );
-      await fsp.writeFile(fileName, JSON.stringify(record, undefined, 2));
+      await this.fileService.writeFile(fileName, JSON.stringify(record, undefined, 2));
     });
 
     await Promise.all(promises);
@@ -234,14 +243,14 @@ export default class Export extends SfdxCommand implements DataService {
   }
 
   private async clearDirectory(dirPath: string): Promise<void> {
-    if (fs.existsSync(dirPath)) {
-      const items = await fsp.readdir(dirPath);
+    if (this.fileService.existsSync(dirPath)) {
+      const items = await this.fileService.readdir(dirPath);
       const promises = items.map(async item => {
-        await fsp.unlink(pathUtils.join(dirPath, item));
+        await this.fileService.unlink(pathUtils.join(dirPath, item));
       });
       await Promise.all(promises);
     } else {
-      fs.mkdirSync(dirPath);
+      this.fileService.mkdirSync(dirPath);
     }
   }
 
@@ -251,7 +260,7 @@ export default class Export extends SfdxCommand implements DataService {
       scope: this.objectsToProcess,
       objectConfig,
       service: this,
-      state: this._hookState
+      state: this.hookState
     };
     await this.config.runHook('preexportobject', {
       Command: this.ctor,
@@ -271,7 +280,7 @@ export default class Export extends SfdxCommand implements DataService {
       objectConfig,
       result,
       service: this,
-      state: this._hookState
+      state: this.hookState
     };
     await this.config.runHook('postexportobject', {
       Command: this.ctor,
@@ -317,7 +326,7 @@ export default class Export extends SfdxCommand implements DataService {
       config: this.dataConfig,
       scope: this.objectsToProcess,
       service: this,
-      state: this._hookState
+      state: this.hookState
     };
     await this.config.runHook('preexport', {
       Command: this.ctor,
@@ -333,7 +342,7 @@ export default class Export extends SfdxCommand implements DataService {
       scope: this.objectsToProcess,
       results,
       service: this,
-      state: this._hookState
+      state: this.hookState
     };
     await this.config.runHook('postexport', {
       Command: this.ctor,

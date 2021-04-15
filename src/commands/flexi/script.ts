@@ -5,8 +5,8 @@ import * as pathUtils from 'path';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
 import { requireFunctionRef } from '../../common/Require';
-import { loadProjectModule } from '../../common/scriptHelper';
-import { ScriptContext, ScriptHookContext, ScriptModule, ScriptModuleFunc } from '../../types';
+import { loadProjectFunction } from '../../common/scriptHelper';
+import { ScriptContext, ScriptFunction, ScriptHookContext } from '../../types';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -17,33 +17,33 @@ const messages = Messages.loadMessages('sfdx-flexi-plugin', 'script');
 
 export class ScriptCommand extends SfdxCommand {
   public get hook(): ScriptHookContext {
-    if (!this._hook) {
-      this._hook = this._resolveHookContext();
+    if (!this.hookInternal) {
+      this.hookInternal = this._resolveHookContext();
     }
-    return this._hook;
+    return this.hookInternal;
   }
   public set hook(value: ScriptHookContext) {
-    this._hook = value;
+    this.hookInternal = value;
   }
 
   public get requireFunc(): NodeRequireFunction {
-    if (!this._requireFunc) {
+    if (!this.requireFuncInternal) {
       return requireFunctionRef.current;
     }
-    return this._requireFunc;
+    return this.requireFuncInternal;
   }
   public set requireFunc(value: NodeRequireFunction) {
-    this._requireFunc = value;
+    this.requireFuncInternal = value;
   }
 
   public get fileService(): FileService {
-    if (!this._fileService) {
+    if (!this.fileServiceInternal) {
       return fileServiceRef.current;
     }
-    return this._fileService;
+    return this.fileServiceInternal;
   }
   public set fileService(value: FileService) {
-    this._fileService = value;
+    this.fileServiceInternal = value;
   }
 
   public static description = messages.getMessage('commandDescription');
@@ -78,9 +78,9 @@ export class ScriptCommand extends SfdxCommand {
     })
   };
 
-  private _hook: ScriptHookContext;
-  private _requireFunc: NodeRequireFunction;
-  private _fileService: FileService;
+  private hookInternal: ScriptHookContext;
+  private requireFuncInternal: NodeRequireFunction;
+  private fileServiceInternal: FileService;
 
   public async run(): Promise<AnyJson> {
     let scriptPath = this.flags.path;
@@ -109,21 +109,10 @@ export class ScriptCommand extends SfdxCommand {
       hook: this.hook
     };
 
-    const scriptModule = this.loadScriptModule(scriptPath);
-
     // resolve our handler func
+    const func: ScriptFunction = loadProjectFunction(this.project, scriptPath, this.requireFunc);
+
     let result;
-    let func: ScriptModuleFunc;
-    if (typeof scriptModule === 'function') {
-      func = scriptModule;
-    } else if (scriptModule !== null && typeof scriptModule === 'object') {
-      for (const key in scriptModule) {
-        if (scriptModule.hasOwnProperty(key) && typeof scriptModule[key] === 'function') {
-          func = scriptModule[key];
-          break;
-        }
-      }
-    }
     if (func) {
       result = await Promise.resolve(func(context));
     }
@@ -131,10 +120,6 @@ export class ScriptCommand extends SfdxCommand {
     this.ux.stopSpinner();
 
     return result;
-  }
-
-  protected loadScriptModule(scriptPath: string): ScriptModule | ScriptModuleFunc {
-    return loadProjectModule(this.project, scriptPath, this.requireFunc) as ScriptModule | ScriptModuleFunc;
   }
 
   protected async finally(err: Optional<Error>): Promise<void> {

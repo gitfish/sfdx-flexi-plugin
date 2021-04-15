@@ -2,7 +2,11 @@
  * This is the bourne save implementation used for import
  */
 import { Record } from 'jsforce';
-import { DataOperation, RecordSaveResult, SaveContext } from '../types';
+import { DataOperation, RecordSaveResult, SaveContext, SaveOperation } from '../types';
+
+export interface BourneConfig {
+  useManagedPackage?: boolean;
+}
 
 interface BourneImportRequest {
   sObjectType: string;
@@ -38,11 +42,12 @@ const buildRequests = (
   }
 };
 
-export const bourneSaveRequest = async (
+export const bourneImportRequest = async (
   request: BourneImportRequest,
   context: SaveContext
 ): Promise<RecordSaveResult[]> => {
-  const restUrl = context.config.useManagedPackage
+  const bourneConfig: BourneConfig = context.config.extra?.bourne;
+  const restUrl = bourneConfig?.useManagedPackage
     ? '/JSON/bourne/v1'
     : '/bourne/v1';
   return JSON.parse(
@@ -50,7 +55,7 @@ export const bourneSaveRequest = async (
   );
 };
 
-export const bourneSaver = async (
+export const bourneImport: SaveOperation = async (
   context: SaveContext
 ): Promise<RecordSaveResult[]> => {
   const results: RecordSaveResult[] = [];
@@ -64,16 +69,16 @@ export const bourneSaver = async (
   buildRequests(context, requests);
   if (context.objectConfig.enableMultiThreading) {
     const promises = requests.map(request => {
-      return bourneSaveRequest(request, context);
+      return bourneImportRequest(request, context);
     });
     const promiseResults: RecordSaveResult[][] = await Promise.all(promises);
     promiseResults.forEach(resultsHandler);
   } else {
     for (const request of requests) {
-      resultsHandler(await bourneSaveRequest(request, context));
+      resultsHandler(await bourneImportRequest(request, context));
     }
   }
   return results;
 };
 
-export { bourneSaver as default };
+export { bourneImport as default };

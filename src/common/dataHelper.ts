@@ -1,8 +1,9 @@
-import { SfdxError } from '@salesforce/core';
-import * as fs from 'fs';
+import { SfdxError, SfdxProject } from '@salesforce/core';
+import { ErrorResult, SuccessResult } from 'jsforce';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
-import { Config, ObjectConfig } from '../types';
+import { Config, DataOperation, ObjectConfig, RecordSaveResult, SaveContext, SaveOperation } from '../types';
+import { fileServiceRef } from './FileService';
 
 /**
  * Recursively remove a field from a record and child records
@@ -97,17 +98,44 @@ export const getObjectsToProcess = (
  * @param flags
  * @returns
  */
-export const getDataConfig = (flags: { [key: string]: unknown }): Config => {
-  if (fs.existsSync(flags.configfile as string)) {
+export const getProjectDataConfig = (project: SfdxProject, flags: { [key: string]: unknown }, fileService = fileServiceRef.current): Config => {
+  let configPath = flags.configfile as string;
+  if (!pathUtils.isAbsolute(configPath)) {
+    configPath = pathUtils.join(project.getPath(), configPath);
+  }
+  if (fileService.existsSync(configPath)) {
     return JSON.parse(
-      fs.readFileSync(
-        pathUtils.join(process.cwd(), flags.configfile as string),
-        {
-          encoding: 'utf8'
-        }
-      )
+      fileService.readFileSync(configPath)
     );
   }
 
-  throw new SfdxError(`Unable to find configuration file: ${flags.configfile}`);
+  throw new SfdxError(`Unable to find configuration file: ${flags.configpath}`);
+};
+
+/**
+ * Standard save operation - just uses salesforce 'standard' api
+ * @param context
+ */
+export const standardImport: SaveOperation = async (context: SaveContext): Promise<RecordSaveResult[]> => {
+  if (context.operation === DataOperation.upsert) {
+    const upsertResults = await context.org.getConnection().sobject(context.objectConfig.sObjectType).upsert(context.records, context.objectConfig.externalid, { allOrNone: !context.config.allowPartial });
+    return upsertResults ? upsertResults.map((upsertResult, index) => {
+      let message;
+      if (!upsertResult.success) {
+        const errors = (upsertResult as ErrorResult).errors;
+        if (errors) {
+          message = errors.join(';');
+        }
+      }
+      return {
+        recordId: upsertResult.success ? (upsertResult as SuccessResult).id : undefined,
+        externalId: context.records[index][context.objectConfig.externalid],
+        message,
+        result: upsertResult.success ? 'SUCCESS' : 'FAILED'
+      };
+    }) : [];
+  }
+
+  // TODO: implement delete
+  throw new SfdxError('Delete Operation not yet implemented');
 };

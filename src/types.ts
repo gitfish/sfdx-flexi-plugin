@@ -85,16 +85,23 @@ export interface ObjectConfig {
   enableMultiThreading?: boolean;
 }
 
+/**
+ * The data configuration
+ */
 export interface Config {
   pollTimeout?: number;
   pollBatchSize?: number;
   maxPollCount?: number;
   payloadLength?: number;
   importRetries?: number;
+  importHandler?: string; // defaults to standard, but can be 'bourne' to use the bourne importer
   useManagedPackage?: boolean;
   allObjects?: string[]; // NOTE: to support legacy config
   objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
   allowPartial?: boolean;
+  extra?: { // this is for any extra configuration required
+    [key: string]: unknown
+  };
 }
 
 export enum DataOperation {
@@ -106,7 +113,7 @@ export interface SaveContext {
   config: Config;
   objectConfig: ObjectConfig;
   operation: DataOperation;
-  records: Record[];
+  records: Array<Record<object>>;
   org: Org;
 }
 
@@ -117,7 +124,7 @@ export interface RecordSaveResult {
   result?: 'SUCCESS' | 'FAILED';
 }
 
-export type Saver = (context: SaveContext) => Promise<RecordSaveResult[]>;
+export type SaveOperation = (context: SaveContext) => Promise<RecordSaveResult[]>;
 
 export interface ObjectSaveResult {
   sObjectType: string;
@@ -216,8 +223,8 @@ export interface ScriptContext<R extends HookResult = HookResult> {
   hook?: ScriptHookContext<R>;
 }
 
-export type ScriptModuleFunc<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;
+export type ScriptFunction<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;
 
 export interface ScriptModule<R extends HookResult = HookResult> {
-  [key: string]: ScriptModuleFunc<R>;
+  [key: string]: ScriptFunction<R>;
 }

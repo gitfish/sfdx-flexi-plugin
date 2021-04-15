@@ -2,7 +2,8 @@
   "commandDescription": "Import data to your org",
   "objectFlagDescription": "The sobject(s) that you wish to import data for.",
   "configFileFlagDescription": "[REQUIRED] The configuration file location.",
-  "dataDirFlagDescription": "The path where the reference data resides.",
+  "dataDirFlagDescription": "The path where the data resides.",
   "removeFlagDescription": "Delete the record(s) from the target within the specified directory.",
-  "allowPartialFlagDescription": "Allows the operation to continue when a failure occurs."
+  "allowPartialFlagDescription": "Allows the operation to continue when a failure occurs.",
+  "importHandlerFlagDescription": "Allows specification of the import handler to use - will look in the internal registry first and then looks to load a module if the file exists"
 }

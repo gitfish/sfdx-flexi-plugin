@@ -14,11 +14,11 @@ export const loadProjectModule = (
   scriptPath: string,
   requireFunc: NodeRequireFunction = require
 ): unknown => {
-    scriptPath = pathUtils.isAbsolute(scriptPath)
-      ? scriptPath
-      : pathUtils.join(project.getPath(), scriptPath);
+  scriptPath = pathUtils.isAbsolute(scriptPath)
+    ? scriptPath
+    : pathUtils.join(project.getPath(), scriptPath);
 
-    if (scriptPath.endsWith('.ts')) {
+  if (scriptPath.endsWith('.ts')) {
     const tsNodeModule = resolveSync('ts-node', {
       basedir: project.getPath(),
       preserveSymLinks: true
@@ -49,5 +49,28 @@ export const loadProjectModule = (
     }
   }
 
-    return requireFunc(scriptPath);
+  return requireFunc(scriptPath);
+};
+
+export const getModuleFunction = <T>(module: T | { [key: string]: T }): T => {
+  let r: T;
+  if (typeof module === 'function') {
+    r = module;
+  } else if (module !== null && typeof module === 'object') {
+    for (const key in module as { [key: string]: T }) {
+      if (module.hasOwnProperty(key) && typeof module[key] === 'function') {
+        r = module[key];
+        break;
+      }
+    }
+  }
+  return r;
+};
+
+export const loadProjectFunction = <T>(
+  project: SfdxProject,
+  scriptPath: string,
+  requireFunc: NodeRequireFunction = require
+): T => {
+  return getModuleFunction(loadProjectModule(project, scriptPath, requireFunc)) as T;
 };

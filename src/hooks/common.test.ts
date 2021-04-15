@@ -83,6 +83,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -197,6 +212,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -314,6 +344,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -425,6 +470,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -536,6 +596,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 

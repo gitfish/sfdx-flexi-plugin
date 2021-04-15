@@ -30,7 +30,7 @@ USAGE
 <!-- usagestop -->
 <!-- commands -->
 * [`sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport--o-string--c-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
-* [`sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport--o-array--c-string--d-string--r--p--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport--o-array--c-string--d-string--r--p--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript--p-string--i-string--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
 ## `sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
@@ -75,7 +75,7 @@ EXAMPLE
 
 _See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v5.0.0/lib/commands/flexi/export.js)_
 
-## `sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Import data to your org
 
@@ -83,15 +83,21 @@ Import data to your org
 Import data to your org
 
 USAGE
-  $ sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-v <string>] [-u <string>] [--apiversion 
-  <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+  $ sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] 
+  [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
   -c, --configfile=configfile                                                       [REQUIRED] The configuration file
                                                                                     location.
 
   -d, --datadir=datadir                                                             [default: data] The path where the
-                                                                                    reference data resides.
+                                                                                    data resides.
+
+  -h, --importhandler=importhandler                                                 Allows specification of the import
+                                                                                    handler to use - will look in the
+                                                                                    internal registry first and then
+                                                                                    looks to load a module if the file
+                                                                                    exists
 
   -o, --object=object                                                               The sobject(s) that you wish to
                                                                                     import data for.
