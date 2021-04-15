@@ -87,6 +87,16 @@ export default class Import extends SfdxCommand implements DataService {
       : pathUtils.join(this.project.getPath(), r);
   }
 
+  get importHandlerKey(): string {
+    return this.flags.importhandler || this.dataConfig.importHandler || 'default';
+  }
+  get importHandler(): SaveOperation {
+    if (!this.importHandlerInternal) {
+      this.importHandlerInternal = this.resolveImportHandler();
+    }
+    return this.importHandlerInternal;
+  }
+
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
@@ -169,6 +179,8 @@ export default class Import extends SfdxCommand implements DataService {
 
   private dataConfigInternal: Config;
 
+  private importHandlerInternal: SaveOperation;
+
   public async getRecords(
     objectNameOrConfig: string | ObjectConfig
   ): Promise<Record[]> {
@@ -246,7 +258,7 @@ export default class Import extends SfdxCommand implements DataService {
       retries++;
     }
 
-    this.ux.stopSpinner(`${importResult.total} records processed`);
+    this.ux.stopSpinner(`${importResult.total} record${importResult.total > 1 ? 's' : ''} processed`);
 
     this.ux.table(importResult.results, objectImportResultTableOptions);
 
@@ -264,7 +276,7 @@ export default class Import extends SfdxCommand implements DataService {
   }
 
   public async run(): Promise<AnyJson> {
-    this.ux.log(`Importing records from ${this.dataDir} to org ${this.org.getOrgId()} (${this.org.getUsername()})`);
+    this.ux.log(`Importing records from ${this.dataDir} to org ${this.org.getOrgId()} (${this.org.getUsername()}) using ${colors.green(this.importHandlerKey)} as the import handler.`);
 
     const objectConfigs = this.objectsToProcess;
 
@@ -288,6 +300,7 @@ export default class Import extends SfdxCommand implements DataService {
     const results: RecordSaveResult[] = records.length > 0 ?
       await this._saveImpl({
           org: this.org,
+          ux: this.ux,
           config: this.dataConfig,
           objectConfig,
           operation: this.flags.remove ? DataOperation.delete : DataOperation.upsert,
@@ -307,8 +320,8 @@ export default class Import extends SfdxCommand implements DataService {
     };
   }
 
-  protected async _saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
-    const importHandlerKey = this.flags.importhandler || this.dataConfig.importHandler || 'default';
+  protected resolveImportHandler(): SaveOperation {
+    const importHandlerKey = this.importHandlerKey;
 
     let importHandler = this.importHandlers[importHandlerKey];
     if (!importHandler) {
@@ -325,7 +338,11 @@ export default class Import extends SfdxCommand implements DataService {
       throw new SfdxError(`Unable to resolve ${importHandlerKey} import handler.`);
     }
 
-    return importHandler(context);
+    return importHandler;
+  }
+
+  protected async _saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
+    return this.importHandler(context);
   }
 
   private getObjectPath(objectConfig: ObjectConfig): string {

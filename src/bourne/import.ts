@@ -8,6 +8,10 @@ export interface BourneConfig {
   useManagedPackage?: boolean;
 }
 
+export interface BourneObjectConfig {
+  enableMultiThreading?: boolean;
+}
+
 interface BourneImportRequest {
   sObjectType: string;
   operation: DataOperation;
@@ -46,7 +50,7 @@ export const bourneImportRequest = async (
   request: BourneImportRequest,
   context: SaveContext
 ): Promise<RecordSaveResult[]> => {
-  const bourneConfig: BourneConfig = context.config.extra?.bourne;
+  const bourneConfig = context.config.bourne as BourneConfig;
   const restUrl = bourneConfig?.useManagedPackage
     ? '/JSON/bourne/v1'
     : '/bourne/v1';
@@ -58,6 +62,7 @@ export const bourneImportRequest = async (
 export const bourneImport: SaveOperation = async (
   context: SaveContext
 ): Promise<RecordSaveResult[]> => {
+  const bourneObjectConfig = context.objectConfig.bourne as BourneObjectConfig;
   const results: RecordSaveResult[] = [];
   // for each of these requests, call
   const resultsHandler = (items: RecordSaveResult[]) => {
@@ -67,7 +72,7 @@ export const bourneImport: SaveOperation = async (
   };
   const requests: BourneImportRequest[] = [];
   buildRequests(context, requests);
-  if (context.objectConfig.enableMultiThreading) {
+  if (bourneObjectConfig?.enableMultiThreading) {
     const promises = requests.map(request => {
       return bourneImportRequest(request, context);
     });

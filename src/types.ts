@@ -82,7 +82,7 @@ export interface ObjectConfig {
   filename?: string;
   cleanupFields?: string[];
   hasRecordTypes?: boolean;
-  enableMultiThreading?: boolean;
+  [key: string]: unknown; // for extra config
 }
 
 /**
@@ -99,9 +99,7 @@ export interface Config {
   allObjects?: string[]; // NOTE: to support legacy config
   objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
   allowPartial?: boolean;
-  extra?: { // this is for any extra configuration required
-    [key: string]: unknown
-  };
+  [key: string]: unknown; // for extra config
 }
 
 export enum DataOperation {
@@ -115,6 +113,7 @@ export interface SaveContext {
   operation: DataOperation;
   records: Array<Record<object>>;
   org: Org;
+  ux: UX;
 }
 
 export interface RecordSaveResult {
