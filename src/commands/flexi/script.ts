@@ -2,10 +2,10 @@ import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError } from '@salesforce/core';
 import { AnyJson, Optional } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
-import { sync as resolveSync } from 'resolve';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
 import { requireFunctionRef } from '../../common/Require';
+import { loadProjectModule } from '../../common/scriptHelper';
 import { ScriptContext, ScriptHookContext, ScriptModule, ScriptModuleFunc } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -111,11 +111,21 @@ export class ScriptCommand extends SfdxCommand {
 
     const scriptModule = this.loadScriptModule(scriptPath);
 
+    // resolve our handler func
     let result;
+    let func: ScriptModuleFunc;
     if (typeof scriptModule === 'function') {
-      result = await Promise.resolve(scriptModule(context));
-    } else if (scriptModule.run) {
-      result = await Promise.resolve(scriptModule.run(context));
+      func = scriptModule;
+    } else if (scriptModule !== null && typeof scriptModule === 'object') {
+      for (const key in scriptModule) {
+        if (scriptModule.hasOwnProperty(key) && typeof scriptModule[key] === 'function') {
+          func = scriptModule[key];
+          break;
+        }
+      }
+    }
+    if (func) {
+      result = await Promise.resolve(func(context));
     }
 
     this.ux.stopSpinner();
@@ -124,38 +134,7 @@ export class ScriptCommand extends SfdxCommand {
   }
 
   protected loadScriptModule(scriptPath: string): ScriptModule | ScriptModuleFunc {
-    if (scriptPath.endsWith('.ts')) {
-      const tsNodeModule = resolveSync('ts-node', {
-        basedir: this.project.getPath(),
-        preserveSymLinks: true
-      });
-      if (tsNodeModule) {
-        const tsNode = this.requireFunc(tsNodeModule);
-        tsNode.register({
-          transpileOnly: true,
-          skipProject: true,
-          compilerOptions: {
-            target: 'es2017',
-            module: 'commonjs',
-            strict: false,
-            skipLibCheck: true,
-            skipDefaultLibCheck: true,
-            moduleResolution: 'node',
-            allowJs: true,
-            esModuleInterop: true
-          },
-          files: [scriptPath]
-        });
-      } else {
-        throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
-          npm install -D ts-node
-        or
-          yarn add -D ts-node
-        `);
-      }
-    }
-
-    return this.requireFunc(scriptPath) as ScriptModule | ScriptModuleFunc;
+    return loadProjectModule(this.project, scriptPath, this.requireFunc) as ScriptModule | ScriptModuleFunc;
   }
 
   protected async finally(err: Optional<Error>): Promise<void> {

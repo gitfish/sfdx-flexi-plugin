@@ -10,18 +10,20 @@ import * as colors from 'colors';
 import * as fs from 'fs';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
+import bourneSaver from '../../common/bourne';
 import { getDataConfig, getObjectsToProcess } from '../../common/dataHelper';
 import {
   Config,
+  DataOperation,
   DataService,
-  ImportRequest,
   ObjectConfig,
   ObjectSaveResult,
   PostImportObjectResult,
   PostImportResult,
   PreImportObjectResult,
   PreImportResult,
-  RecordSaveResult
+  RecordSaveResult,
+  SaveContext
 } from '../../types';
 
 Messages.importMessagesDirectory(__dirname);
@@ -127,13 +129,7 @@ export default class Import extends SfdxCommand implements DataService {
     })
   };
 
-  private static splitInHalf(records: Record[]): Record[][] {
-    const halfSize = Math.floor(records.length / 2);
-    const splitRecords = [];
-    splitRecords.push(records.slice(0, halfSize));
-    splitRecords.push(records.slice(halfSize));
-    return splitRecords;
-  }
+  private _hookState: { [key: string]: unknown } = {};
 
   private _objectsToProcess: ObjectConfig[];
 
@@ -207,7 +203,7 @@ export default class Import extends SfdxCommand implements DataService {
         );
       }
 
-      importResult = await this.saveRecordsAttempt(objectConfig, records);
+      importResult = await this._saveRecords(objectConfig, records);
 
       if (importResult.failure === 0) {
         break;
@@ -251,33 +247,20 @@ export default class Import extends SfdxCommand implements DataService {
     return results as AnyJson;
   }
 
-  protected async saveRecordsAttempt(
+  protected async _saveRecords(
     objectConfig: ObjectConfig,
     records: Record[]
   ): Promise<ObjectSaveResult> {
-    const results: RecordSaveResult[] = [];
-    if (records.length > 0) {
-      const resultsHandler = (items: RecordSaveResult[]) => {
-        if (items) {
-          items.forEach(item => results.push(item));
-        }
-      };
-      const requests: ImportRequest[] = [];
-      this.buildRequests(records, objectConfig, requests);
-      if (objectConfig.enableMultiThreading) {
-        const promises = requests.map(this._requestHandler);
-        const promiseResults: RecordSaveResult[][] = await Promise.all(
-          promises
-        );
-        promiseResults.forEach(resultsHandler);
-      } else {
-        for (const request of requests) {
-          resultsHandler(await this._requestHandler(request));
-        }
-      }
-    }
-    const failureResults = results.filter(result => result.result === 'FAILED'
-    );
+    const results: RecordSaveResult[] = records.length > 0 ?
+      await this._saveImpl({
+          org: this.org,
+          config: this.dataConfig,
+          objectConfig,
+          operation: this.flags.remove ? DataOperation.delete : DataOperation.upsert,
+          records
+      }) : [];
+
+    const failureResults = results.filter(result => result.result === 'FAILED');
     return {
       sObjectType: objectConfig.sObjectType,
       path: this.getObjectPath(objectConfig),
@@ -288,6 +271,11 @@ export default class Import extends SfdxCommand implements DataService {
       failure: failureResults.length,
       success: results.length - failureResults.length
     };
+  }
+
+  // TODO: we need to make this pluggable
+  protected async _saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
+    return bourneSaver(context);
   }
 
   private getObjectPath(objectConfig: ObjectConfig): string {
@@ -347,48 +335,14 @@ export default class Import extends SfdxCommand implements DataService {
     return record;
   }
 
-  private buildRequests(
-    records: Record[],
-    objectConfig: ObjectConfig,
-    payloads: ImportRequest[]
-  ) {
-    const payload = JSON.stringify(records, null, 0);
-    if (payload.length > this.dataConfig.payloadLength) {
-      const splitRecords = Import.splitInHalf(records);
-      this.buildRequests(splitRecords[0], objectConfig, payloads);
-      this.buildRequests(splitRecords[1], objectConfig, payloads);
-    } else {
-      payloads.push({
-        extIdField: objectConfig.externalid,
-        operation: this.flags.remove ? 'delete' : 'upsert',
-        payload: records,
-        sObjectType: objectConfig.sObjectType
-      });
-    }
-  }
-
-  private _requestHandler = async (
-    request: ImportRequest
-  ): Promise<RecordSaveResult[]> => {
-    const restUrl = this.dataConfig.useManagedPackage
-      ? '/JSON/bourne/v1'
-      : '/bourne/v1';
-    try {
-      return JSON.parse(
-        await this.org.getConnection().apex.post<string>(restUrl, request)
-      );
-    } catch (error) {
-      this.ux.log(error);
-      throw error;
-    }
-  };
-
   private async preImportObject(objectConfig: ObjectConfig, records: Record[]) {
     const hookResult: PreImportObjectResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
       objectConfig,
-      records
+      records,
+      service: this,
+      state: this._hookState
     };
     await this.config.runHook('preimportobject', {
       Command: this.ctor,
@@ -406,7 +360,9 @@ export default class Import extends SfdxCommand implements DataService {
       config: this.dataConfig,
       scope: this.objectsToProcess,
       objectConfig,
-      importResult
+      importResult,
+      service: this,
+      state: this._hookState
     };
     await this.config.runHook('postimportobject', {
       Command: this.ctor,
@@ -433,7 +389,9 @@ export default class Import extends SfdxCommand implements DataService {
   private async preImport(): Promise<void> {
     const hookResult: PreImportResult = {
       config: this.dataConfig,
-      scope: this.objectsToProcess
+      scope: this.objectsToProcess,
+      service: this,
+      state: this._hookState
     };
     await this.config.runHook('preimport', {
       Command: this.ctor,
@@ -447,6 +405,8 @@ export default class Import extends SfdxCommand implements DataService {
     const hookResult: PostImportResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
+      service: this,
+      state: this._hookState,
       results
     };
     await this.config.runHook('postimport', {

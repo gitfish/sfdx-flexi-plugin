@@ -105,6 +105,8 @@ export default class Export extends SfdxCommand implements DataService {
     })
   };
 
+  private _hookState: { [key: string]: unknown } = {};
+
   private _objectsToProcess: ObjectConfig[];
 
   private _dataConfig: Config;
@@ -247,7 +249,9 @@ export default class Export extends SfdxCommand implements DataService {
     const hookResult: PreExportObjectResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
-      objectConfig
+      objectConfig,
+      service: this,
+      state: this._hookState
     };
     await this.config.runHook('preexportobject', {
       Command: this.ctor,
@@ -265,7 +269,9 @@ export default class Export extends SfdxCommand implements DataService {
       config: this.dataConfig,
       scope: this.objectsToProcess,
       objectConfig,
-      result
+      result,
+      service: this,
+      state: this._hookState
     };
     await this.config.runHook('postexportobject', {
       Command: this.ctor,
@@ -309,7 +315,9 @@ export default class Export extends SfdxCommand implements DataService {
   private async preExport(): Promise<void> {
     const hookResult: PreExportResult = {
       config: this.dataConfig,
-      scope: this.objectsToProcess
+      scope: this.objectsToProcess,
+      service: this,
+      state: this._hookState
     };
     await this.config.runHook('preexport', {
       Command: this.ctor,
@@ -323,7 +331,9 @@ export default class Export extends SfdxCommand implements DataService {
     const hookResult: PostExportResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
-      results
+      results,
+      service: this,
+      state: this._hookState
     };
     await this.config.runHook('postexport', {
       Command: this.ctor,

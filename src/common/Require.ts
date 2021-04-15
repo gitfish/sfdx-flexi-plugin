@@ -5,3 +5,5 @@ export const requireFunctionRef = new Ref<NodeRequireFunction>({
         return require;
     }
 });
+
+export { requireFunctionRef as default };

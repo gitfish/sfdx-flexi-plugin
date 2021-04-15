@@ -97,11 +97,17 @@ export interface Config {
   allowPartial?: boolean;
 }
 
-export interface ImportRequest {
-  sObjectType: string;
-  operation: string;
-  payload: Record[];
-  extIdField: string;
+export enum DataOperation {
+  delete = 'delete',
+  upsert = 'upsert'
+}
+
+export interface SaveContext {
+  config: Config;
+  objectConfig: ObjectConfig;
+  operation: DataOperation;
+  records: Record[];
+  org: Org;
 }
 
 export interface RecordSaveResult {
@@ -110,6 +116,8 @@ export interface RecordSaveResult {
   message?: string;
   result?: 'SUCCESS' | 'FAILED';
 }
+
+export type Saver = (context: SaveContext) => Promise<RecordSaveResult[]>;
 
 export interface ObjectSaveResult {
   sObjectType: string;
@@ -134,6 +142,10 @@ export interface DataService {
 export interface PreImportResult {
   config: Config;
   scope: ObjectConfig[];
+  service: DataService;
+  state: {
+    [key: string]: unknown;
+  };
 }
 
 export interface PreImportObjectResult extends PreImportResult {
@@ -207,5 +219,5 @@ export interface ScriptContext<R extends HookResult = HookResult> {
 export type ScriptModuleFunc<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;
 
 export interface ScriptModule<R extends HookResult = HookResult> {
-  run(context: ScriptContext<R>): unknown | Promise<unknown>;
+  [key: string]: ScriptModuleFunc<R>;
 }
