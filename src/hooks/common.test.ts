@@ -83,6 +83,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -197,6 +212,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -285,9 +315,7 @@ describe('Hook Common', () => {
                 }
               ],
               hooks: {
-                scripts: {
-                  predeploy: 'woo.js'
-                }
+                predeploy: 'woo.js'
               }
             };
           }
@@ -316,6 +344,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -398,9 +441,7 @@ describe('Hook Common', () => {
                 }
               ],
               hooks: {
-                scripts: {
-                  predeploy: 'woo.ts'
-                }
+                predeploy: 'woo.ts'
               }
             };
           }
@@ -429,6 +470,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -511,9 +567,7 @@ describe('Hook Common', () => {
                 }
               ],
               hooks: {
-                scripts: {
-                  predeploy: 'woo.ts'
-                }
+                predeploy: 'woo.ts'
               }
             };
           }
@@ -542,6 +596,21 @@ describe('Hook Common', () => {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
+      },
+      mkdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async readdir() {
+        throw new Error('Illegal Call');
+      },
+      readdirSync() {
+        throw new Error('Illegal Call');
+      },
+      async unlink() {
+        throw new Error('Illegal Call');
+      },
+      async writeFile() {
+        throw new Error('Illegal Call');
       }
     };
 
@@ -601,118 +670,6 @@ describe('Hook Common', () => {
     expect(runContext.hook.result).toBeTruthy();
     expect(runContext.hook.result.woo).toBeTruthy();
     expect(tsNodeRegisterOpts).toBeTruthy(); // in this case, the js file is found, so no need to load ts
-
-    expect(readFilePaths.length).toBe(0);
-  });
-
-  test('hook delegate from project config disabled', async () => {
-    const projectPath = `${pathUtils.sep}test-project`;
-
-    const mockResolveProject = jest.fn();
-    mockResolveProject.mockResolvedValue({
-      getPath() {
-        return projectPath;
-      },
-      getSfdxProjectJson(): Partial<SfdxProjectJson> {
-        return {
-          getContents() {
-            return {
-              packageDirectories: [
-                {
-                  path: 'force-app',
-                  default: true
-                }
-              ],
-              hooks: {
-                scripts: {
-                  predeploy: {
-                    path: 'woo.ts',
-                    disabled: true
-                  }
-                }
-              }
-            };
-          }
-        };
-      }
-    });
-
-    SfdxProject.resolve = mockResolveProject;
-
-    const mockOrgCreate = jest.fn();
-    mockOrgCreate.mockResolvedValue({
-      getOrgId() {
-        return 'test-org-id';
-      }
-    });
-
-    Org.create = mockOrgCreate;
-
-    const readFilePaths: string[] = [];
-    fileServiceRef.current = {
-      existsSync(path: string) {
-        console.log('-- Checking Path Exists: ' + path);
-        return true;
-      },
-      readFileSync(path: string) {
-        console.log('-- Read File: ' + path);
-        readFilePaths.push(path);
-        return null;
-      }
-    };
-
-    let requiredId: string;
-    let runContext: ScriptContext<PreDeployResult>;
-    let tsNodeRegisterOpts;
-    requireFunctionRef.current = (id: string) => {
-      if (id === 'ts-node') {
-        return {
-          register(opts) {
-            tsNodeRegisterOpts = opts;
-          }
-        };
-      }
-      requiredId = id;
-      return (context: ScriptContext<PreDeployResult>) => {
-        runContext = context;
-      };
-    };
-
-    const predeploy = createScriptDelegate<PreDeployResult>({
-      hookType: HookType.predeploy
-    });
-    expect(predeploy).toBeTruthy();
-
-    const preDeployResult: PreDeployResult = {
-      woo: {
-        mdapiFilePath: 'poo/woo/xml',
-        workspaceElements: [
-          {
-            fullName: 'woo.xml',
-            metadataName: 'Woo',
-            sourcePath: 'src/woo.xml',
-            state: 'dunno',
-            deleteSupported: false
-          }
-        ]
-      }
-    };
-
-    await Promise.resolve(
-      predeploy.call(
-        {},
-        {
-          Command: null,
-          commandId: 'hook:parent',
-          argv: [],
-          result: preDeployResult
-        }
-      )
-    );
-
-    expect(requiredId).toBeFalsy();
-    expect(runContext).toBeFalsy();
-    expect(tsNodeRegisterOpts).toBeFalsy();
 
     expect(readFilePaths.length).toBe(0);
   });

@@ -1,7 +1,7 @@
 import { SfdxResult, UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { DeployResult } from 'jsforce';
+import { DeployResult, Record } from 'jsforce';
 
 export enum HookType {
   prerun = 'prerun',
@@ -11,7 +11,15 @@ export enum HookType {
   preretrieve = 'preretrieve',
   postretrieve = 'postretrieve',
   postsourceupdate = 'postsourceupdate',
-  postorgcreate = 'postorgcreate'
+  postorgcreate = 'postorgcreate',
+  preimport = 'preimport',
+  preimportobject = 'preimportobject',
+  postimportobject = 'postimportobject',
+  postimport = 'postimport',
+  preexport = 'preexport',
+  preexportobject = 'preexportobject',
+  postexportobject = 'postexportobject',
+  postexport = 'postexport'
 }
 
 export interface WorkspaceElement {
@@ -66,6 +74,109 @@ export interface PostRetrieveResult {
 
 export type PostDeployResult = DeployResult;
 
+export interface ObjectConfig {
+  sObjectType?: string;
+  query?: string;
+  externalid?: string;
+  directory?: string;
+  filename?: string;
+  cleanupFields?: string[];
+  hasRecordTypes?: boolean;
+  [key: string]: unknown; // for extra config
+}
+
+/**
+ * The data configuration
+ */
+export interface DataConfig {
+  importRetries?: number;
+  importHandler?: string; // defaults to standard, but can be 'bourne' to use the bourne importer
+  allObjects?: string[]; // NOTE: to support legacy config
+  objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
+  allowPartial?: boolean;
+  [key: string]: unknown; // for extra config
+}
+
+export enum DataOperation {
+  delete = 'delete',
+  upsert = 'upsert'
+}
+
+export interface SaveContext {
+  config: DataConfig;
+  objectConfig: ObjectConfig;
+  operation: DataOperation;
+  records: Array<Record<object>>;
+  org: Org;
+  ux: UX;
+}
+
+export interface RecordSaveResult {
+  recordId?: string;
+  externalId?: string;
+  message?: string;
+  result?: 'SUCCESS' | 'FAILED';
+}
+
+export type SaveOperation = (context: SaveContext) => Promise<RecordSaveResult[]>;
+
+export interface ObjectSaveResult {
+  sObjectType: string;
+  path: string;
+  records?: Record[];
+  results?: RecordSaveResult[];
+  total?: number;
+  failure?: number;
+  success?: number;
+  failureResults?: RecordSaveResult[];
+  [key: string]: unknown;
+}
+
+export interface DataService {
+  getRecords(objectNameOrConfig: string | ObjectConfig): Promise<Record[]>;
+  saveRecords(
+    objectNameOrConfig: string | ObjectConfig,
+    records: Record[]
+  ): Promise<ObjectSaveResult>;
+}
+
+export interface PreImportResult {
+  config: DataConfig;
+  scope: ObjectConfig[];
+  service: DataService;
+  state: {
+    [key: string]: unknown;
+  };
+}
+
+export interface PreImportObjectResult extends PreImportResult {
+  objectConfig: ObjectConfig;
+  records: Record[];
+}
+
+export interface PostImportObjectResult extends PreImportResult {
+  objectConfig: ObjectConfig;
+  importResult: ObjectSaveResult;
+}
+
+export interface PostImportResult extends PreImportResult {
+  results: ObjectSaveResult[];
+}
+
+export type PreExportResult = PreImportResult;
+
+export interface PreExportObjectResult extends PreExportResult {
+  objectConfig: ObjectConfig;
+}
+
+export interface PostExportObjectResult extends PreExportObjectResult {
+  result: ObjectSaveResult;
+}
+
+export interface PostExportResult extends PreExportResult {
+  results: ObjectSaveResult[];
+}
+
 export type HookResult =
   | PreDeployResult
   | PostDeployResult
@@ -73,6 +184,14 @@ export type HookResult =
   | PostRetrieveResult
   | PostOrgCreateResult
   | PostSourceUpdateResult
+  | PreImportResult
+  | PreImportObjectResult
+  | PostImportObjectResult
+  | PostImportResult
+  | PreExportResult
+  | PreExportObjectResult
+  | PostExportObjectResult
+  | PostExportResult
   | unknown;
 
 export interface ScriptHookContext<R extends HookResult = HookResult> {
@@ -98,8 +217,8 @@ export interface ScriptContext<R extends HookResult = HookResult> {
   hook?: ScriptHookContext<R>;
 }
 
-export type ScriptModuleFunc<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;
+export type ScriptFunction<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;
 
 export interface ScriptModule<R extends HookResult = HookResult> {
-  run(context: ScriptContext<R>): unknown | Promise<unknown>;
+  [key: string]: ScriptFunction<R>;
 }

@@ -3,7 +3,7 @@ import * as pathUtils from 'path';
 import { fileServiceRef } from '../../common/FileService';
 import { requireFunctionRef } from '../../common/Require';
 import { HookType, PreDeployResult, ScriptContext, ScriptHookContext } from '../../types';
-import { ScriptCommand } from './script';
+import ScriptCommand from './script';
 
 jest.mock('resolve', () => {
     return {
@@ -41,8 +41,22 @@ describe('flexi:script', () => {
                 return true;
             },
             readFileSync(path: string) {
-                // shouldn't be called
-                return null;
+                throw new Error('Illegal Call');
+            },
+            mkdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async readdir() {
+                throw new Error('Illegal Call');
+            },
+            readdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async unlink() {
+                throw new Error('Illegal Call');
+            },
+            async writeFile() {
+                throw new Error('Illegal Call');
             }
         };
 
@@ -100,9 +114,23 @@ describe('flexi:script', () => {
             existsSync() {
                 return true;
             },
-            readFileSync() {
-                // shouldn't be called
-                return null;
+            readFileSync(path: string) {
+                throw new Error('Illegal Call');
+            },
+            mkdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async readdir() {
+                throw new Error('Illegal Call');
+            },
+            readdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async unlink() {
+                throw new Error('Illegal Call');
+            },
+            async writeFile() {
+                throw new Error('Illegal Call');
             }
         };
 
@@ -160,9 +188,23 @@ describe('flexi:script', () => {
             existsSync() {
                 return true;
             },
-            readFileSync() {
-                // shouldn't be called
-                return null;
+            readFileSync(path: string) {
+                throw new Error('Illegal Call');
+            },
+            mkdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async readdir() {
+                throw new Error('Illegal Call');
+            },
+            readdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async unlink() {
+                throw new Error('Illegal Call');
+            },
+            async writeFile() {
+                throw new Error('Illegal Call');
             }
         };
 
@@ -269,6 +311,21 @@ describe('flexi:script', () => {
                 hookContextPathRead = path;
                 // shouldn't be called
                 return JSON.stringify(hookContext);
+            },
+            mkdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async readdir() {
+                throw new Error('Illegal Call');
+            },
+            readdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async unlink() {
+                throw new Error('Illegal Call');
+            },
+            async writeFile() {
+                throw new Error('Illegal Call');
             }
         };
 
@@ -289,7 +346,7 @@ describe('flexi:script', () => {
             };
         };
 
-        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontextpath', 'testhookcontext.json']);
+        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontextid', 'testhookcontext.json']);
 
         expect(tsNodeRegisterOpts).toBeTruthy();
         expect(requiredId).toBe(pathUtils.join(projectPath, 'test.ts'));

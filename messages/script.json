@@ -1,0 +1,6 @@
+{
+    "commandDescription": "Executes a script that is provided with sfdx context.",
+    "pathFlagDescription": "The path of the script to execute.",
+    "hookContextIdDescription": "The id of the hook context - if a hook can't be found in the hook context store, then this will be treated as a file path.",
+    "hookContextFlagDescription": "The hook context - a json string containing details of the hook context."
+}
