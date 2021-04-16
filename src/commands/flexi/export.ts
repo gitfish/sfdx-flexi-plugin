@@ -245,8 +245,8 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   private async clearDirectory(dirPath: string): Promise<void> {
     if (this.fileService.existsSync(dirPath)) {
       const items = await this.fileService.readdir(dirPath);
-      const promises = items.map(async item => {
-        await this.fileService.unlink(pathUtils.join(dirPath, item));
+      const promises = items.map(item => {
+        return this.fileService.unlink(pathUtils.join(dirPath, item));
       });
       await Promise.all(promises);
     } else {

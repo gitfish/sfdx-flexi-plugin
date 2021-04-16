@@ -142,5 +142,7 @@ export const standardImport: SaveOperation = async (context: SaveContext): Promi
 };
 
 export const defaultImportHandlerRef = new Ref<SaveOperation>({
-  current: standardImport
+  defaultSupplier() {
+    return standardImport;
+  }
 });

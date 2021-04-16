@@ -127,7 +127,7 @@ export default class ScriptCommand extends SfdxCommand {
     if (!this.hook) {
       await super.finally(err);
       // if we're in a hook and we have an error, we want to throw
-      if(err) {
+      if (err) {
         throw err;
       }
     }

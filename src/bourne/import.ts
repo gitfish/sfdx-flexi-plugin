@@ -13,12 +13,16 @@ export interface BourneObjectConfig {
   enableMultiThreading?: boolean;
 }
 
-interface BourneImportRequest {
+export interface BourneImportRequest {
   sObjectType: string;
   operation: DataOperation;
   payload: Record[];
   extIdField: string;
 }
+
+export const bourneDefaults = {
+  restPath: '/JSON/bourne/v1'
+};
 
 const splitInHalf = (records: Record[]): Record[][] => {
   const halfSize = Math.floor(records.length / 2);
@@ -48,13 +52,13 @@ const buildRequests = (
   }
 };
 
-export const bourneImportRequest = async (
+const doImport = async (
   request: BourneImportRequest,
   context: SaveContext
 ): Promise<RecordSaveResult[]> => {
   const bourneConfig = context.config.bourne as BourneConfig;
   return JSON.parse(
-    await context.org.getConnection().apex.post<string>(bourneConfig?.restPath || '/JSON/bourne/v1', request)
+    await context.org.getConnection().apex.post<string>(bourneConfig?.restPath || bourneDefaults.restPath, request)
   );
 };
 
@@ -73,13 +77,13 @@ export const bourneImport: SaveOperation = async (
   buildRequests(context, requests);
   if (bourneObjectConfig?.enableMultiThreading) {
     const promises = requests.map(request => {
-      return bourneImportRequest(request, context);
+      return doImport(request, context);
     });
     const promiseResults: RecordSaveResult[][] = await Promise.all(promises);
     promiseResults.forEach(resultsHandler);
   } else {
     for (const request of requests) {
-      resultsHandler(await bourneImportRequest(request, context));
+      resultsHandler(await doImport(request, context));
     }
   }
   return results;
