@@ -3,7 +3,7 @@ import * as pathUtils from 'path';
 import { fileServiceRef } from '../../common/FileService';
 import { requireFunctionRef } from '../../common/Require';
 import { HookType, PreDeployResult, ScriptContext, ScriptHookContext } from '../../types';
-import { ScriptCommand } from './script';
+import ScriptCommand from './script';
 
 jest.mock('resolve', () => {
     return {

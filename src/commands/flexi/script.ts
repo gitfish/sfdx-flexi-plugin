@@ -15,7 +15,7 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'script');
 
-export class ScriptCommand extends SfdxCommand {
+export default class ScriptCommand extends SfdxCommand {
   public get hook(): ScriptHookContext {
     if (!this.hookInternal) {
       this.hookInternal = this._resolveHookContext();
@@ -125,7 +125,11 @@ export class ScriptCommand extends SfdxCommand {
   protected async finally(err: Optional<Error>): Promise<void> {
     // we don't want to output anything when we're in a hook
     if (!this.hook) {
-      return super.finally(err);
+      await super.finally(err);
+      // if we're in a hook and we have an error, we want to throw
+      if(err) {
+        throw err;
+      }
     }
     if (!this.flags.json) {
       this.result.display();

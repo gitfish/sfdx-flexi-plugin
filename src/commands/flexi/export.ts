@@ -11,7 +11,7 @@ import {
 } from '../../common/dataHelper';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import {
-  Config,
+  DataConfig,
   DataService,
   ObjectConfig,
   ObjectSaveResult,
@@ -25,7 +25,7 @@ Messages.importMessagesDirectory(__dirname);
 
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'export');
 
-export default class Export extends SfdxCommand implements DataService {
+export default class ExportCommand extends SfdxCommand implements DataService {
   public get fileService(): FileService {
     if (!this.fileServiceInternal) {
       return fileServiceRef.current;
@@ -36,7 +36,7 @@ export default class Export extends SfdxCommand implements DataService {
     this.fileServiceInternal = value;
   }
 
-  protected get dataConfig(): Config {
+  protected get dataConfig(): DataConfig {
     if (!this.dataConfigInternal) {
       this.dataConfigInternal = getProjectDataConfig(this.project, this.flags, this.fileService);
     }
@@ -118,7 +118,7 @@ export default class Export extends SfdxCommand implements DataService {
 
   private objectsToProcessInternal: ObjectConfig[];
 
-  private dataConfigInternal: Config;
+  private dataConfigInternal: DataConfig;
 
   public async run(): Promise<AnyJson> {
     this.ux.log(`Export records from org ${this.org.getOrgId()} (${this.org.getUsername()}) to ${this.dataDir}`);

@@ -2,7 +2,7 @@ import { Command, Hook } from '@oclif/config';
 import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
-import { ScriptCommand } from '../commands/flexi/script';
+import ScriptCommand from '../commands/flexi/script';
 import { FileService, fileServiceRef } from '../common/FileService';
 import hookContextStore from '../common/hookContextStore';
 import { next } from '../common/Id';

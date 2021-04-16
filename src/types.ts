@@ -88,14 +88,9 @@ export interface ObjectConfig {
 /**
  * The data configuration
  */
-export interface Config {
-  pollTimeout?: number;
-  pollBatchSize?: number;
-  maxPollCount?: number;
-  payloadLength?: number;
+export interface DataConfig {
   importRetries?: number;
   importHandler?: string; // defaults to standard, but can be 'bourne' to use the bourne importer
-  useManagedPackage?: boolean;
   allObjects?: string[]; // NOTE: to support legacy config
   objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
   allowPartial?: boolean;
@@ -108,7 +103,7 @@ export enum DataOperation {
 }
 
 export interface SaveContext {
-  config: Config;
+  config: DataConfig;
   objectConfig: ObjectConfig;
   operation: DataOperation;
   records: Array<Record<object>>;
@@ -146,7 +141,7 @@ export interface DataService {
 }
 
 export interface PreImportResult {
-  config: Config;
+  config: DataConfig;
   scope: ObjectConfig[];
   service: DataService;
   state: {

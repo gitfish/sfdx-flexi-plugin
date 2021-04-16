@@ -5,7 +5,8 @@ import { Record } from 'jsforce';
 import { DataOperation, RecordSaveResult, SaveContext, SaveOperation } from '../types';
 
 export interface BourneConfig {
-  useManagedPackage?: boolean;
+  restPath?: string;
+  payloadLength?: number;
 }
 
 export interface BourneObjectConfig {
@@ -31,8 +32,9 @@ const buildRequests = (
   context: SaveContext,
   requests: BourneImportRequest[]
 ) => {
+  const bourneConfig = context.config.bourne as BourneConfig;
   const payload = JSON.stringify(context.records, null, 0);
-  if (payload.length > context.config.payloadLength) {
+  if (bourneConfig?.payloadLength && payload.length > bourneConfig?.payloadLength) {
     const splitRecords = splitInHalf(context.records);
     buildRequests({ ...context, records: splitRecords[0] }, requests);
     buildRequests({ ...context, records: splitRecords[1] }, requests);
@@ -51,11 +53,8 @@ export const bourneImportRequest = async (
   context: SaveContext
 ): Promise<RecordSaveResult[]> => {
   const bourneConfig = context.config.bourne as BourneConfig;
-  const restUrl = bourneConfig?.useManagedPackage
-    ? '/JSON/bourne/v1'
-    : '/bourne/v1';
   return JSON.parse(
-    await context.org.getConnection().apex.post<string>(restUrl, request)
+    await context.org.getConnection().apex.post<string>(bourneConfig?.restPath || '/JSON/bourne/v1', request)
   );
 };
 

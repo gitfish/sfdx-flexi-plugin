@@ -2,8 +2,9 @@ import { SfdxError, SfdxProject } from '@salesforce/core';
 import { ErrorResult, SuccessResult } from 'jsforce';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
-import { Config, DataOperation, ObjectConfig, RecordSaveResult, SaveContext, SaveOperation } from '../types';
+import { DataConfig, DataOperation, ObjectConfig, RecordSaveResult, SaveContext, SaveOperation } from '../types';
 import { fileServiceRef } from './FileService';
+import Ref from './Ref';
 
 /**
  * Recursively remove a field from a record and child records
@@ -59,7 +60,7 @@ const objectConfigKeyGetter = (item: ObjectConfig): string => {
  */
 export const getObjectsToProcess = (
   flags: { [key: string]: unknown },
-  config: Config
+  config: DataConfig
 ): ObjectConfig[] => {
   let sObjectTypes: string[];
   if (flags.object) {
@@ -98,7 +99,7 @@ export const getObjectsToProcess = (
  * @param flags
  * @returns
  */
-export const getProjectDataConfig = (project: SfdxProject, flags: { [key: string]: unknown }, fileService = fileServiceRef.current): Config => {
+export const getProjectDataConfig = (project: SfdxProject, flags: { [key: string]: unknown }, fileService = fileServiceRef.current): DataConfig => {
   let configPath = flags.configfile as string;
   if (!pathUtils.isAbsolute(configPath)) {
     configPath = pathUtils.join(project.getPath(), configPath);
@@ -139,3 +140,7 @@ export const standardImport: SaveOperation = async (context: SaveContext): Promi
   // TODO: implement delete
   throw new SfdxError('Delete Operation not yet implemented');
 };
+
+export const defaultImportHandlerRef = new Ref<SaveOperation>({
+  current: standardImport
+});
