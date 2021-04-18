@@ -93,8 +93,6 @@ export default class ScriptCommand extends SfdxCommand {
       throw new SfdxError(`Unable to find script: ${scriptPath}`);
     }
 
-    this.ux.startSpinner(`Executing Script: ${scriptPath}`);
-
     const context: ScriptContext = {
       args: this.args,
       configAggregator: this.configAggregator,
@@ -113,11 +111,15 @@ export default class ScriptCommand extends SfdxCommand {
     const func: ScriptFunction = loadProjectFunction(this.project, scriptPath, this.requireFunc);
 
     let result;
-    if (func) {
-      result = await Promise.resolve(func(context));
-    }
 
-    this.ux.stopSpinner();
+    if (func) {
+      this.ux.startSpinner(`Executing Script: ${scriptPath}`);
+      try {
+        result = await Promise.resolve(func(context));
+      } finally {
+        this.ux.stopSpinner();
+      }
+    }
 
     return result;
   }

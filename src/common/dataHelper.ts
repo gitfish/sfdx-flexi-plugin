@@ -2,7 +2,7 @@ import { SfdxError, SfdxProject } from '@salesforce/core';
 import { ErrorResult, SuccessResult } from 'jsforce';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
-import { DataConfig, DataOperation, ObjectConfig, RecordSaveResult, SaveContext, SaveOperation } from '../types';
+import { DataConfig, ObjectConfig, RecordSaveResult, SaveContext, SaveOperation } from '../types';
 import { fileServiceRef } from './FileService';
 import Ref from './Ref';
 
@@ -118,7 +118,7 @@ export const getProjectDataConfig = (project: SfdxProject, flags: { [key: string
  * @param context
  */
 export const standardImport: SaveOperation = async (context: SaveContext): Promise<RecordSaveResult[]> => {
-  if (context.operation === DataOperation.upsert) {
+  if (context.operation === 'upsert') {
     const upsertResults = await context.org.getConnection().sobject(context.objectConfig.sObjectType).upsert(context.records, context.objectConfig.externalid, { allOrNone: !context.config.allowPartial });
     return upsertResults ? upsertResults.map((upsertResult, index) => {
       let message;

@@ -2,7 +2,7 @@
  * This is the bourne save implementation used for import
  */
 import { Record } from 'jsforce';
-import { DataOperation, RecordSaveResult, SaveContext, SaveOperation } from '../types';
+import { RecordSaveResult, SaveContext, SaveOperation } from '../types';
 
 export interface BourneConfig {
   restPath?: string;
@@ -15,7 +15,7 @@ export interface BourneObjectConfig {
 
 export interface BourneImportRequest {
   sObjectType: string;
-  operation: DataOperation;
+  operation: 'upsert' | 'delete';
   payload: Record[];
   extIdField: string;
 }

@@ -20,7 +20,6 @@ import requireFunctionRef from '../../common/Require';
 import { loadProjectFunction } from '../../common/scriptHelper';
 import {
   DataConfig,
-  DataOperation,
   DataService,
   ObjectConfig,
   ObjectSaveResult,
@@ -250,54 +249,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       };
     }
 
-    this.ux.startSpinner(
-      `Importing ${colors.green(objectConfig.sObjectType)} records`
-    );
-
-    let importResult: ObjectSaveResult;
-
-    if (!this.dataConfig.importRetries || this.dataConfig.importRetries < 0) {
-      importResult = await this.saveRecordsAttempt(objectConfig, records);
-    } else {
-      let retries = 0;
-      while (retries < this.dataConfig.importRetries) {
-        if (retries > 0) {
-          this.ux.log(
-            `Retrying ${colors.green(objectConfig.sObjectType)} import...`
-          );
-        }
-
-        importResult = await this.saveRecordsAttempt(objectConfig, records);
-
-        if (importResult.failure === 0) {
-          break;
-        }
-
-        retries++;
-      }
-    }
-
-    this.ux.stopSpinner(
-      `${importResult.total} record${
-        importResult.total > 1 ? 's' : ''
-      } processed`
-    );
-
-    if (importResult.failure > 0) {
-      this.ux.table(importResult.results, objectImportResultTableOptions);
-    }
-
-    if (
-      importResult.failure > 0 &&
-      !this.dataConfig.allowPartial &&
-      !this.flags.allowpartial
-    ) {
-      throw new SfdxError(
-        `Import was unsuccessful after ${this.dataConfig.importRetries} attempts`
-      );
-    }
-
-    return importResult;
+    return this.saveRecordsInternal(objectConfig, records);
   }
 
   public async run(): Promise<AnyJson> {
@@ -324,6 +276,60 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return results as AnyJson;
   }
 
+  protected async saveRecordsInternal(
+    objectConfig: ObjectConfig,
+    records: Record[]
+  ): Promise<ObjectSaveResult> {
+      this.ux.startSpinner(
+        `Importing ${colors.green(objectConfig.sObjectType)} records`
+      );
+
+      let importResult: ObjectSaveResult;
+
+      if (!this.dataConfig.importRetries || this.dataConfig.importRetries < 0) {
+        importResult = await this.saveRecordsAttempt(objectConfig, records);
+      } else {
+        let retries = 0;
+        while (retries < this.dataConfig.importRetries) {
+          if (retries > 0) {
+            this.ux.log(
+              `Retrying ${colors.green(objectConfig.sObjectType)} import...`
+            );
+          }
+
+          importResult = await this.saveRecordsAttempt(objectConfig, records);
+
+          if (importResult.failure === 0) {
+            break;
+          }
+
+          retries++;
+        }
+      }
+
+      this.ux.stopSpinner(
+        `${importResult.total} record${
+          importResult.total > 1 ? 's' : ''
+        } processed`
+      );
+
+      if (importResult.failure > 0) {
+        this.ux.table(importResult.results, objectImportResultTableOptions);
+      }
+
+      if (
+        importResult.failure > 0 &&
+        !this.dataConfig.allowPartial &&
+        !this.flags.allowpartial
+      ) {
+        throw new SfdxError(
+          `Import was unsuccessful after ${this.dataConfig.importRetries} attempts`
+        );
+      }
+
+      return importResult;
+  }
+
   protected async saveRecordsAttempt(
     objectConfig: ObjectConfig,
     records: Record[]
@@ -336,8 +342,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
             config: this.dataConfig,
             objectConfig,
             operation: this.flags.remove
-              ? DataOperation.delete
-              : DataOperation.upsert,
+              ? 'delete'
+              : 'upsert',
             records
           })
         : [];
@@ -486,9 +492,21 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   ): Promise<ObjectSaveResult> {
     const records = await this.getRecords(objectConfig);
 
+    if (!records || records.length === 0) {
+      return {
+        sObjectType: objectConfig.sObjectType,
+        path: this.getObjectPath(objectConfig),
+        failure: 0,
+        success: 0,
+        records: [],
+        results: [],
+        total: 0
+      };
+    }
+
     await this.preImportObject(objectConfig, records);
 
-    const result = await this.saveRecords(objectConfig, records);
+    const result = await this.saveRecordsInternal(objectConfig, records);
 
     await this.postImportObject(objectConfig, result);
 
