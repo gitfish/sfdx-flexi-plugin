@@ -171,6 +171,13 @@ export default class ExportCommand extends SfdxCommand implements DataService {
         ? this.dataConfig.objects[objectNameOrConfig]
         : objectNameOrConfig;
 
+    return this.saveRecordsInternal(objectConfig, records);
+  }
+
+  protected async saveRecordsInternal(
+    objectConfig: ObjectConfig,
+    records: Record[]
+  ): Promise<ObjectSaveResult> {
     const path = this.getObjectPath(objectConfig);
 
     await this.clearDirectory(path);
@@ -183,6 +190,12 @@ export default class ExportCommand extends SfdxCommand implements DataService {
       total,
       path,
       records,
+      results: records.map(record => {
+        return {
+          externalId: record[objectConfig.externalid],
+          result: 'SUCCESS'
+        };
+      }),
       failure: 0,
       failureResults: [],
       success: total
@@ -228,7 +241,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     const cleanupFields = objectConfig.cleanupFields;
     if (cleanupFields) {
       cleanupFields.forEach(field => {
-        if (null === record[field]) {
+        if (record[field] === null) {
           delete record[field];
           let lookupField: string;
           if (field.endsWith('__r')) {
@@ -300,19 +313,27 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   private async exportObject(
     objectConfig: ObjectConfig
   ): Promise<ObjectSaveResult> {
-    await this.preExportObject(objectConfig);
+    const records = await this.getRecords(objectConfig);
 
-    this.ux.stopSpinner();
+    if (!records || records.length === 0) {
+      return {
+        sObjectType: objectConfig.sObjectType,
+        path: this.getObjectPath(objectConfig),
+        failure: 0,
+        success: 0,
+        records: [],
+        results: [],
+        total: 0
+      };
+    }
 
     this.ux.startSpinner(
       `Exporting ${colors.green(objectConfig.sObjectType)} records`
     );
 
-    const records = await this.getRecords(objectConfig);
+    await this.preExportObject(objectConfig);
 
-    this.ux.stopSpinner();
-
-    const result = await this.saveRecords(objectConfig, records);
+    const result = await this.saveRecordsInternal(objectConfig, records);
 
     await this.postExportObject(objectConfig, result);
 

@@ -97,15 +97,10 @@ export interface DataConfig {
   [key: string]: unknown; // for extra config
 }
 
-export enum DataOperation {
-  delete = 'delete',
-  upsert = 'upsert'
-}
-
 export interface SaveContext {
   config: DataConfig;
   objectConfig: ObjectConfig;
-  operation: DataOperation;
+  operation: 'upsert' | 'delete';
   records: Array<Record<object>>;
   org: Org;
   ux: UX;
