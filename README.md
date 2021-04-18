@@ -21,7 +21,7 @@ $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-sfdx-flexi-plugin/6.0.0 darwin-x64 node-v14.15.1
+sfdx-flexi-plugin/7.0.0 darwin-x64 node-v14.15.1
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -73,7 +73,7 @@ EXAMPLE
        Requesting data, please wait.... Request completed! Received X records.
 ```
 
-_See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v6.0.0/lib/commands/flexi/export.js)_
+_See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v7.0.0/lib/commands/flexi/export.js)_
 
 ## `sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -127,7 +127,7 @@ EXAMPLE
        Deploying data, please wait.... Deployment completed!
 ```
 
-_See code: [lib/commands/flexi/import.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v6.0.0/lib/commands/flexi/import.js)_
+_See code: [lib/commands/flexi/import.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v7.0.0/lib/commands/flexi/import.js)_
 
 ## `sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -173,5 +173,5 @@ EXAMPLES
   $ sfdx flexi:script --path <script file path> --hookcontextid <hook context json path>
 ```
 
-_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v6.0.0/lib/commands/flexi/script.js)_
+_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v7.0.0/lib/commands/flexi/script.js)_
 <!-- commandsstop -->

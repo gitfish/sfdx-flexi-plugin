@@ -186,8 +186,7 @@ export type HookResult =
   | PreExportResult
   | PreExportObjectResult
   | PostExportObjectResult
-  | PostExportResult
-  | unknown;
+  | PostExportResult;
 
 export interface ScriptHookContext<R extends HookResult = HookResult> {
   hookType: HookType;
