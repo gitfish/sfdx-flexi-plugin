@@ -1,6 +1,13 @@
 import { SfdxError, SfdxProject } from '@salesforce/core';
 import * as pathUtils from 'path';
 import { sync as resolveSync } from 'resolve';
+import Ref from './Ref';
+
+export type ProjectModuleLoader = (
+    project: SfdxProject,
+    scriptPath: string,
+    requireFunc: NodeRequireFunction
+  ) => unknown;
 
 /**
  * Load a project module
@@ -9,11 +16,11 @@ import { sync as resolveSync } from 'resolve';
  * @param requireFunc
  * @returns
  */
-export const loadProjectModule = (
+export const loadProjectModule: ProjectModuleLoader = (
   project: SfdxProject,
   scriptPath: string,
   requireFunc: NodeRequireFunction = require
-): unknown => {
+) => {
   scriptPath = pathUtils.isAbsolute(scriptPath)
     ? scriptPath
     : pathUtils.join(project.getPath(), scriptPath);
@@ -52,6 +59,55 @@ export const loadProjectModule = (
   return requireFunc(scriptPath);
 };
 
+interface ProjectModuleEntry {
+  module: unknown;
+  requireFunc: NodeRequireFunction;
+}
+
+const projectModuleEntries: { [key: string]: ProjectModuleEntry[] } = {};
+
+/**
+ * Loads a module and caches it
+ * @param project
+ * @param scriptPath
+ * @param requireFunc
+ * @returns
+ */
+export const loadProjectModuleCached: ProjectModuleLoader = (
+  project: SfdxProject,
+  scriptPath: string,
+  requireFunc: NodeRequireFunction = require
+) => {
+  const key = `${project.getPath()}:${scriptPath}`;
+  let entries = projectModuleEntries[key];
+  if (!entries) {
+    entries = [];
+    projectModuleEntries[key] = entries;
+  }
+
+  let entry = entries.find(e => e.requireFunc === requireFunc);
+  if (!entry) {
+    entry = {
+      module: loadProjectModule(project, scriptPath, requireFunc),
+      requireFunc
+    };
+    entries.push(entry);
+  }
+  return entry.module;
+};
+
+/**
+ * Maintains a reference to the project module loader
+ */
+export const projectModuleLoaderRef = new Ref<ProjectModuleLoader>({
+  defaultSupplier: () => loadProjectModuleCached
+});
+
+/**
+ * Resolve a function out of a module
+ * @param module
+ * @returns
+ */
 export const getModuleFunction = <T>(module: T | { [key: string]: T }): T => {
   let r: T;
   if (typeof module === 'function') {
@@ -67,10 +123,17 @@ export const getModuleFunction = <T>(module: T | { [key: string]: T }): T => {
   return r;
 };
 
-export const loadProjectFunction = <T>(
+/**
+ * Load a project function using the project module loader
+ * @param project
+ * @param scriptPath
+ * @param requireFunc
+ * @returns
+ */
+export const getProjectFunction = <T>(
   project: SfdxProject,
   scriptPath: string,
   requireFunc: NodeRequireFunction = require
 ): T => {
-  return getModuleFunction(loadProjectModule(project, scriptPath, requireFunc)) as T;
+  return getModuleFunction(projectModuleLoaderRef.current(project, scriptPath, requireFunc)) as T;
 };

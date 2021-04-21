@@ -17,7 +17,7 @@ import {
 } from '../../common/dataHelper';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import requireFunctionRef from '../../common/Require';
-import { loadProjectFunction } from '../../common/scriptHelper';
+import { getProjectFunction } from '../../common/scriptHelper';
 import {
   DataConfig,
   DataService,
@@ -372,7 +372,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
         modulePath = pathUtils.join(this.project.getPath(), modulePath);
       }
       if (this.fileService.existsSync(modulePath)) {
-        importHandler = loadProjectFunction(
+        importHandler = getProjectFunction(
           this.project,
           modulePath,
           this.requireFunc
