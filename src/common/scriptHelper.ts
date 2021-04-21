@@ -1,15 +1,13 @@
-import { SfdxError, SfdxProject } from "@salesforce/core";
-import * as pathUtils from "path";
-import { sync as resolveSync } from "resolve";
-import Ref from "./Ref";
+import { SfdxError, SfdxProject } from '@salesforce/core';
+import * as pathUtils from 'path';
+import { sync as resolveSync } from 'resolve';
+import Ref from './Ref';
 
-export interface ProjectModuleLoader {
-  (
+export type ProjectModuleLoader = (
     project: SfdxProject,
     scriptPath: string,
     requireFunc: NodeRequireFunction
-  ): unknown;
-}
+  ) => unknown;
 
 /**
  * Load a project module
@@ -27,10 +25,10 @@ export const loadProjectModule: ProjectModuleLoader = (
     ? scriptPath
     : pathUtils.join(project.getPath(), scriptPath);
 
-  if (scriptPath.endsWith(".ts")) {
-    const tsNodeModule = resolveSync("ts-node", {
+  if (scriptPath.endsWith('.ts')) {
+    const tsNodeModule = resolveSync('ts-node', {
       basedir: project.getPath(),
-      preserveSymLinks: true,
+      preserveSymLinks: true
     });
     if (tsNodeModule) {
       const tsNode = requireFunc(tsNodeModule);
@@ -38,16 +36,16 @@ export const loadProjectModule: ProjectModuleLoader = (
         transpileOnly: true,
         skipProject: true,
         compilerOptions: {
-          target: "es2017",
-          module: "commonjs",
+          target: 'es2017',
+          module: 'commonjs',
           strict: false,
           skipLibCheck: true,
           skipDefaultLibCheck: true,
-          moduleResolution: "node",
+          moduleResolution: 'node',
           allowJs: true,
-          esModuleInterop: true,
+          esModuleInterop: true
         },
-        files: [scriptPath],
+        files: [scriptPath]
       });
     } else {
       throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
@@ -71,9 +69,9 @@ const projectModuleEntries: { [key: string]: ProjectModuleEntry[] } = {};
 /**
  * Loads a module and caches it
  * @param project
- * @param scriptPath 
- * @param requireFunc 
- * @returns 
+ * @param scriptPath
+ * @param requireFunc
+ * @returns
  */
 export const loadProjectModuleCached: ProjectModuleLoader = (
   project: SfdxProject,
@@ -87,11 +85,11 @@ export const loadProjectModuleCached: ProjectModuleLoader = (
     projectModuleEntries[key] = entries;
   }
 
-  let entry = entries.find((entry) => entry.requireFunc === requireFunc);
+  let entry = entries.find(e => e.requireFunc === requireFunc);
   if (!entry) {
     entry = {
       module: loadProjectModule(project, scriptPath, requireFunc),
-      requireFunc,
+      requireFunc
     };
     entries.push(entry);
   }
@@ -108,15 +106,15 @@ export const projectModuleLoaderRef = new Ref<ProjectModuleLoader>({
 /**
  * Resolve a function out of a module
  * @param module
- * @returns 
+ * @returns
  */
 export const getModuleFunction = <T>(module: T | { [key: string]: T }): T => {
   let r: T;
-  if (typeof module === "function") {
+  if (typeof module === 'function') {
     r = module;
-  } else if (module !== null && typeof module === "object") {
+  } else if (module !== null && typeof module === 'object') {
     for (const key in module as { [key: string]: T }) {
-      if (module.hasOwnProperty(key) && typeof module[key] === "function") {
+      if (module.hasOwnProperty(key) && typeof module[key] === 'function') {
         r = module[key];
         break;
       }
@@ -127,10 +125,10 @@ export const getModuleFunction = <T>(module: T | { [key: string]: T }): T => {
 
 /**
  * Load a project function using the project module loader
- * @param project 
- * @param scriptPath 
- * @param requireFunc 
- * @returns 
+ * @param project
+ * @param scriptPath
+ * @param requireFunc
+ * @returns
  */
 export const getProjectFunction = <T>(
   project: SfdxProject,
