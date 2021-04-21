@@ -5,7 +5,7 @@ import * as pathUtils from 'path';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
 import { requireFunctionRef } from '../../common/Require';
-import { loadProjectFunction } from '../../common/scriptHelper';
+import { getProjectFunction } from '../../common/scriptHelper';
 import { ScriptContext, ScriptFunction, ScriptHookContext } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -108,7 +108,7 @@ export default class ScriptCommand extends SfdxCommand {
     };
 
     // resolve our handler func
-    const func: ScriptFunction = loadProjectFunction(this.project, scriptPath, this.requireFunc);
+    const func: ScriptFunction = getProjectFunction(this.project, scriptPath, this.requireFunc);
 
     let result;
 
