@@ -60,6 +60,8 @@ export default class ScriptCommand extends SfdxCommand {
 
   public static requiresProject = true;
 
+  public static varargs = true;
+
   protected static flagsConfig: FlagsConfig = {
     path: flags.string({
       char: 'p',
@@ -113,12 +115,7 @@ export default class ScriptCommand extends SfdxCommand {
     let result;
 
     if (func) {
-      this.ux.startSpinner(`Executing Script: ${scriptPath}`);
-      try {
-        result = await Promise.resolve(func(context));
-      } finally {
-        this.ux.stopSpinner();
-      }
+      result = await Promise.resolve(func(context));
     }
 
     return result;

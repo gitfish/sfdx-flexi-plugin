@@ -59,7 +59,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
-    `$ sfdx bourne:export -o Product2 -u myOrg -c config/cpq-cli-def.json
+    `$ sfdx flexi:export -o Product2 -u myOrg -c config/cpq-cli-def.json
     Requesting data, please wait.... Request completed! Received X records.
     `
   ];
@@ -98,7 +98,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   };
 
   protected static flagsConfig = {
-    object: flags.string({
+    object: flags.array({
       char: 'o',
       description: messages.getMessage('objectFlagDescription')
     }),

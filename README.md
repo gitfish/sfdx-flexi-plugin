@@ -21,7 +21,7 @@ $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-sfdx-flexi-plugin/8.0.0 darwin-x64 node-v14.15.1
+sfdx-flexi-plugin/9.0.0 darwin-x64 node-v14.15.1
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -29,11 +29,11 @@ USAGE
 ```
 <!-- usagestop -->
 <!-- commands -->
-* [`sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport--o-string--c-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:export [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport--o-array--c-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport--o-array--c-string--d-string--r--p--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
-* [`sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript--p-string--i-string--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:script [name=value...] -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript-namevalue--p-string--i-string--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
-## `sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:export [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Export data from your org.
 
@@ -41,7 +41,7 @@ Export data from your org.
 Export data from your org.
 
 USAGE
-  $ sfdx flexi:export [-o <string>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
+  $ sfdx flexi:export [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
   [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
@@ -69,11 +69,11 @@ OPTIONS
                                                                                     this command invocation
 
 EXAMPLE
-  $ sfdx bourne:export -o Product2 -u myOrg -c config/cpq-cli-def.json
+  $ sfdx flexi:export -o Product2 -u myOrg -c config/cpq-cli-def.json
        Requesting data, please wait.... Request completed! Received X records.
 ```
 
-_See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v8.0.0/lib/commands/flexi/export.js)_
+_See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v9.0.0/lib/commands/flexi/export.js)_
 
 ## `sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -93,11 +93,11 @@ OPTIONS
   -d, --datadir=datadir                                                             [default: data] The path where the
                                                                                     data resides.
 
-  -h, --importhandler=importhandler                                                 Allows specification of the import
-                                                                                    handler to use - will look in the
-                                                                                    internal registry first and then
-                                                                                    looks to load a module if the file
-                                                                                    exists
+  -h, --importhandler=importhandler                                                 [default: bourne] Allows
+                                                                                    specification of the import handler
+                                                                                    to use - will look in the internal
+                                                                                    registry first and then looks to
+                                                                                    load a module if the file exists
 
   -o, --object=object                                                               The sobject(s) that you wish to
                                                                                     import data for.
@@ -123,13 +123,13 @@ OPTIONS
                                                                                     this command invocation
 
 EXAMPLE
-  $ sfdx bourne:import -o Product2 -u myOrg -c config/cpq-cli-def.json
+  $ sfdx flexi:import -o Product2 -u myOrg -c config/cpq-cli-def.json
        Deploying data, please wait.... Deployment completed!
 ```
 
-_See code: [lib/commands/flexi/import.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v8.0.0/lib/commands/flexi/import.js)_
+_See code: [lib/commands/flexi/import.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v9.0.0/lib/commands/flexi/import.js)_
 
-## `sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:script [name=value...] -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Executes a script that is provided with sfdx context.
 
@@ -137,8 +137,8 @@ Executes a script that is provided with sfdx context.
 Executes a script that is provided with sfdx context.
 
 USAGE
-  $ sfdx flexi:script -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
-  [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+  $ sfdx flexi:script [name=value...] -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion 
+  <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
   -h, --hookcontext=hookcontext                                                     The hook context - a json string
@@ -173,5 +173,5 @@ EXAMPLES
   $ sfdx flexi:script --path <script file path> --hookcontextid <hook context json path>
 ```
 
-_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v8.0.0/lib/commands/flexi/script.js)_
+_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v9.0.0/lib/commands/flexi/script.js)_
 <!-- commandsstop -->

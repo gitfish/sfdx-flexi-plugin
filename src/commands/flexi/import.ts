@@ -112,7 +112,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
-    `$ sfdx bourne:import -o Product2 -u myOrg -c config/cpq-cli-def.json
+    `$ sfdx flexi:import -o Product2 -u myOrg -c config/cpq-cli-def.json
     Deploying data, please wait.... Deployment completed!
     `
   ];
@@ -310,7 +310,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       this.ux.stopSpinner(
         `${importResult.total} record${
           importResult.total > 1 ? 's' : ''
-        } processed`
+        } ${this.flags.remove ? 'deleted' : 'saved'}`
       );
 
       if (importResult.failure > 0) {

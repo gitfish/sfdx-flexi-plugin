@@ -64,7 +64,11 @@ export const getObjectsToProcess = (
 ): ObjectConfig[] => {
   let sObjectTypes: string[];
   if (flags.object) {
-    sObjectTypes = (flags.object as string).split(',');
+    if (Array.isArray(flags.object)) {
+      sObjectTypes = flags.object;
+    } else {
+      sObjectTypes = (flags.object as string).split(',');
+    }
   } else {
     if (Array.isArray(config.objects)) {
       return keyBasedDedup(config.objects, objectConfigKeyGetter);
