@@ -109,35 +109,36 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
 
   // Note that we're using a standard function as arrow functions are bound to the current 'this'.
   return async function(hookOpts: HookOptions<R>) {
-    const project = await SfdxProject.resolve();
-
-    if (!project) {
-      return;
-    }
-
     const { hookType, hooksDir } = opts;
     let { fileService } = opts;
     if (!fileService) {
       fileService = fileServiceRef.current;
     }
 
-    // we try to find any hook configuration from the project file
-    const projectJson: SfdxProjectJson = project.getSfdxProjectJson();
-    const projectConfig = projectJson.getContents();
-    // the flexi hooks config will be configured against the flexiHooks key in the project config
-    const hookConfig = projectConfig.hooks as JsonMap;
+    const project = await SfdxProject.resolve();
 
-    let scriptPath = hookConfig?.[hookType] as string;
+    let scriptPath: string;
+    let hookConfig: JsonMap;
+
+    if (project) {
+      // we try to find any hook configuration from the project file
+      const projectJson: SfdxProjectJson = project.getSfdxProjectJson();
+      const projectConfig = projectJson.getContents();
+      // the flexi hooks config will be configured against the flexiHooks key in the project config
+      hookConfig = projectConfig.hooks as JsonMap;
+
+      scriptPath = hookConfig?.[hookType] as string;
+    }
 
     if (!scriptPath) {
-      const basePath = pathUtils.isAbsolute(hooksDir) ? hooksDir : pathUtils.join(project.getPath(), hooksDir);
+      const hookBasePath = pathUtils.isAbsolute(hooksDir) ? hooksDir : pathUtils.join(project ? project.getPath() : process.cwd(), hooksDir);
       scriptPath = pathUtils.join(
-       basePath,
+       hookBasePath,
         `${opts.hookType}.js`
       );
       if (!fileService.existsSync(scriptPath)) {
         scriptPath = pathUtils.join(
-          basePath,
+          hookBasePath,
           `${opts.hookType}.ts`
         );
       }

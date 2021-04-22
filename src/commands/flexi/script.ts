@@ -1,11 +1,11 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Messages, SfdxError } from '@salesforce/core';
+import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson, Optional } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
 import { requireFunctionRef } from '../../common/Require';
-import { getProjectFunction } from '../../common/scriptHelper';
+import { getModuleFunction } from '../../common/scriptHelper';
 import { ScriptContext, ScriptFunction, ScriptHookContext } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -46,6 +46,10 @@ export default class ScriptCommand extends SfdxCommand {
     this.fileServiceInternal = value;
   }
 
+  get basePath(): string {
+    return this.project ? this.project.getPath() : process.cwd();
+  }
+
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
@@ -58,6 +62,7 @@ export default class ScriptCommand extends SfdxCommand {
 
   public static requiresDevhubUsername = true;
 
+  // NOTE: whilst we require project here, we've overridden the assignProject so that the project will be null if we're not inside a project
   public static requiresProject = true;
 
   public static varargs = true;
@@ -85,14 +90,14 @@ export default class ScriptCommand extends SfdxCommand {
   private fileServiceInternal: FileService;
 
   public async run(): Promise<AnyJson> {
-    let scriptPath = this.flags.path;
+    let path = this.flags.path;
 
-    scriptPath = pathUtils.isAbsolute(scriptPath)
-      ? scriptPath
-      : pathUtils.join(this.project.getPath(), scriptPath);
+    path = pathUtils.isAbsolute(path)
+      ? path
+      : pathUtils.join(this.basePath, path);
 
-    if (!this.fileService.existsSync(scriptPath)) {
-      throw new SfdxError(`Unable to find script: ${scriptPath}`);
+    if (!this.fileService.existsSync(path)) {
+      throw new SfdxError(`Unable to find script: ${path}`);
     }
 
     const context: ScriptContext = {
@@ -106,11 +111,15 @@ export default class ScriptCommand extends SfdxCommand {
       org: this.org,
       project: this.project,
       varargs: this.varargs,
-      hook: this.hook
+      hook: this.hook,
+      config: this.config
     };
 
     // resolve our handler func
-    const func: ScriptFunction = getProjectFunction(this.project, scriptPath, this.requireFunc);
+    const func: ScriptFunction = getModuleFunction(path, {
+      resolvePath: this.basePath,
+      requireFunc: this.requireFunc
+    });
 
     let result;
 
@@ -135,6 +144,20 @@ export default class ScriptCommand extends SfdxCommand {
     }
   }
 
+  protected async assignProject(): Promise<void> {
+    // Throw an error if the command requires to be run from within an SFDX project but we
+    // don't have a local config.
+    try {
+      this.project = await SfdxProject.resolve();
+    } catch (err) {
+      if (err.name === 'InvalidProjectWorkspace') {
+        this.ux.warn('The command is not running within a project context');
+      } else {
+        throw err;
+      }
+    }
+  }
+
   private _resolveHookContext(): ScriptHookContext {
     const hookContextId = this.flags.hookcontextid;
     if (hookContextId) {
@@ -142,7 +165,7 @@ export default class ScriptCommand extends SfdxCommand {
       if (!hookContext) {
         const hookContextPath = pathUtils.isAbsolute(hookContextId)
         ? hookContextId
-        : pathUtils.join(this.project.getPath(), hookContextId);
+        : pathUtils.join(this.basePath, hookContextId);
         if (this.fileService.existsSync(hookContextPath)) {
           hookContext = JSON.parse(
             this.fileService.readFileSync(hookContextPath)

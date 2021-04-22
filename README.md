@@ -29,11 +29,11 @@ USAGE
 ```
 <!-- usagestop -->
 <!-- commands -->
-* [`sfdx flexi:export [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport--o-array--c-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
-* [`sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport--o-array--c-string--d-string--r--p--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:export [name=value...] [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport-namevalue--o-array--c-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:import [name=value...] [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport-namevalue--o-array--c-string--d-string--r--p--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx flexi:script [name=value...] -p <string> [-i <string>] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript-namevalue--p-string--i-string--h-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
-## `sfdx flexi:export [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:export [name=value...] [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Export data from your org.
 
@@ -41,8 +41,8 @@ Export data from your org.
 Export data from your org.
 
 USAGE
-  $ sfdx flexi:export [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
-  [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+  $ sfdx flexi:export [name=value...] [-o <array>] [-c <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion 
+  <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
   -c, --configfile=configfile                                                       [REQUIRED] The configuration file
@@ -75,7 +75,7 @@ EXAMPLE
 
 _See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v9.0.0/lib/commands/flexi/export.js)_
 
-## `sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:import [name=value...] [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Import data to your org
 
@@ -83,8 +83,9 @@ Import data to your org
 Import data to your org
 
 USAGE
-  $ sfdx flexi:import [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u <string>] 
-  [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+  $ sfdx flexi:import [name=value...] [-o <array>] [-c <string>] [-d <string>] [-r] [-p] [-h <string>] [-v <string>] [-u 
+  <string>] [--apiversion <string>] [--json] [--loglevel 
+  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
   -c, --configfile=configfile                                                       [REQUIRED] The configuration file
@@ -93,11 +94,11 @@ OPTIONS
   -d, --datadir=datadir                                                             [default: data] The path where the
                                                                                     data resides.
 
-  -h, --importhandler=importhandler                                                 [default: bourne] Allows
-                                                                                    specification of the import handler
-                                                                                    to use - will look in the internal
-                                                                                    registry first and then looks to
-                                                                                    load a module if the file exists
+  -h, --importhandler=importhandler                                                 Allows specification of the import
+                                                                                    handler to use - will look in the
+                                                                                    internal registry first and then
+                                                                                    looks to load a module if the file
+                                                                                    exists
 
   -o, --object=object                                                               The sobject(s) that you wish to
                                                                                     import data for.

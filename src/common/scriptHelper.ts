@@ -1,33 +1,31 @@
-import { SfdxError, SfdxProject } from '@salesforce/core';
+import { SfdxError } from '@salesforce/core';
 import * as pathUtils from 'path';
 import { sync as resolveSync } from 'resolve';
-import Ref from './Ref';
 
-export type ProjectModuleLoader = (
-    project: SfdxProject,
-    scriptPath: string,
-    requireFunc: NodeRequireFunction
-  ) => unknown;
+export interface ModuleLoadOptions {
+  resolvePath?: string;
+  requireFunc?: NodeRequireFunction;
+}
+
+export const defaultModuleLoadOptions: ModuleLoadOptions = {
+  resolvePath: process.cwd(),
+  requireFunc: require
+};
 
 /**
  * Load a project module
- * @param project
- * @param scriptPath
- * @param requireFunc
+ * @param path the module path
+ * @param opts the module load options
  * @returns
  */
-export const loadProjectModule: ProjectModuleLoader = (
-  project: SfdxProject,
-  scriptPath: string,
-  requireFunc: NodeRequireFunction = require
-) => {
-  scriptPath = pathUtils.isAbsolute(scriptPath)
-    ? scriptPath
-    : pathUtils.join(project.getPath(), scriptPath);
+export const loadModule = (path: string, opts?: ModuleLoadOptions) => {
+  opts = { ...defaultModuleLoadOptions, ...opts };
+  const { resolvePath, requireFunc } = opts;
+  path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
 
-  if (scriptPath.endsWith('.ts')) {
+  if (path.endsWith('.ts')) {
     const tsNodeModule = resolveSync('ts-node', {
-      basedir: project.getPath(),
+      basedir: resolvePath,
       preserveSymLinks: true
     });
     if (tsNodeModule) {
@@ -45,7 +43,7 @@ export const loadProjectModule: ProjectModuleLoader = (
           allowJs: true,
           esModuleInterop: true
         },
-        files: [scriptPath]
+        files: [path]
       });
     } else {
       throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
@@ -56,59 +54,15 @@ export const loadProjectModule: ProjectModuleLoader = (
     }
   }
 
-  return requireFunc(scriptPath);
+  return requireFunc(path);
 };
-
-interface ProjectModuleEntry {
-  module: unknown;
-  requireFunc: NodeRequireFunction;
-}
-
-const projectModuleEntries: { [key: string]: ProjectModuleEntry[] } = {};
-
-/**
- * Loads a module and caches it
- * @param project
- * @param scriptPath
- * @param requireFunc
- * @returns
- */
-export const loadProjectModuleCached: ProjectModuleLoader = (
-  project: SfdxProject,
-  scriptPath: string,
-  requireFunc: NodeRequireFunction = require
-) => {
-  const key = `${project.getPath()}:${scriptPath}`;
-  let entries = projectModuleEntries[key];
-  if (!entries) {
-    entries = [];
-    projectModuleEntries[key] = entries;
-  }
-
-  let entry = entries.find(e => e.requireFunc === requireFunc);
-  if (!entry) {
-    entry = {
-      module: loadProjectModule(project, scriptPath, requireFunc),
-      requireFunc
-    };
-    entries.push(entry);
-  }
-  return entry.module;
-};
-
-/**
- * Maintains a reference to the project module loader
- */
-export const projectModuleLoaderRef = new Ref<ProjectModuleLoader>({
-  defaultSupplier: () => loadProjectModuleCached
-});
 
 /**
  * Resolve a function out of a module
- * @param module
+ * @param module the module to resolve the function from
  * @returns
  */
-export const getModuleFunction = <T>(module: T | { [key: string]: T }): T => {
+export const getFunction = <T>(module: T | { [key: string]: T }): T => {
   let r: T;
   if (typeof module === 'function') {
     r = module;
@@ -125,15 +79,10 @@ export const getModuleFunction = <T>(module: T | { [key: string]: T }): T => {
 
 /**
  * Load a project function using the project module loader
- * @param project
- * @param scriptPath
- * @param requireFunc
+ * @param path the path to the module
+ * @param opts module loading options
  * @returns
  */
-export const getProjectFunction = <T>(
-  project: SfdxProject,
-  scriptPath: string,
-  requireFunc: NodeRequireFunction = require
-): T => {
-  return getModuleFunction(projectModuleLoaderRef.current(project, scriptPath, requireFunc)) as T;
+export const getModuleFunction = <T>(path: string, opts?: ModuleLoadOptions): T => {
+  return getFunction(loadModule(path, opts)) as T;
 };

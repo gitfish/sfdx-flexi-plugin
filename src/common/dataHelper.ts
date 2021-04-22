@@ -1,4 +1,4 @@
-import { SfdxError, SfdxProject } from '@salesforce/core';
+import { SfdxError } from '@salesforce/core';
 import { ErrorResult, SuccessResult } from 'jsforce';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
@@ -103,10 +103,10 @@ export const getObjectsToProcess = (
  * @param flags
  * @returns
  */
-export const getProjectDataConfig = (project: SfdxProject, flags: { [key: string]: unknown }, fileService = fileServiceRef.current): DataConfig => {
+export const getDataConfig = (basePath: string, flags: { [key: string]: unknown }, fileService = fileServiceRef.current): DataConfig => {
   let configPath = flags.configfile as string;
   if (!pathUtils.isAbsolute(configPath)) {
-    configPath = pathUtils.join(project.getPath(), configPath);
+    configPath = pathUtils.join(basePath, configPath);
   }
   if (fileService.existsSync(configPath)) {
     return JSON.parse(
