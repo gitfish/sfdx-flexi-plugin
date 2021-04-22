@@ -4,7 +4,7 @@ import {
   SfdxResult,
   TableOptions
 } from '@salesforce/command';
-import { Messages, SfdxError } from '@salesforce/core';
+import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import * as colors from 'colors';
 import { Record } from 'jsforce';
@@ -12,12 +12,12 @@ import * as pathUtils from 'path';
 import bourneImport from '../../bourne/import';
 import {
   defaultImportHandlerRef,
-  getObjectsToProcess,
-  getProjectDataConfig
+  getDataConfig,
+  getObjectsToProcess
 } from '../../common/dataHelper';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import requireFunctionRef from '../../common/Require';
-import { getProjectFunction } from '../../common/scriptHelper';
+import { getModuleFunction } from '../../common/scriptHelper';
 import {
   DataConfig,
   DataService,
@@ -68,8 +68,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   protected get dataConfig(): DataConfig {
     if (!this.dataConfigInternal) {
-      this.dataConfigInternal = getProjectDataConfig(
-        this.project,
+      this.dataConfigInternal = getDataConfig(
+        this.basePath,
         this.flags,
         this.fileService
       );
@@ -91,7 +91,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const r = this.flags.datadir || 'data';
     return pathUtils.isAbsolute(r)
       ? r
-      : pathUtils.join(this.project.getPath(), r);
+      : pathUtils.join(this.basePath, r);
   }
 
   get importHandlerKey(): string {
@@ -109,10 +109,14 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     this.importHandlerInternal = value;
   }
 
+  get basePath(): string {
+    return this.project ? this.project.getPath() : process.cwd();
+  }
+
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
-    `$ sfdx bourne:import -o Product2 -u myOrg -c config/cpq-cli-def.json
+    `$ sfdx flexi:import -o Product2 -u myOrg -c config/cpq-cli-def.json
     Deploying data, please wait.... Deployment completed!
     `
   ];
@@ -121,7 +125,10 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   public static requiresDevhubUsername = true;
 
+  // NOTE: whilst we require project here, we've overridden the assignProject so that the project will be null if we're not inside a project
   public static requiresProject = true;
+
+  public static varargs = true;
 
   public static result: SfdxResult = {
     tableColumnData: {
@@ -310,7 +317,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       this.ux.stopSpinner(
         `${importResult.total} record${
           importResult.total > 1 ? 's' : ''
-        } processed`
+        } ${this.flags.remove ? 'deleted' : 'saved'}`
       );
 
       if (importResult.failure > 0) {
@@ -369,13 +376,15 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     if (!importHandler) {
       let modulePath = importHandlerKey;
       if (!pathUtils.isAbsolute(modulePath)) {
-        modulePath = pathUtils.join(this.project.getPath(), modulePath);
+        modulePath = pathUtils.join(this.basePath, modulePath);
       }
       if (this.fileService.existsSync(modulePath)) {
-        importHandler = getProjectFunction(
-          this.project,
+        importHandler = getModuleFunction(
           modulePath,
-          this.requireFunc
+          {
+            resolvePath: this.basePath,
+            requireFunc: this.requireFunc
+          }
         );
       }
     }
@@ -391,6 +400,20 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   protected async _saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
     return this.importHandler(context);
+  }
+
+  protected async assignProject(): Promise<void> {
+    // Throw an error if the command requires to be run from within an SFDX project but we
+    // don't have a local config.
+    try {
+      this.project = await SfdxProject.resolve();
+    } catch (err) {
+      if (err.name === 'InvalidProjectWorkspace') {
+        this.ux.warn('The command is not running within a project context');
+      } else {
+        throw err;
+      }
+    }
   }
 
   private getObjectPath(objectConfig: ObjectConfig): string {

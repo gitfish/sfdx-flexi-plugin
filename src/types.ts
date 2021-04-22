@@ -1,3 +1,4 @@
+import { IConfig } from '@oclif/config';
 import { SfdxResult, UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
@@ -201,14 +202,15 @@ export interface ScriptContext<R extends HookResult = HookResult> {
   logger: Logger;
   ux: UX;
   configAggregator: ConfigAggregator;
-  org?: Org;
+  org: Org;
   hubOrg?: Org;
   project?: SfdxProject;
   result: SfdxResult;
   flags: { [key: string]: unknown };
   args: { [key: string]: unknown };
-  varargs?: JsonMap;
+  varargs: JsonMap;
   hook?: ScriptHookContext<R>;
+  config: IConfig;
 }
 
 export type ScriptFunction<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;

@@ -1,12 +1,12 @@
 import { flags, SfdxCommand, SfdxResult } from '@salesforce/command';
-import { Messages, SfdxError } from '@salesforce/core';
+import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import * as colors from 'colors';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
 import {
+  getDataConfig,
   getObjectsToProcess,
-  getProjectDataConfig,
   removeField
 } from '../../common/dataHelper';
 import { FileService, fileServiceRef } from '../../common/FileService';
@@ -38,7 +38,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
 
   protected get dataConfig(): DataConfig {
     if (!this.dataConfigInternal) {
-      this.dataConfigInternal = getProjectDataConfig(this.project, this.flags, this.fileService);
+      this.dataConfigInternal = getDataConfig(this.basePath, this.flags, this.fileService);
     }
     return this.dataConfigInternal;
   }
@@ -49,17 +49,21 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     return this.objectsToProcessInternal;
   }
 
+  get basePath(): string {
+    return this.project ? this.project.getPath() : process.cwd();
+  }
+
   protected get dataDir(): string {
     const r = this.flags.datadir || 'data';
     return pathUtils.isAbsolute(r)
       ? r
-      : pathUtils.join(this.project.getPath(), r);
+      : pathUtils.join(this.basePath, r);
   }
 
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
-    `$ sfdx bourne:export -o Product2 -u myOrg -c config/cpq-cli-def.json
+    `$ sfdx flexi:export -o Product2 -u myOrg -c config/cpq-cli-def.json
     Requesting data, please wait.... Request completed! Received X records.
     `
   ];
@@ -68,7 +72,10 @@ export default class ExportCommand extends SfdxCommand implements DataService {
 
   public static requiresDevhubUsername = true;
 
+  // NOTE: whilst we require project here, we've overridden the assignProject so that the project will be null if we're not inside a project
   public static requiresProject = true;
+
+  public static varargs = true;
 
   public static result: SfdxResult = {
     tableColumnData: {
@@ -98,7 +105,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   };
 
   protected static flagsConfig = {
-    object: flags.string({
+    object: flags.array({
       char: 'o',
       description: messages.getMessage('objectFlagDescription')
     }),
@@ -200,6 +207,18 @@ export default class ExportCommand extends SfdxCommand implements DataService {
       failureResults: [],
       success: total
     };
+  }
+
+  protected async assignProject(): Promise<void> {
+    try {
+      this.project = await SfdxProject.resolve();
+    } catch (err) {
+      if (err.name === 'InvalidProjectWorkspace') {
+        this.ux.warn('The command is not running within a project context');
+      } else {
+        throw err;
+      }
+    }
   }
 
   private async exportRecordsToDir(

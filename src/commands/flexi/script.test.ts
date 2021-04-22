@@ -359,4 +359,75 @@ describe('flexi:script', () => {
         expect(runContext.hook.commandId).toBe('test:run');
         expect(hookContextPathRead).toBe(pathUtils.join(projectPath, 'testhookcontext.json'));
     });
+
+    test('run outside project', async () => {
+        // we reject the resolve project with an `InvalidProjectWorkspace` error
+        const mockResolveProject = jest.fn();
+        mockResolveProject.mockRejectedValue({
+            name: 'InvalidProjectWorkspace'
+        });
+
+        SfdxProject.resolve = mockResolveProject;
+
+        const mockOrgCreate = jest.fn();
+        mockOrgCreate.mockResolvedValue({
+            getOrgId() {
+                return 'test-org-id';
+            }
+        });
+
+        Org.create = mockOrgCreate;
+
+        fileServiceRef.current = {
+            existsSync() {
+                return true;
+            },
+            readFileSync(path: string) {
+                throw new Error('Illegal Call');
+            },
+            mkdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async readdir() {
+                throw new Error('Illegal Call');
+            },
+            readdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async unlink() {
+                throw new Error('Illegal Call');
+            },
+            async writeFile() {
+                throw new Error('Illegal Call');
+            }
+        };
+
+        let requiredId: string;
+        let runContext: ScriptContext;
+        let tsNodeRegisterOpts;
+        requireFunctionRef.current = (id: string) => {
+            if (id === 'ts-node') {
+                return {
+                    register(opts) {
+                        tsNodeRegisterOpts = opts;
+                    }
+                };
+            }
+            requiredId = id;
+            return (context: ScriptContext) => {
+                runContext = context;
+            };
+        };
+
+        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com']);
+
+        expect(tsNodeRegisterOpts).toBeTruthy();
+        expect(requiredId).toBe(pathUtils.join(process.cwd(), 'test.ts'));
+        expect(runContext).toBeTruthy();
+        expect(runContext.org.getOrgId()).toBe('test-org-id');
+        expect(runContext.project).toBeFalsy();
+        expect(runContext.flags.path).toBe('test.ts');
+        expect(runContext.flags.targetusername).toBe('woo@test.com');
+        expect(runContext.hook).toBeFalsy();
+    });
 });
