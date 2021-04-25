@@ -45,8 +45,8 @@ USAGE
   <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -c, --configfile=configfile                                                       (required) [REQUIRED] The
-                                                                                    configuration file location.
+  -c, --configfile=configfile                                                       (required) The configuration file
+                                                                                    location.
 
   -d, --datadir=datadir                                                             [default: data] The path where the
                                                                                     data resides.
@@ -88,8 +88,8 @@ USAGE
   trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -c, --configfile=configfile                                                       (required) [REQUIRED] The
-                                                                                    configuration file location.
+  -c, --configfile=configfile                                                       (required) The configuration file
+                                                                                    location.
 
   -d, --datadir=datadir                                                             [default: data] The path where the
                                                                                     data resides.
