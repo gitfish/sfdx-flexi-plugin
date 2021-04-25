@@ -164,7 +164,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     }),
     configfile: flags.string({
       char: 'c',
-      description: messages.getMessage('configFileFlagDescription')
+      description: messages.getMessage('configFileFlagDescription'),
+      required: true
     }),
     datadir: flags.string({
       char: 'd',
