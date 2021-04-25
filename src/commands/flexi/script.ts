@@ -112,7 +112,8 @@ export default class ScriptCommand extends SfdxCommand {
       project: this.project,
       varargs: this.varargs,
       hook: this.hook,
-      config: this.config
+      config: this.config,
+      argv: this.argv
     };
 
     // resolve our handler func

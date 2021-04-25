@@ -208,6 +208,7 @@ export interface ScriptContext<R extends HookResult = HookResult> {
   result: SfdxResult;
   flags: { [key: string]: unknown };
   args: { [key: string]: unknown };
+  argv: string[];
   varargs: JsonMap;
   hook?: ScriptHookContext<R>;
   config: IConfig;
