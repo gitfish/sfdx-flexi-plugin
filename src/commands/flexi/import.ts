@@ -164,7 +164,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     }),
     configfile: flags.string({
       char: 'c',
-      description: messages.getMessage('configFileFlagDescription')
+      description: messages.getMessage('configFileFlagDescription'),
+      required: true
     }),
     datadir: flags.string({
       char: 'd',
@@ -261,7 +262,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   public async run(): Promise<AnyJson> {
     this.ux.log(
-      `Importing records from ${
+      `Processing records from ${
         this.dataDir
       } to org ${this.org.getOrgId()} (${this.org.getUsername()}) using ${colors.green(
         this.importHandlerKey
@@ -288,7 +289,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     records: Record[]
   ): Promise<ObjectSaveResult> {
       this.ux.startSpinner(
-        `Importing ${colors.green(objectConfig.sObjectType)} records`
+        `Processing ${colors.green(objectConfig.sObjectType)} records`
       );
 
       let importResult: ObjectSaveResult;

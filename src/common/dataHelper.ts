@@ -105,6 +105,9 @@ export const getObjectsToProcess = (
  */
 export const getDataConfig = (basePath: string, flags: { [key: string]: unknown }, fileService = fileServiceRef.current): DataConfig => {
   let configPath = flags.configfile as string;
+  if (!configPath) {
+    throw new SfdxError('A configuration file path must be specified');
+  }
   if (!pathUtils.isAbsolute(configPath)) {
     configPath = pathUtils.join(basePath, configPath);
   }
