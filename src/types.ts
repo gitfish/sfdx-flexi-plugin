@@ -193,6 +193,7 @@ export interface ScriptHookContext<R extends HookResult = HookResult> {
   hookType: HookType;
   commandId: string;
   result: R;
+  config?: IConfig; // NOTE: this is the config from the command running the hook
 }
 
 /**

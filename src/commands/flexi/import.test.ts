@@ -506,9 +506,6 @@ describe('import test', () => {
 
         const result: ObjectSaveResult[] = await ImportCommand.run(['--configfile', 'test.config.json', '--targetusername', 'woo@test.com']);
 
-        expect(result.length).toBe(1);
-
-        expect(result[0].records.length).toBe(0);
-        expect(result[0].results.length).toBe(0);
+        expect(result.length).toBe(0);
     });
 });

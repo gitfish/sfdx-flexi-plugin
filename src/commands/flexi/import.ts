@@ -277,7 +277,10 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const results: ObjectSaveResult[] = [];
 
     for (const objectConfig of objectConfigs) {
-      results.push(await this.importRecordsForObject(objectConfig));
+      const objectResult = await this.importRecordsForObject(objectConfig);
+      if (objectResult) {
+        results.push(objectResult);
+      }
     }
 
     await this.postImport(results);
@@ -518,15 +521,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const records = await this.getRecords(objectConfig);
 
     if (!records || records.length === 0) {
-      return {
-        sObjectType: objectConfig.sObjectType,
-        path: this.getObjectPath(objectConfig),
-        failure: 0,
-        success: 0,
-        records: [],
-        results: [],
-        total: 0
-      };
+      return;
     }
 
     await this.preImportObject(objectConfig, records);
