@@ -11,6 +11,7 @@ import { Record } from 'jsforce';
 import * as pathUtils from 'path';
 import bourneImport from '../../bourne/import';
 import {
+  defaultConfig,
   defaultImportHandlerRef,
   getDataConfig,
   getObjectsToProcess
@@ -88,7 +89,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   }
 
   protected get dataDir(): string {
-    const r = this.flags.datadir || 'data';
+    const r = this.flags.datadir || defaultConfig.dataDir;
     return pathUtils.isAbsolute(r)
       ? r
       : pathUtils.join(this.basePath, r);
@@ -170,7 +171,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     datadir: flags.string({
       char: 'd',
       description: messages.getMessage('dataDirFlagDescription'),
-      default: 'data'
+      default: defaultConfig.dataDir
     }),
     remove: flags.boolean({
       char: 'r',

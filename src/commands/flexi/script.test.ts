@@ -1,6 +1,8 @@
 import { Org, SfdxProject } from '@salesforce/core';
 import * as pathUtils from 'path';
 import { fileServiceRef } from '../../common/FileService';
+import hookContextStore from '../../common/hookContextStore';
+import { next } from '../../common/Id';
 import { requireFunctionRef } from '../../common/Require';
 import { HookType, PreDeployResult, ScriptContext, ScriptHookContext } from '../../types';
 import ScriptCommand from './script';
@@ -246,7 +248,10 @@ describe('flexi:script', () => {
             result: preDeployResult
         };
 
-        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontext', JSON.stringify(hookContext)]);
+        const hookContextId = next('hook');
+        hookContextStore[hookContextId] = hookContext;
+
+        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontext', hookContextId]);
 
         expect(tsNodeRegisterOpts).toBeTruthy();
         expect(requiredId).toBe(pathUtils.join(projectPath, 'test.ts'));
@@ -346,7 +351,7 @@ describe('flexi:script', () => {
             };
         };
 
-        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontextid', 'testhookcontext.json']);
+        await ScriptCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com', '--hookcontext', 'testhookcontext.json']);
 
         expect(tsNodeRegisterOpts).toBeTruthy();
         expect(requiredId).toBe(pathUtils.join(projectPath, 'test.ts'));

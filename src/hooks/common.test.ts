@@ -1,12 +1,12 @@
 import { Org, SfdxProject, SfdxProjectJson } from '@salesforce/core';
 import * as pathUtils from 'path';
+import { DEFAULT_HOOKS_DIR } from '../commands/flexi/script';
 import { fileServiceRef } from '../common/FileService';
 import { requireFunctionRef } from '../common/Require';
 import { HookType, PreDeployResult, ScriptContext } from '../types';
 import {
   copyFlagValues,
   createScriptDelegate,
-  defaultScriptDelegateOptions,
   FlagType
 } from './common';
 
@@ -118,9 +118,7 @@ describe('Hook Common', () => {
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>({
-      hookType: HookType.predeploy
-    });
+    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -153,7 +151,7 @@ describe('Hook Common', () => {
     expect(requiredId).toBe(
       pathUtils.join(
         projectPath,
-        defaultScriptDelegateOptions.hooksDir,
+        DEFAULT_HOOKS_DIR,
         'predeploy.js'
       )
     );
@@ -247,9 +245,7 @@ describe('Hook Common', () => {
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>({
-      hookType: HookType.predeploy
-    });
+    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -282,7 +278,7 @@ describe('Hook Common', () => {
     expect(requiredId).toBe(
       pathUtils.join(
         projectPath,
-        defaultScriptDelegateOptions.hooksDir,
+        DEFAULT_HOOKS_DIR,
         'predeploy.ts'
       )
     );
@@ -379,9 +375,7 @@ describe('Hook Common', () => {
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>({
-      hookType: HookType.predeploy
-    });
+    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -505,9 +499,7 @@ describe('Hook Common', () => {
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>({
-      hookType: HookType.predeploy
-    });
+    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -631,9 +623,7 @@ describe('Hook Common', () => {
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>({
-      hookType: HookType.predeploy
-    });
+    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {

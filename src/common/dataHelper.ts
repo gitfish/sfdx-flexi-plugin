@@ -6,6 +6,10 @@ import { DataConfig, ObjectConfig, RecordSaveResult, SaveContext, SaveOperation 
 import { fileServiceRef } from './FileService';
 import Ref from './Ref';
 
+export const defaultConfig = {
+  dataDir: 'data'
+};
+
 /**
  * Recursively remove a field from a record and child records
  * @param record

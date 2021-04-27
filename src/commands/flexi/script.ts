@@ -1,6 +1,6 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
-import { AnyJson, Optional } from '@salesforce/ts-types';
+import { Messages, SfdxError, SfdxProject, SfdxProjectJson } from '@salesforce/core';
+import { AnyJson } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
@@ -15,7 +15,9 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'script');
 
-export default class ScriptCommand extends SfdxCommand {
+export const DEFAULT_HOOKS_DIR = 'hooks';
+
+export class ScriptCommand extends SfdxCommand {
   public get hook(): ScriptHookContext {
     if (!this.hookInternal) {
       this.hookInternal = this._resolveHookContext();
@@ -54,8 +56,8 @@ export default class ScriptCommand extends SfdxCommand {
 
   public static examples = [
     '$ sfdx flexi:script --path <script file path>',
-    '$ sfdx flexi:script --path <script file path> --hookcontext <hook context json>',
-    '$ sfdx flexi:script --path <script file path> --hookcontextid <hook context json path>'
+    '$ sfdx flexi:script --hookcontext <hook context json>',
+    '$ sfdx flexi:script --hookcontextid <hook context json path>'
   ];
 
   public static requiresUsername = true;
@@ -70,18 +72,19 @@ export default class ScriptCommand extends SfdxCommand {
   protected static flagsConfig: FlagsConfig = {
     path: flags.string({
       char: 'p',
-      required: true,
-      description: messages.getMessage('pathFlagDescription')
-    }),
-    hookcontextid: flags.string({
-      char: 'i',
-      required: false,
-      description: messages.getMessage('hookContextIdDescription')
+      description: messages.getMessage('pathFlagDescription'),
+      required: false
     }),
     hookcontext: flags.string({
       char: 'h',
       required: false,
       description: messages.getMessage('hookContextFlagDescription')
+    }),
+    hookdir: flags.string({
+      char: 'd',
+      required: false,
+      description: messages.getMessage('hookDirFlagDescription'),
+      default: DEFAULT_HOOKS_DIR
     })
   };
 
@@ -90,13 +93,20 @@ export default class ScriptCommand extends SfdxCommand {
   private fileServiceInternal: FileService;
 
   public async run(): Promise<AnyJson> {
-    let path = this.flags.path;
+    const path = await this.resolveScriptPath();
 
-    path = pathUtils.isAbsolute(path)
-      ? path
-      : pathUtils.join(this.basePath, path);
+    // if we're in a hook we don't care whether the
+    if (!path) {
+      if (this.hook) {
+        return null;
+      }
+      throw new SfdxError('Please specify a script path');
+    }
 
     if (!this.fileService.existsSync(path)) {
+      if (this.hook) {
+        return null;
+      }
       throw new SfdxError(`Unable to find script: ${path}`);
     }
 
@@ -131,17 +141,46 @@ export default class ScriptCommand extends SfdxCommand {
     return result;
   }
 
-  protected async finally(err: Optional<Error>): Promise<void> {
-    // we don't want to output anything when we're in a hook
-    if (!this.hook) {
-      await super.finally(err);
-      // if we're in a hook and we have an error, we want to throw
-      if (err) {
-        throw err;
+  protected async resolveHookScriptPath(): Promise<string> {
+    let r: string;
+    if (this.project) {
+      // we try to find any hook configuration from the project file
+      const projectJson: SfdxProjectJson = this.project.getSfdxProjectJson();
+      const projectConfig = projectJson.getContents();
+      // the flexi hooks config will be configured against the hooks key in the project config
+      const hookConfig = projectConfig.hooks;
+
+      r = hookConfig?.[this.hook.hookType] as string;
+    }
+
+    if (!r) {
+      let hookBasePath = this.flags.hookdir || DEFAULT_HOOKS_DIR;
+      if (!pathUtils.isAbsolute(hookBasePath)) {
+        hookBasePath = pathUtils.join(this.basePath, hookBasePath);
+      }
+      r = pathUtils.join(hookBasePath, `${this.hook.hookType}.js`);
+      if (!this.fileService.existsSync(r)) {
+        r = pathUtils.join(hookBasePath, `${this.hook.hookType}.ts`);
       }
     }
-    if (!this.flags.json) {
-      this.result.display();
+
+    return r;
+  }
+
+  protected async resolveScriptPath(): Promise<string> {
+    let r = this.flags.path;
+    if (!r && this.hook) {
+      r = await this.resolveHookScriptPath();
+    }
+
+    return r ? pathUtils.isAbsolute(r) ? r : pathUtils.join(this.basePath, r) : undefined;
+  }
+
+  // tslint:disable-next-line: no-any
+  protected async catch(err: any): Promise<void> {
+    super.catch(err);
+    if (this.hook) {
+      throw err;
     }
   }
 
@@ -160,7 +199,7 @@ export default class ScriptCommand extends SfdxCommand {
   }
 
   private _resolveHookContext(): ScriptHookContext {
-    const hookContextId = this.flags.hookcontextid;
+    const hookContextId = this.flags.hookcontext;
     if (hookContextId) {
       let hookContext = hookContextStore[hookContextId];
       if (!hookContext) {
@@ -180,10 +219,8 @@ export default class ScriptCommand extends SfdxCommand {
       return hookContext;
     }
 
-    if (this.flags.hookcontext) {
-      return JSON.parse(this.flags.hookcontext);
-    }
-
     return null;
   }
 }
+
+export default ScriptCommand;

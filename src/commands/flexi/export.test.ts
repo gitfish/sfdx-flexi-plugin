@@ -2,6 +2,7 @@ import { Org, SfdxProject } from '@salesforce/core';
 import { EventEmitter } from 'events';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
+import { defaultConfig } from '../../common/dataHelper';
 import { fileServiceRef } from '../../common/FileService';
 import { DataConfig, ObjectSaveResult } from '../../types';
 import ExportCommand from './export';
@@ -133,10 +134,10 @@ describe('export test', () => {
         expect(queries[0]).toBe('select Id, Name, Migration_ID__c from Account');
 
         expect(unlinkPaths.length).toBe(1);
-        expect(unlinkPaths[0]).toBe(pathUtils.join(projectPath, 'data', 'accounts', 'test-account.json'));
+        expect(unlinkPaths[0]).toBe(pathUtils.join(projectPath, defaultConfig.dataDir, 'accounts', 'test-account.json'));
 
         expect(Object.keys(written).length).toBe(1);
-        expect(written[pathUtils.join(projectPath, 'data', 'accounts', 'TEST.json')]).toBe(JSON.stringify(testRecord, undefined, 2));
+        expect(written[pathUtils.join(projectPath, defaultConfig.dataDir, 'accounts', 'TEST.json')]).toBe(JSON.stringify(testRecord, undefined, 2));
 
         expect(result.length).toBe(1);
     });

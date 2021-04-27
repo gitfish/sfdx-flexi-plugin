@@ -1,9 +1,5 @@
 import { Command, Hook } from '@oclif/config';
-import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
-import { JsonMap } from '@salesforce/ts-types';
-import * as pathUtils from 'path';
 import ScriptCommand from '../commands/flexi/script';
-import { FileService, fileServiceRef } from '../common/FileService';
 import hookContextStore from '../common/hookContextStore';
 import { next } from '../common/Id';
 import { HookResult, HookType, ScriptHookContext } from '../types';
@@ -81,16 +77,6 @@ scriptCopyFlagSpecs.push({ name: 'apiversion', type: FlagType.string });
 scriptCopyFlagSpecs.push({ name: 'targetdevhubusername', char: 'v', type: FlagType.string });
 scriptCopyFlagSpecs.push({ name: 'json', type: FlagType.boolean });
 
-export interface CreateScriptDelegateOptions {
-  hookType: HookType;
-  fileService?: FileService;
-  hooksDir?: string;
-}
-
-export const defaultScriptDelegateOptions: Partial<CreateScriptDelegateOptions> = {
-  hooksDir: 'hooks'
-};
-
 /**
  * Creates a hook function that delegates to a script with the sfdx project.
  * NOTE: By default if an exception is caught when executing the delegate script, the plugin will exit.
@@ -99,79 +85,15 @@ export const defaultScriptDelegateOptions: Partial<CreateScriptDelegateOptions> 
  * @returns a HookFunction
  */
 export const createScriptDelegate = <R extends HookResult = HookResult>(
-  opts: CreateScriptDelegateOptions
+  hookType: HookType
 ): HookFunction<R> => {
-  opts = { ...defaultScriptDelegateOptions, ...opts };
 
   // Note that we're using a standard function as arrow functions are bound to the current 'this'.
+  // tslint:disable-next-line: only-arrow-functions
   return async function(hookOpts: HookOptions<R>) {
-    const { hookType, hooksDir } = opts;
-    let { fileService } = opts;
-    if (!fileService) {
-      fileService = fileServiceRef.current;
-    }
-
-    const project = await SfdxProject.resolve();
-
-    let scriptPath: string;
-    let hookConfig: JsonMap;
-
-    if (project) {
-      // we try to find any hook configuration from the project file
-      const projectJson: SfdxProjectJson = project.getSfdxProjectJson();
-      const projectConfig = projectJson.getContents();
-      // the flexi hooks config will be configured against the flexiHooks key in the project config
-      hookConfig = projectConfig.hooks as JsonMap;
-
-      scriptPath = hookConfig?.[hookType] as string;
-    }
-
-    if (!scriptPath) {
-      const hookBasePath = pathUtils.isAbsolute(hooksDir) ? hooksDir : pathUtils.join(project ? project.getPath() : process.cwd(), hooksDir);
-      scriptPath = pathUtils.join(
-       hookBasePath,
-        `${opts.hookType}.js`
-      );
-      if (!fileService.existsSync(scriptPath)) {
-        scriptPath = pathUtils.join(
-          hookBasePath,
-          `${opts.hookType}.ts`
-        );
-      }
-    }
-
-    // make our script path absolute
-    scriptPath = pathUtils.isAbsolute(scriptPath)
-      ? scriptPath
-      : pathUtils.join(project.getPath(), scriptPath);
-
-    if (!fileService.existsSync(scriptPath)) {
-      return;
-    }
-
-    // setup our error handler
-    let errorBehaviour = hookConfig?.errorBehaviour as ErrorBehaviour;
-    if (!errorBehaviour) {
-      errorBehaviour = ErrorBehaviour.exit;
-    }
-
-    let errorHandler: (error: string | Error) => void;
-    if (errorBehaviour === ErrorBehaviour.throw) {
-      errorHandler = error => {
-        throw error;
-      };
-    } else if (errorBehaviour === ErrorBehaviour.log) {
-      errorHandler = error => {
-        this.log(error);
-      };
-    } else {
-      errorHandler = error => {
-        this.error(error);
-      };
-    }
 
     const hookContext: ScriptHookContext = {
-      hookType: opts.hookType,
+      hookType,
       commandId: hookOpts.commandId || hookOpts.Command?.id,
       result: hookOpts.result
     };
@@ -180,14 +102,10 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
     hookContextStore[hookContextId] = hookContext;
 
     // build our script command arguments
-    const scriptCommandArgs: string[] = ['--path', scriptPath, '--hookcontextid', hookContextId];
+    const scriptCommandArgs: string[] = ['--hookcontext', hookContextId];
     copyFlagValues(hookOpts.argv, scriptCommandArgs, scriptCopyFlagSpecs);
 
     // run our script command
-    try {
-      await ScriptCommand.run(scriptCommandArgs);
-    } catch (error) {
-      errorHandler(error);
-    }
+    await ScriptCommand.run(scriptCommandArgs);
   };
 };
