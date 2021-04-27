@@ -123,7 +123,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   public static requiresUsername = true;
 
-  public static requiresDevhubUsername = true;
+  public static supportsDevhubUsername = false;
 
   // NOTE: whilst we require project here, we've overridden the assignProject so that the project will be null if we're not inside a project
   public static requiresProject = true;
