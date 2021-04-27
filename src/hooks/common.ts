@@ -76,13 +76,9 @@ export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec
 const scriptCopyFlagSpecs: FlagSpec[] = [];
 
 // pass on any flags supported by the script command - this is not ideal - probably a cleaner way
-if (ScriptCommand.requiresUsername) {
-  scriptCopyFlagSpecs.push({ name: 'targetusername', char: 'u', type: FlagType.string });
-  scriptCopyFlagSpecs.push({ name: 'apiversion', type: FlagType.string });
-}
-if (ScriptCommand.requiresDevhubUsername) {
-  scriptCopyFlagSpecs.push({ name: 'targetdevhubusername', char: 'v', type: FlagType.string });
-}
+scriptCopyFlagSpecs.push({ name: 'targetusername', char: 'u', type: FlagType.string });
+scriptCopyFlagSpecs.push({ name: 'apiversion', type: FlagType.string });
+scriptCopyFlagSpecs.push({ name: 'targetdevhubusername', char: 'v', type: FlagType.string });
 scriptCopyFlagSpecs.push({ name: 'json', type: FlagType.boolean });
 
 export interface CreateScriptDelegateOptions {
