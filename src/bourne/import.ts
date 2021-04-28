@@ -45,7 +45,7 @@ const buildRequests = (
   } else {
     requests.push({
       extIdField: context.objectConfig.externalid,
-      operation: context.operation,
+      operation: context.isDelete ? 'delete' : 'upsert',
       payload: context.records,
       sObjectType: context.objectConfig.sObjectType
     });
