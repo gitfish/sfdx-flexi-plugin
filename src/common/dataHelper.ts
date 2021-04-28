@@ -129,27 +129,28 @@ export const getDataConfig = (basePath: string, flags: { [key: string]: unknown 
  * @param context
  */
 export const standardImport: SaveOperation = async (context: SaveContext): Promise<RecordSaveResult[]> => {
-  if (context.operation === 'upsert') {
-    const upsertResults = await context.org.getConnection().sobject(context.objectConfig.sObjectType).upsert(context.records, context.objectConfig.externalid, { allOrNone: !context.config.allowPartial });
-    return upsertResults ? upsertResults.map((upsertResult, index) => {
-      let message;
-      if (!upsertResult.success) {
-        const errors = (upsertResult as ErrorResult).errors;
-        if (errors) {
-          message = errors.join(';');
-        }
-      }
-      return {
-        recordId: upsertResult.success ? (upsertResult as SuccessResult).id : undefined,
-        externalId: context.records[index][context.objectConfig.externalid],
-        message,
-        result: upsertResult.success ? 'SUCCESS' : 'FAILED'
-      };
-    }) : [];
+  if (context.isDelete) {
+    // TODO: implement delete
+    throw new SfdxError('Delete Operation not yet implemented');
   }
 
-  // TODO: implement delete
-  throw new SfdxError('Delete Operation not yet implemented');
+  const upsertResults = await context.org.getConnection().sobject(context.objectConfig.sObjectType).upsert(context.records, context.objectConfig.externalid, { allOrNone: !context.config.allowPartial });
+  return upsertResults ? upsertResults.map((upsertResult, index) => {
+    let message;
+    if (!upsertResult.success) {
+      const errors = (upsertResult as ErrorResult).errors;
+      if (errors) {
+        message = errors.join(';');
+      }
+    }
+    return {
+      recordId: upsertResult.success ? (upsertResult as SuccessResult).id : undefined,
+      externalId: context.records[index][context.objectConfig.externalid],
+      message,
+      result: upsertResult.success ? 'SUCCESS' : 'FAILED'
+    };
+  }) : [];
+
 };
 
 export const defaultImportHandlerRef = new Ref<SaveOperation>({
