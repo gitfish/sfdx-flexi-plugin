@@ -353,9 +353,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
             ux: this.ux,
             config: this.dataConfig,
             objectConfig,
-            operation: this.flags.remove
-              ? 'delete'
-              : 'upsert',
+            isDelete: this.flags.remove,
             records
           })
         : [];
@@ -482,6 +480,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const hookResult: PreImportObjectResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
+      isDelete: this.flags.remove,
       objectConfig,
       records,
       service: this,
@@ -502,6 +501,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const hookResult: PostImportObjectResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
+      isDelete: this.flags.remove,
       objectConfig,
       importResult,
       service: this,
@@ -537,6 +537,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const hookResult: PreImportResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
+      isDelete: this.flags.remove,
       service: this,
       state: this.hookState
     };
@@ -552,6 +553,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const hookResult: PostImportResult = {
       config: this.dataConfig,
       scope: this.objectsToProcess,
+      isDelete: this.flags.remove,
       service: this,
       state: this.hookState,
       results

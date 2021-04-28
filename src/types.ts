@@ -101,7 +101,7 @@ export interface DataConfig {
 export interface SaveContext {
   config: DataConfig;
   objectConfig: ObjectConfig;
-  operation: 'upsert' | 'delete';
+  isDelete: boolean;
   records: Array<Record<object>>;
   org: Org;
   ux: UX;
@@ -136,13 +136,17 @@ export interface DataService {
   ): Promise<ObjectSaveResult>;
 }
 
-export interface PreImportResult {
+export interface PreDataOpResult {
   config: DataConfig;
   scope: ObjectConfig[];
   service: DataService;
   state: {
     [key: string]: unknown;
   };
+}
+
+export interface PreImportResult extends PreDataOpResult {
+  isDelete: boolean;
 }
 
 export interface PreImportObjectResult extends PreImportResult {
@@ -159,7 +163,7 @@ export interface PostImportResult extends PreImportResult {
   results: ObjectSaveResult[];
 }
 
-export type PreExportResult = PreImportResult;
+export type PreExportResult = PreDataOpResult;
 
 export interface PreExportObjectResult extends PreExportResult {
   objectConfig: ObjectConfig;

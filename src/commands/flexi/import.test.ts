@@ -324,6 +324,125 @@ describe('import test', () => {
 
         expect(Object.keys(bourneRequests).length).toBe(1);
         expect(Object.keys(bourneRequests)[0]).toBe(bourneDefaults.restPath);
+        const bourneImportRequest = bourneRequests[bourneDefaults.restPath];
+        expect(bourneImportRequest.extIdField).toBe('Migration_ID__c');
+        expect(bourneImportRequest.operation).toBe('upsert');
+        expect(bourneImportRequest.payload.length).toBe(1);
+        expect(bourneImportRequest.sObjectType).toBe('Account');
+    });
+
+    test('bourne delete', async () => {
+        const projectPath = `${pathUtils.sep}test-project`;
+
+        const mockResolveProject = jest.fn();
+        mockResolveProject.mockResolvedValue({
+            getPath() {
+                return projectPath;
+            }
+        });
+
+        SfdxProject.resolve = mockResolveProject;
+
+        const bourneRequests: { [path: string]: BourneImportRequest } = {};
+
+        const mockOrgCreate = jest.fn();
+        mockOrgCreate.mockResolvedValue({
+            getOrgId() {
+                return 'test-org-id';
+            },
+            getUsername() {
+                return 'test@jest.running';
+            },
+            getConnection() {
+                return {
+                    apex: {
+                        async post(path: string, request: BourneImportRequest) {
+                            bourneRequests[path] = request;
+                            const results: RecordSaveResult[] = [{
+                                externalId: 'TEST',
+                                result: 'SUCCESS',
+                                recordId: 'test-id-1'
+                            }];
+                            return JSON.stringify(results);
+                        }
+                    }
+                };
+            }
+        });
+
+        Org.create = mockOrgCreate;
+
+        fileServiceRef.current = {
+            existsSync(path: string) {
+                console.log('-- Import Exists Sync: ' + path);
+                return true;
+            },
+            readFileSync(path: string) {
+                console.log('-- Import Read File: ' + path);
+                if (path.endsWith('test.config.json')) {
+                    const dataConfig: DataConfig = {
+                        objects: [
+                            {
+                                sObjectType: 'Account',
+                                query: 'select Id, Migration_ID__c from Account',
+                                directory: 'accounts',
+                                externalid: 'Migration_ID__c',
+                                filename: 'Migration_ID__c'
+                            }
+                        ]
+                    };
+                    return JSON.stringify(dataConfig);
+                }
+                if (path.endsWith('test-account.json')) {
+                    return JSON.stringify({
+                        Name: 'Test Account',
+                        Migration_ID__c: 'TEST'
+                    });
+                }
+
+                return null;
+            },
+            mkdirSync() {
+                throw new Error('Illegal Call');
+            },
+            async readdir() {
+                throw new Error('Illegal Call');
+            },
+            readdirSync(path: string) {
+                console.log('-- Import Read Dir: ' + path);
+                if (path.endsWith('accounts')) {
+                    return [
+                        'test-account.json'
+                    ];
+                }
+                return [];
+            },
+            async unlink() {
+                throw new Error('Illegal Call');
+            },
+            async writeFile() {
+                throw new Error('Illegal Call');
+            }
+        };
+
+        const result: ObjectSaveResult[] = await ImportCommand.run(['--configfile', 'test.config.json', '--targetusername', 'woo@test.com', '--importhandler', 'bourne', '--remove']);
+
+        expect(result.length).toBe(1);
+
+        expect(result[0].records.length).toBe(1);
+        expect(result[0].results.length).toBe(1);
+        expect(result[0].results[0].recordId).toBe('test-id-1');
+        expect(result[0].total).toBe(1);
+        expect(result[0].sObjectType).toBe('Account');
+
+        expect(Object.keys(bourneRequests).length).toBe(1);
+        expect(Object.keys(bourneRequests)[0]).toBe(bourneDefaults.restPath);
+
+        const bourneImportRequest = bourneRequests[bourneDefaults.restPath];
+        expect(bourneImportRequest.extIdField).toBe('Migration_ID__c');
+        expect(bourneImportRequest.operation).toBe('delete');
+        expect(bourneImportRequest.payload.length).toBe(1);
+        expect(bourneImportRequest.sObjectType).toBe('Account');
     });
 
     test('standard import', async () => {
