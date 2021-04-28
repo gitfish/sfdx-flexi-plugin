@@ -178,7 +178,7 @@ export class ScriptCommand extends SfdxCommand {
 
   // tslint:disable-next-line: no-any
   protected async catch(err: any): Promise<void> {
-    super.catch(err);
+    await super.catch(err);
     if (this.hook) {
       throw err;
     }
