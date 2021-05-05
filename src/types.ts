@@ -1,4 +1,4 @@
-import { IConfig } from '@oclif/config';
+import { Command, Hook, IConfig } from '@oclif/config';
 import { SfdxResult, UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
@@ -193,11 +193,21 @@ export type HookResult =
   | PostExportObjectResult
   | PostExportResult;
 
+export interface HookOptions<R extends HookResult> {
+  Command: Command.Class;
+  argv: string[];
+  commandId: string;
+  result?: R;
+}
+
+export type HookFunction<R extends HookResult> = (this: Hook.Context, options: HookOptions<R>) => Promise<unknown>;
+
 export interface ScriptHookContext<R extends HookResult = HookResult> {
   hookType: HookType;
   commandId: string;
   result: R;
   config?: IConfig; // NOTE: this is the config from the command running the hook
+  argv?: string[];
 }
 
 /**
