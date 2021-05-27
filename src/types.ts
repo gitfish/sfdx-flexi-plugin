@@ -203,10 +203,11 @@ export interface HookOptions<R extends HookResult> {
 export type HookFunction<R extends HookResult> = (this: Hook.Context, options: HookOptions<R>) => Promise<unknown>;
 
 export interface ScriptHookContext<R extends HookResult = HookResult> {
+  context?: Hook.Context; // the original hook context
   hookType: HookType;
   commandId: string;
   result: R;
-  config?: IConfig; // NOTE: this is the config from the command running the hook
+  config?: IConfig; // NOTE: this is the config from the original hook context
   argv?: string[];
 }
 

@@ -82,6 +82,7 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
   // tslint:disable-next-line: only-arrow-functions
   return async function(hookOpts: HookOptions<R>) {
     const hookContext: ScriptHookContext = {
+      context: this,
       hookType,
       commandId: hookOpts.commandId || hookOpts.Command?.id,
       result: hookOpts.result,

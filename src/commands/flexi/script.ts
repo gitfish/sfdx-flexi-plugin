@@ -60,7 +60,7 @@ export class ScriptCommand extends SfdxCommand {
     '$ sfdx flexi:script --hookcontextid <hook context json path>'
   ];
 
-  public static requiresUsername = true;
+  public static supportsUsername = true;
 
   public static supportsDevhubUsername = true;
 
