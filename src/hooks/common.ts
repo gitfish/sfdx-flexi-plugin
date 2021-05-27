@@ -1,17 +1,7 @@
-import { Command, Hook } from '@oclif/config';
 import ScriptCommand from '../commands/flexi/script';
 import hookContextStore from '../common/hookContextStore';
 import { next } from '../common/Id';
-import { HookResult, HookType, ScriptHookContext } from '../types';
-
-export interface HookOptions<R extends HookResult> {
-  Command: Command.Class;
-  argv: string[];
-  commandId: string;
-  result?: R;
-}
-
-export type HookFunction<R extends HookResult> = (this: Hook.Context, options: HookOptions<R>) => Promise<unknown>;
+import { HookFunction, HookOptions, HookResult, HookType, ScriptHookContext } from '../types';
 
 export enum ErrorBehaviour {
   exit = 'exit',
@@ -92,10 +82,12 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
   // tslint:disable-next-line: only-arrow-functions
   return async function(hookOpts: HookOptions<R>) {
     const hookContext: ScriptHookContext = {
+      context: this,
       hookType,
       commandId: hookOpts.commandId || hookOpts.Command?.id,
       result: hookOpts.result,
-      config: this.config
+      config: this.config,
+      argv: hookOpts.argv
     };
 
     const hookContextId = next('hook');
