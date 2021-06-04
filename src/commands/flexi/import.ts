@@ -2,23 +2,23 @@ import {
   flags,
   SfdxCommand,
   SfdxResult,
-  TableOptions
-} from '@salesforce/command';
-import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
-import { AnyJson } from '@salesforce/ts-types';
-import * as colors from 'colors';
-import { Record } from 'jsforce';
-import * as pathUtils from 'path';
-import bourneImport from '../../bourne/import';
+  TableOptions,
+} from "@salesforce/command";
+import { Messages, SfdxError, SfdxProject } from "@salesforce/core";
+import { AnyJson } from "@salesforce/ts-types";
+import * as colors from "colors";
+import { Record } from "jsforce";
+import * as pathUtils from "path";
+import bourneImport from "../../bourne/import";
 import {
   defaultConfig,
   defaultImportHandlerRef,
   getDataConfig,
-  getObjectsToProcess
-} from '../../common/dataHelper';
-import { FileService, fileServiceRef } from '../../common/FileService';
-import requireFunctionRef from '../../common/Require';
-import { getModuleFunction } from '../../common/scriptHelper';
+  getObjectsToProcess,
+} from "../../common/dataHelper";
+import { FileService, fileServiceRef } from "../../common/FileService";
+import requireFunctionRef from "../../common/Require";
+import { getModuleFunction } from "../../common/scriptHelper";
 import {
   DataConfig,
   DataService,
@@ -30,23 +30,26 @@ import {
   PreImportResult,
   RecordSaveResult,
   SaveContext,
-  SaveOperation
-} from '../../types';
+  SaveOperation,
+} from "../../types";
 
 Messages.importMessagesDirectory(__dirname);
 
-const messages = Messages.loadMessages('sfdx-flexi-plugin', 'import');
+const messages = Messages.loadMessages("sfdx-flexi-plugin", "import");
 
 const objectImportResultTableOptions: TableOptions = {
   columns: [
-    { key: 'externalId', label: 'External ID' },
-    { key: 'recordId', label: 'ID' },
-    { key: 'result', label: 'Status' },
-    { key: 'message', label: 'Message' }
-  ]
+    { key: "externalId", label: "External ID" },
+    { key: "recordId", label: "ID" },
+    { key: "success", label: "Success" },
+    { key: "message", label: "Message" },
+  ],
 };
 
 export default class ImportCommand extends SfdxCommand implements DataService {
+  /**
+   * The require function to use for hooks
+   */
   public get requireFunc(): NodeRequireFunction {
     if (!this.requireFuncInternal) {
       return requireFunctionRef.current;
@@ -57,6 +60,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     this.requireFuncInternal = value;
   }
 
+  /**
+   * The file service to use
+   */
   public get fileService(): FileService {
     if (!this.fileServiceInternal) {
       return fileServiceRef.current;
@@ -67,6 +73,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     this.fileServiceInternal = value;
   }
 
+  /**
+   * Get the data configuration
+   */
   protected get dataConfig(): DataConfig {
     if (!this.dataConfigInternal) {
       this.dataConfigInternal = getDataConfig(
@@ -77,6 +86,10 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     }
     return this.dataConfigInternal;
   }
+
+  /**
+   * Get objects (i.e. sobjects) to process
+   */
   protected get objectsToProcess(): ObjectConfig[] {
     if (!this.objectsToProcessInternal) {
       const items = getObjectsToProcess(this.flags, this.dataConfig);
@@ -88,38 +101,36 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return this.objectsToProcessInternal;
   }
 
+  /**
+   * Get the data directory - i.e. the directory containing the json files representing records
+   */
   protected get dataDir(): string {
     const r = this.flags.datadir || defaultConfig.dataDir;
-    return pathUtils.isAbsolute(r)
-      ? r
-      : pathUtils.join(this.basePath, r);
+    return pathUtils.isAbsolute(r) ? r : pathUtils.join(this.basePath, r);
   }
 
+  /**
+   * Get the import handler key used as a default for the import operation
+   */
   get importHandlerKey(): string {
     return (
-      this.flags.importhandler || this.dataConfig.importHandler || 'default'
+      this.flags.importhandler || this.dataConfig.importHandler || "default"
     );
   }
-  get importHandler(): SaveOperation {
-    if (!this.importHandlerInternal) {
-      this.importHandlerInternal = this.resolveImportHandler();
-    }
-    return this.importHandlerInternal;
-  }
-  set importHandler(value: SaveOperation) {
-    this.importHandlerInternal = value;
-  }
 
+  /**
+   * Get a base path based on whether we're in a project or not
+   */
   get basePath(): string {
     return this.project ? this.project.getPath() : process.cwd();
   }
 
-  public static description = messages.getMessage('commandDescription');
+  public static description = messages.getMessage("commandDescription");
 
   public static examples = [
     `$ sfdx flexi:import -o Product2 -u myOrg -c config/cpq-cli-def.json
     Deploying data, please wait.... Deployment completed!
-    `
+    `,
   ];
 
   public static requiresUsername = true;
@@ -135,56 +146,56 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     tableColumnData: {
       columns: [
         {
-          key: 'sObjectType',
-          label: 'SObject Type'
+          key: "sObjectType",
+          label: "SObject Type",
         },
         {
-          key: 'path',
-          label: 'Path'
+          key: "path",
+          label: "Path",
         },
         {
-          key: 'total',
-          label: 'Total'
+          key: "total",
+          label: "Total",
         },
         {
-          key: 'success',
-          label: 'Success'
+          key: "success",
+          label: "Success",
         },
         {
-          key: 'failure',
-          label: 'Failure'
-        }
-      ]
-    }
+          key: "failure",
+          label: "Failure",
+        },
+      ],
+    },
   };
 
   protected static flagsConfig = {
     object: flags.array({
-      char: 'o',
-      description: messages.getMessage('objectFlagDescription')
+      char: "o",
+      description: messages.getMessage("objectFlagDescription"),
     }),
     configfile: flags.string({
-      char: 'c',
-      description: messages.getMessage('configFileFlagDescription'),
-      required: true
+      char: "c",
+      description: messages.getMessage("configFileFlagDescription"),
+      required: true,
     }),
     datadir: flags.string({
-      char: 'd',
-      description: messages.getMessage('dataDirFlagDescription'),
-      default: defaultConfig.dataDir
+      char: "d",
+      description: messages.getMessage("dataDirFlagDescription"),
+      default: defaultConfig.dataDir,
     }),
     remove: flags.boolean({
-      char: 'r',
-      description: messages.getMessage('removeFlagDescription')
+      char: "r",
+      description: messages.getMessage("removeFlagDescription"),
     }),
     allowpartial: flags.boolean({
-      char: 'p',
-      description: messages.getMessage('allowPartialFlagDescription')
+      char: "p",
+      description: messages.getMessage("allowPartialFlagDescription"),
     }),
     importhandler: flags.string({
-      char: 'h',
-      description: messages.getMessage('importHandlerFlagDescription')
-    })
+      char: "h",
+      description: messages.getMessage("importHandlerFlagDescription"),
+    }),
   };
   private requireFuncInternal: NodeRequireFunction;
   private fileServiceInternal: FileService;
@@ -193,7 +204,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     bourne: bourneImport,
     default(context: SaveContext): Promise<RecordSaveResult[]> {
       return defaultImportHandlerRef.current(context);
-    }
+    },
   };
 
   private hookState: { [key: string]: unknown } = {};
@@ -202,13 +213,16 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   private dataConfigInternal: DataConfig;
 
-  private importHandlerInternal: SaveOperation;
-
+  /**
+   * Get records to process for the object
+   * @param objectNameOrConfig
+   * @returns 
+   */
   public async getRecords(
     objectNameOrConfig: string | ObjectConfig
   ): Promise<Record[]> {
     const objectConfig: ObjectConfig =
-      typeof objectNameOrConfig === 'string'
+      typeof objectNameOrConfig === "string"
         ? this.dataConfig.objects[objectNameOrConfig]
         : objectNameOrConfig;
     const records: Record[] = [];
@@ -223,7 +237,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
               objectConfig.sObjectType
             );
           }
-          files.forEach(file => {
+          files.forEach((file) => {
             const record = this.readRecord(
               pathUtils.join(objectDirPath, file),
               recordTypes
@@ -238,12 +252,18 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return records;
   }
 
+  /**
+   * Save records for the object
+   * @param objectNameOrConfig
+   * @param records 
+   * @returns 
+   */
   public async saveRecords(
     objectNameOrConfig: string | ObjectConfig,
     records: Record[]
   ): Promise<ObjectSaveResult> {
     const objectConfig: ObjectConfig =
-      typeof objectNameOrConfig === 'string'
+      typeof objectNameOrConfig === "string"
         ? this.dataConfig.objects[objectNameOrConfig]
         : objectNameOrConfig;
     if (!records || records.length === 0) {
@@ -254,7 +274,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
         success: 0,
         records: [],
         results: [],
-        total: 0
+        total: 0,
       };
     }
 
@@ -285,61 +305,61 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
     await this.postImport(results);
 
-    return results as AnyJson;
+    return results as unknown as AnyJson;
   }
 
   protected async saveRecordsInternal(
     objectConfig: ObjectConfig,
     records: Record[]
   ): Promise<ObjectSaveResult> {
-      this.ux.startSpinner(
-        `Processing ${colors.green(objectConfig.sObjectType)} records`
-      );
+    this.ux.startSpinner(
+      `Processing ${colors.green(objectConfig.sObjectType)} records`
+    );
 
-      let importResult: ObjectSaveResult;
+    let importResult: ObjectSaveResult;
 
-      if (!this.dataConfig.importRetries || this.dataConfig.importRetries < 0) {
-        importResult = await this.saveRecordsAttempt(objectConfig, records);
-      } else {
-        let retries = 0;
-        while (retries < this.dataConfig.importRetries) {
-          if (retries > 0) {
-            this.ux.log(
-              `Retrying ${colors.green(objectConfig.sObjectType)} import...`
-            );
-          }
-
-          importResult = await this.saveRecordsAttempt(objectConfig, records);
-
-          if (importResult.failure === 0) {
-            break;
-          }
-
-          retries++;
+    if (!this.dataConfig.importRetries || this.dataConfig.importRetries < 0) {
+      importResult = await this.saveRecordsAttempt(objectConfig, records);
+    } else {
+      let retries = 0;
+      while (retries < this.dataConfig.importRetries) {
+        if (retries > 0) {
+          this.ux.log(
+            `Retrying ${colors.green(objectConfig.sObjectType)} import...`
+          );
         }
-      }
 
-      this.ux.stopSpinner(
-        `${importResult.total} record${
-          importResult.total > 1 ? 's' : ''
-        } ${this.flags.remove ? 'deleted' : 'saved'}`
+        importResult = await this.saveRecordsAttempt(objectConfig, records);
+
+        if (importResult.failure === 0) {
+          break;
+        }
+
+        retries++;
+      }
+    }
+
+    this.ux.stopSpinner(
+      `${importResult.total} record${importResult.total > 1 ? "s" : ""} ${
+        this.flags.remove ? "deleted" : "saved"
+      }`
+    );
+
+    if (importResult.failure > 0) {
+      this.ux.table(importResult.results, objectImportResultTableOptions);
+    }
+
+    if (
+      importResult.failure > 0 &&
+      !this.dataConfig.allowPartial &&
+      !this.flags.allowpartial
+    ) {
+      throw new SfdxError(
+        `Import was unsuccessful after ${this.dataConfig.importRetries} attempts`
       );
+    }
 
-      if (importResult.failure > 0) {
-        this.ux.table(importResult.results, objectImportResultTableOptions);
-      }
-
-      if (
-        importResult.failure > 0 &&
-        !this.dataConfig.allowPartial &&
-        !this.flags.allowpartial
-      ) {
-        throw new SfdxError(
-          `Import was unsuccessful after ${this.dataConfig.importRetries} attempts`
-        );
-      }
-
-      return importResult;
+    return importResult;
   }
 
   protected async saveRecordsAttempt(
@@ -354,12 +374,11 @@ export default class ImportCommand extends SfdxCommand implements DataService {
             config: this.dataConfig,
             objectConfig,
             isDelete: this.flags.remove,
-            records
+            records,
           })
         : [];
 
-    const failureResults = results.filter(result => result.result === 'FAILED'
-    );
+    const failureResults = results.filter((result) => !result.success);
     return {
       sObjectType: objectConfig.sObjectType,
       path: this.getObjectPath(objectConfig),
@@ -368,12 +387,14 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       total: results.length,
       failureResults: failureResults.length > 0 ? failureResults : undefined,
       failure: failureResults.length,
-      success: results.length - failureResults.length
+      success: results.length - failureResults.length,
     };
   }
 
-  protected resolveImportHandler(): SaveOperation {
-    const importHandlerKey = this.importHandlerKey;
+  protected resolveImportHandler(importHandlerKey?: string): SaveOperation {
+    if (!importHandlerKey) {
+      importHandlerKey = this.importHandlerKey;
+    }
 
     let importHandler = this.importHandlers[importHandlerKey];
     if (!importHandler) {
@@ -382,13 +403,10 @@ export default class ImportCommand extends SfdxCommand implements DataService {
         modulePath = pathUtils.join(this.basePath, modulePath);
       }
       if (this.fileService.existsSync(modulePath)) {
-        importHandler = getModuleFunction(
-          modulePath,
-          {
-            resolvePath: this.basePath,
-            requireFunc: this.requireFunc
-          }
-        );
+        importHandler = getModuleFunction(modulePath, {
+          resolvePath: this.basePath,
+          requireFunc: this.requireFunc,
+        });
       }
     }
 
@@ -402,7 +420,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   }
 
   protected async _saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
-    return this.importHandler(context);
+    return this.resolveImportHandler(context.objectConfig.importHandler)(
+      context
+    );
   }
 
   protected async assignProject(): Promise<void> {
@@ -411,8 +431,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     try {
       this.project = await SfdxProject.resolve();
     } catch (err) {
-      if (err.name === 'InvalidProjectWorkspace') {
-        this.ux.warn('The command is not running within a project context');
+      if (err.name === "InvalidProjectWorkspace") {
+        this.ux.warn("The command is not running within a project context");
       } else {
         throw err;
       }
@@ -430,19 +450,19 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     sObject: string
   ): Promise<{ [developerName: string]: Record }> {
     const r = {};
-    this.ux.startSpinner('Retrieving Record Type Information');
+    this.ux.startSpinner("Retrieving Record Type Information");
     const queryResult = await this.org
       .getConnection()
       .query<Record>(
         `SELECT Id, Name, DeveloperName FROM RecordType WHERE sObjectType = '${sObject}'`
       );
     if (queryResult?.records && queryResult.records.length > 0) {
-      queryResult.records.forEach(recordType => {
+      queryResult.records.forEach((recordType) => {
         r[recordType.DeveloperName] = recordType;
       });
     }
 
-    this.ux.stopSpinner('RecordType information retrieved');
+    this.ux.stopSpinner("RecordType information retrieved");
     return r;
   }
 
@@ -464,11 +484,11 @@ export default class ImportCommand extends SfdxCommand implements DataService {
         delete record.RecordType;
       } else if (record.RecordType) {
         this.ux.log(
-          'This record does not contain a value for Record Type, skipping transformation.'
+          "This record does not contain a value for Record Type, skipping transformation."
         );
       } else {
         throw new SfdxError(
-          'Record Type not found for ' + record.RecordType?.DeveloperName
+          "Record Type not found for " + record.RecordType?.DeveloperName
         );
       }
     }
@@ -484,13 +504,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       objectConfig,
       records,
       service: this,
-      state: this.hookState
+      state: this.hookState,
     };
-    await this.config.runHook('preimportobject', {
+    await this.config.runHook("preimportobject", {
       Command: this.ctor,
       argv: this.argv,
       commandId: this.id,
-      result: hookResult
+      result: hookResult,
     });
   }
 
@@ -505,13 +525,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       objectConfig,
       importResult,
       service: this,
-      state: this.hookState
+      state: this.hookState,
     };
-    await this.config.runHook('postimportobject', {
+    await this.config.runHook("postimportobject", {
       Command: this.ctor,
       argv: this.argv,
       commandId: this.id,
-      result: hookResult
+      result: hookResult,
     });
   }
 
@@ -539,13 +559,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       scope: this.objectsToProcess,
       isDelete: this.flags.remove,
       service: this,
-      state: this.hookState
+      state: this.hookState,
     };
-    await this.config.runHook('preimport', {
+    await this.config.runHook("preimport", {
       Command: this.ctor,
       argv: this.argv,
       commandId: this.id,
-      result: hookResult
+      result: hookResult,
     });
   }
 
@@ -556,13 +576,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       isDelete: this.flags.remove,
       service: this,
       state: this.hookState,
-      results
+      results,
     };
-    await this.config.runHook('postimport', {
+    await this.config.runHook("postimport", {
       Command: this.ctor,
       argv: this.argv,
       commandId: this.id,
-      result: hookResult
+      result: hookResult,
     });
   }
 }

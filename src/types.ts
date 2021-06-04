@@ -83,6 +83,7 @@ export interface ObjectConfig {
   filename?: string;
   cleanupFields?: string[];
   hasRecordTypes?: boolean;
+  importHandler?: string; // the import handler to use for the object - by default uses the data level config
   [key: string]: unknown; // for extra config
 }
 
@@ -91,7 +92,7 @@ export interface ObjectConfig {
  */
 export interface DataConfig {
   importRetries?: number;
-  importHandler?: string; // defaults to standard, but can be 'bourne' to use the bourne importer
+  importHandler?: string; // the default handler for the import - will default to standard
   allObjects?: string[]; // NOTE: to support legacy config
   objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
   allowPartial?: boolean;
@@ -111,7 +112,7 @@ export interface RecordSaveResult {
   recordId?: string;
   externalId?: string;
   message?: string;
-  result?: 'SUCCESS' | 'FAILED';
+  success?: boolean;
 }
 
 export type SaveOperation = (context: SaveContext) => Promise<RecordSaveResult[]>;
@@ -125,7 +126,6 @@ export interface ObjectSaveResult {
   failure?: number;
   success?: number;
   failureResults?: RecordSaveResult[];
-  [key: string]: unknown;
 }
 
 export interface DataService {

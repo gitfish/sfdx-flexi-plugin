@@ -1,13 +1,19 @@
-import { SfdxError } from '@salesforce/core';
-import { ErrorResult, SuccessResult } from 'jsforce';
-import { Record } from 'jsforce';
-import * as pathUtils from 'path';
-import { DataConfig, ObjectConfig, RecordSaveResult, SaveContext, SaveOperation } from '../types';
-import { fileServiceRef } from './FileService';
-import Ref from './Ref';
+import { SfdxError } from "@salesforce/core";
+import { ErrorResult, SuccessResult } from "jsforce";
+import { Record } from "jsforce";
+import * as pathUtils from "path";
+import {
+  DataConfig,
+  ObjectConfig,
+  RecordSaveResult,
+  SaveContext,
+  SaveOperation,
+} from "../types";
+import { fileServiceRef } from "./FileService";
+import Ref from "./Ref";
 
 export const defaultConfig = {
-  dataDir: 'data'
+  dataDir: "data",
 };
 
 /**
@@ -20,7 +26,7 @@ export const removeField = (record: Record, fieldName: string): void => {
   for (const key in record) {
     if (record.hasOwnProperty(key)) {
       const value = record[key];
-      if (value !== null && typeof value === 'object') {
+      if (value !== null && typeof value === "object") {
         removeField(value, fieldName);
       }
     }
@@ -40,7 +46,7 @@ export const keyBasedDedup = <T>(
   if (items && items.length > 0) {
     const keyDone: { [key: string]: boolean } = {};
     const r: T[] = [];
-    items.forEach(item => {
+    items.forEach((item) => {
       const key = keyGetter(item);
       if (!keyDone[key]) {
         keyDone[key] = true;
@@ -71,7 +77,7 @@ export const getObjectsToProcess = (
     if (Array.isArray(flags.object)) {
       sObjectTypes = flags.object;
     } else {
-      sObjectTypes = (flags.object as string).split(',');
+      sObjectTypes = (flags.object as string).split(",");
     }
   } else {
     if (Array.isArray(config.objects)) {
@@ -82,11 +88,11 @@ export const getObjectsToProcess = (
 
   if (!sObjectTypes || sObjectTypes.length === 0) {
     throw new SfdxError(
-      'Please specify object types to import or configure objects correctly.'
+      "Please specify object types to import or configure objects correctly."
     );
   }
 
-  const objectConfigs = sObjectTypes.map(sObjectType => {
+  const objectConfigs = sObjectTypes.map((sObjectType) => {
     const objectConfig = config.objects?.[sObjectType];
     if (!objectConfig) {
       throw new SfdxError(
@@ -95,7 +101,7 @@ export const getObjectsToProcess = (
     }
     return {
       sObjectType,
-      ...config.objects[sObjectType]
+      ...config.objects[sObjectType],
     };
   });
 
@@ -107,54 +113,105 @@ export const getObjectsToProcess = (
  * @param flags
  * @returns
  */
-export const getDataConfig = (basePath: string, flags: { [key: string]: unknown }, fileService = fileServiceRef.current): DataConfig => {
+export const getDataConfig = (
+  basePath: string,
+  flags: { [key: string]: unknown },
+  fileService = fileServiceRef.current
+): DataConfig => {
   let configPath = flags.configfile as string;
   if (!configPath) {
-    throw new SfdxError('A configuration file path must be specified');
+    throw new SfdxError("A configuration file path must be specified");
   }
   if (!pathUtils.isAbsolute(configPath)) {
     configPath = pathUtils.join(basePath, configPath);
   }
   if (fileService.existsSync(configPath)) {
-    return JSON.parse(
-      fileService.readFileSync(configPath)
-    );
+    return JSON.parse(fileService.readFileSync(configPath));
   }
 
   throw new SfdxError(`Unable to find configuration file: ${flags.configpath}`);
+};
+
+const standardDelete = async (
+  context: SaveContext
+): Promise<RecordSaveResult[]> => {
+  const externalIds = [];
+  context.records.forEach((record) => {
+    const externalId = record[context.objectConfig.externalid];
+    if (externalId && externalIds.indexOf(externalId) < 0) {
+      externalIds.push(externalId);
+    }
+  });
+
+  if (externalIds.length === 0) {
+    return [];
+  }
+
+  if (externalIds.length > 0) {
+    // TODO: need to escape these strings
+    const externalIdSetString = externalIds.map((externalId) => {
+      return `'${externalId}'`;
+    });
+
+    const sObject = context.org
+      .getConnection()
+      .sobject(context.objectConfig.sObjectType);
+    const existing = await sObject.find(
+      `${context.objectConfig.externalid} in (${externalIdSetString})`
+    );
+    if (existing && existing.length > 0) {
+      const ids = existing.map((r) => r.Id);
+      const deleteResults = await sObject.delete(ids);
+      return deleteResults.map((dr) => {
+        return {
+          success: dr.success,
+        };
+      });
+    }
+  }
 };
 
 /**
  * Standard save operation - just uses salesforce 'standard' api
  * @param context
  */
-export const standardImport: SaveOperation = async (context: SaveContext): Promise<RecordSaveResult[]> => {
+export const standardImport: SaveOperation = async (
+  context: SaveContext
+): Promise<RecordSaveResult[]> => {
   if (context.isDelete) {
-    // TODO: implement delete
-    throw new SfdxError('Delete Operation not yet implemented');
+    return standardDelete(context);
   }
 
-  const upsertResults = await context.org.getConnection().sobject(context.objectConfig.sObjectType).upsert(context.records, context.objectConfig.externalid, { allOrNone: !context.config.allowPartial });
-  return upsertResults ? upsertResults.map((upsertResult, index) => {
-    let message;
-    if (!upsertResult.success) {
-      const errors = (upsertResult as ErrorResult).errors;
-      if (errors) {
-        message = errors.join(';');
-      }
-    }
-    return {
-      recordId: upsertResult.success ? (upsertResult as SuccessResult).id : undefined,
-      externalId: context.records[index][context.objectConfig.externalid],
-      message,
-      result: upsertResult.success ? 'SUCCESS' : 'FAILED'
-    };
-  }) : [];
-
+  const upsertResults = await context.org
+    .getConnection()
+    .sobject(context.objectConfig.sObjectType)
+    .upsert(context.records, context.objectConfig.externalid, {
+      allOrNone: !context.config.allowPartial,
+      allowRecursive: true,
+    });
+  return upsertResults
+    ? upsertResults.map((upsertResult, index) => {
+        let message;
+        if (!upsertResult.success) {
+          const errors = (upsertResult as ErrorResult).errors;
+          if (errors) {
+            message = errors.join(";");
+          }
+        }
+        return {
+          recordId: upsertResult.success
+            ? (upsertResult as SuccessResult).id
+            : undefined,
+          externalId: context.records[index][context.objectConfig.externalid],
+          message,
+          success: upsertResult.success,
+        };
+      })
+    : [];
 };
 
 export const defaultImportHandlerRef = new Ref<SaveOperation>({
   defaultSupplier() {
     return standardImport;
-  }
+  },
 });

@@ -20,6 +20,13 @@ export interface BourneImportRequest {
   extIdField: string;
 }
 
+export interface BourneSaveResult {
+  recordId?: string;
+  externalId?: string;
+  message?: string;
+  result?: 'SUCCESS' | 'FAILED';
+}
+
 export const bourneDefaults = {
   restPath: '/JSON/bourne/v1'
 };
@@ -68,9 +75,16 @@ export const bourneImport: SaveOperation = async (
   const bourneObjectConfig = context.objectConfig.bourne as BourneObjectConfig;
   const results: RecordSaveResult[] = [];
   // for each of these requests, call
-  const resultsHandler = (items: RecordSaveResult[]) => {
+  const resultsHandler = (items: BourneSaveResult[]) => {
     if (items) {
-      items.forEach(item => results.push(item));
+      items.forEach(item => {
+        results.push({
+          recordId: item.recordId,
+          externalId: item.externalId,
+          message: item.message,
+          success: item.result === 'SUCCESS'
+        });
+      });
     }
   };
   const requests: BourneImportRequest[] = [];
@@ -79,7 +93,7 @@ export const bourneImport: SaveOperation = async (
     const promises = requests.map(request => {
       return doImport(request, context);
     });
-    const promiseResults: RecordSaveResult[][] = await Promise.all(promises);
+    const promiseResults: BourneSaveResult[][] = await Promise.all(promises);
     promiseResults.forEach(resultsHandler);
   } else {
     for (const request of requests) {
