@@ -968,14 +968,12 @@ describe('import test', () => {
 
     expect(upsertExternalId).toBe('Name');
 
-    /*
     expect(Object.keys(bourneRequests).length).toBe(1);
     expect(Object.keys(bourneRequests)[0]).toBe(bourneDefaults.restPath);
     const bourneImportRequest = bourneRequests[bourneDefaults.restPath];
-    expect(bourneImportRequest.extIdField).toBe("Migration_ID__c");
-    expect(bourneImportRequest.operation).toBe("upsert");
+    expect(bourneImportRequest.extIdField).toBe('Migration_ID__c');
+    expect(bourneImportRequest.operation).toBe('upsert');
     expect(bourneImportRequest.payload.length).toBe(1);
-    expect(bourneImportRequest.sObjectType).toBe("Account");
-    */
+    expect(bourneImportRequest.sObjectType).toBe('Account');
   });
 });
