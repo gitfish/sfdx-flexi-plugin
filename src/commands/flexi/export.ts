@@ -137,7 +137,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
 
     await this.postExport(results);
 
-    return (results as unknown) as AnyJson;
+    return <AnyJson>(<unknown>results);
   }
 
   public async getRecords(
@@ -149,9 +149,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
         : objectNameOrConfig;
     return new Promise((resolve, reject) => {
       const records = [];
-      this.org
-        .getConnection()
-        .query(objectConfig.query)
+      this.org.getConnection().query(objectConfig.query)
         .on('record', record => {
           records.push(record);
         })

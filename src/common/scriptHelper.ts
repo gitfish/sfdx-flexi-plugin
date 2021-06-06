@@ -1,10 +1,11 @@
 import { SfdxError } from '@salesforce/core';
 import * as pathUtils from 'path';
 import { sync as resolveSync } from 'resolve';
+import { RequireFunc } from './Require';
 
 export interface ModuleLoadOptions {
   resolvePath?: string;
-  requireFunc?: NodeRequireFunction;
+  requireFunc?: RequireFunc;
 }
 
 export const defaultModuleLoadOptions: ModuleLoadOptions = {
@@ -62,13 +63,13 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions) => {
  * @param module the module to resolve the function from
  * @returns
  */
-export const getFunction = <T>(module: T | { [key: string]: T }): T => {
+export const getFunction = <T>(module: any): T => {
   let r: T;
   if (typeof module === 'function') {
     r = module;
   } else if (module !== null && typeof module === 'object') {
-    for (const key in module as { [key: string]: T }) {
-      if (module.hasOwnProperty(key) && typeof module[key] === 'function') {
+    for (const key of Object.keys(module)) {
+      if (typeof module[key] === 'function') {
         r = module[key];
         break;
       }
@@ -84,5 +85,5 @@ export const getFunction = <T>(module: T | { [key: string]: T }): T => {
  * @returns
  */
 export const getModuleFunction = <T>(path: string, opts?: ModuleLoadOptions): T => {
-  return getFunction(loadModule(path, opts)) as T;
+  return <T>getFunction(loadModule(path, opts));
 };

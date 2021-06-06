@@ -17,7 +17,7 @@ import {
   getObjectsToProcess
 } from '../../common/dataHelper';
 import { FileService, fileServiceRef } from '../../common/FileService';
-import requireFunctionRef from '../../common/Require';
+import requireFunctionRef, { RequireFunc } from '../../common/Require';
 import { getModuleFunction } from '../../common/scriptHelper';
 import {
   DataConfig,
@@ -46,13 +46,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   /**
    * The require function to use for hooks
    */
-  public get requireFunc(): NodeRequireFunction {
+  public get requireFunc(): RequireFunc {
     if (!this.requireFuncInternal) {
       return requireFunctionRef.current;
     }
     return this.requireFuncInternal;
   }
-  public set requireFunc(value: NodeRequireFunction) {
+  public set requireFunc(value: RequireFunc) {
     this.requireFuncInternal = value;
   }
 
@@ -193,7 +193,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       description: messages.getMessage('importHandlerFlagDescription')
     })
   };
-  private requireFuncInternal: NodeRequireFunction;
+  private requireFuncInternal: RequireFunc;
   private fileServiceInternal: FileService;
 
   private importHandlers: { [key: string]: SaveOperation } = {
@@ -297,7 +297,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       }
     }
 
-    return results as unknown as AnyJson;
+    return <AnyJson>(<unknown>results);
   }
 
   protected async saveRecordsInternal(
@@ -362,7 +362,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   ): Promise<ObjectSaveResult> {
     const results: RecordSaveResult[] =
       records.length > 0
-        ? await this._saveImpl({
+        ? await this.saveImpl({
             org: this.org,
             ux: this.ux,
             config: this.dataConfig,
@@ -413,7 +413,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return importHandler;
   }
 
-  protected async _saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
+  protected async saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
     return this.resolveImportHandler(
       this.getImportHandlerKey(context.objectConfig)
     )(context);

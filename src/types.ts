@@ -99,7 +99,7 @@ export interface SaveContext {
   config: DataConfig;
   objectConfig: ObjectConfig;
   isDelete: boolean;
-  records: Array<Record<object>>;
+  records: Record<object>[];
   org: Org;
   ux: UX;
 }

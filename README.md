@@ -38,8 +38,6 @@ USAGE
 Export data from your org.
 
 ```
-Export data from your org.
-
 USAGE
   $ sfdx flexi:export [name=value...] -c <string> [-o <array>] [-d <string>] [-v <string>] [-u <string>] [--apiversion 
   <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
@@ -73,15 +71,13 @@ EXAMPLE
        Requesting data, please wait.... Request completed! Received X records.
 ```
 
-_See code: [lib/commands/flexi/export.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v20.0.0/lib/commands/flexi/export.js)_
+_See code: [src/commands/flexi/export.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v20.0.0/src/commands/flexi/export.ts)_
 
 ## `sfdx flexi:import [name=value...] -c <string> [-o <array>] [-d <string>] [-r] [-p] [-h <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Import data to your org
 
 ```
-Import data to your org
-
 USAGE
   $ sfdx flexi:import [name=value...] -c <string> [-o <array>] [-d <string>] [-r] [-p] [-h <string>] [-u <string>] 
   [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
@@ -124,15 +120,13 @@ EXAMPLE
        Deploying data, please wait.... Deployment completed!
 ```
 
-_See code: [lib/commands/flexi/import.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v20.0.0/lib/commands/flexi/import.js)_
+_See code: [src/commands/flexi/import.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v20.0.0/src/commands/flexi/import.ts)_
 
 ## `sfdx flexi:script [name=value...] [-p <string>] [-h <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Executes a script that is provided with sfdx context.
 
 ```
-Executes a script that is provided with sfdx context.
-
 USAGE
   $ sfdx flexi:script [name=value...] [-p <string>] [-h <string>] [-d <string>] [-v <string>] [-u <string>] 
   [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
@@ -170,5 +164,5 @@ EXAMPLES
   $ sfdx flexi:script --hookcontextid <hook context json path>
 ```
 
-_See code: [lib/commands/flexi/script.js](https://github.com/gitfish/sfdx-flexi-plugin/blob/v20.0.0/lib/commands/flexi/script.js)_
+_See code: [src/commands/flexi/script.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v20.0.0/src/commands/flexi/script.ts)_
 <!-- commandsstop -->
