@@ -5,8 +5,6 @@ import { JsonMap } from '@salesforce/ts-types';
 import { DeployResult, Record } from 'jsforce';
 
 export enum HookType {
-  prerun = 'prerun',
-  postrun = 'postrun',
   predeploy = 'predeploy',
   postdeploy = 'postdeploy',
   preretrieve = 'preretrieve',
@@ -16,8 +14,6 @@ export enum HookType {
   preimport = 'preimport',
   preimportobject = 'preimportobject',
   postimportobject = 'postimportobject',
-  postimport = 'postimport',
-  preexport = 'preexport',
   preexportobject = 'preexportobject',
   postexportobject = 'postexportobject',
   postexport = 'postexport'
@@ -136,7 +132,7 @@ export interface DataService {
   ): Promise<ObjectSaveResult>;
 }
 
-export interface PreDataOpResult {
+export interface DataOpResult {
   config: DataConfig;
   scope: ObjectConfig[];
   service: DataService;
@@ -145,7 +141,7 @@ export interface PreDataOpResult {
   };
 }
 
-export interface PreImportResult extends PreDataOpResult {
+export interface PreImportResult extends DataOpResult {
   isDelete: boolean;
 }
 
@@ -159,13 +155,7 @@ export interface PostImportObjectResult extends PreImportResult {
   importResult: ObjectSaveResult;
 }
 
-export interface PostImportResult extends PreImportResult {
-  results: ObjectSaveResult[];
-}
-
-export type PreExportResult = PreDataOpResult;
-
-export interface PreExportObjectResult extends PreExportResult {
+export interface PreExportObjectResult extends DataOpResult {
   objectConfig: ObjectConfig;
 }
 
@@ -173,7 +163,7 @@ export interface PostExportObjectResult extends PreExportObjectResult {
   result: ObjectSaveResult;
 }
 
-export interface PostExportResult extends PreExportResult {
+export interface PostExportResult extends DataOpResult {
   results: ObjectSaveResult[];
 }
 
@@ -187,8 +177,6 @@ export type HookResult =
   | PreImportResult
   | PreImportObjectResult
   | PostImportObjectResult
-  | PostImportResult
-  | PreExportResult
   | PreExportObjectResult
   | PostExportObjectResult
   | PostExportResult;

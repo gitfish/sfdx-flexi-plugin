@@ -56,8 +56,6 @@
       "preimport": "./lib/hooks/preimport",
       "preimportobject": "./lib/hooks/preimportobject",
       "postimportobject": "./lib/hooks/postimportobject",
-      "postimport": "./lib/hooks/postimport",
-      "preexport": "./lib/hooks/preexport",
       "preexportobject": "./lib/hooks/preexportobject",
       "postexportobject": "./lib/hooks/postexportobject",
       "postexport": "./lib/hooks/postexport"

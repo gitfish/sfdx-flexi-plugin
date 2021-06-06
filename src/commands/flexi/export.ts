@@ -15,11 +15,7 @@ import {
   DataConfig,
   DataService,
   ObjectConfig,
-  ObjectSaveResult,
-  PostExportObjectResult,
-  PostExportResult,
-  PreExportObjectResult,
-  PreExportResult
+  ObjectSaveResult
 } from '../../types';
 
 Messages.importMessagesDirectory(__dirname);
@@ -134,8 +130,6 @@ export default class ExportCommand extends SfdxCommand implements DataService {
 
     const objectConfigs = this.objectsToProcess;
 
-    await this.preExport();
-
     const results: ObjectSaveResult[] = [];
     for (const objectConfig of objectConfigs) {
       results.push(await this.exportObject(objectConfig));
@@ -202,7 +196,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
       results: records.map(record => {
         return {
           externalId: record[objectConfig.externalid],
-          result: 'SUCCESS'
+          success: true
         };
       }),
       failure: 0,
@@ -223,6 +217,21 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     }
   }
 
+  protected async runHook(name: string, opts?: { [key: string]: unknown }): Promise<void> {
+    await this.config.runHook(name, {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: {
+        config: this.dataConfig,
+        scope: this.objectsToProcess,
+        isDelete: this.flags.remove,
+        service: this,
+        state: this.hookState,
+        ...opts
+      }
+    });
+  }
   private async exportRecordsToDir(
     records: Record[],
     objectConfig: ObjectConfig,
@@ -289,18 +298,8 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   }
 
   private async preExportObject(objectConfig: ObjectConfig) {
-    const hookResult: PreExportObjectResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
-      objectConfig,
-      service: this,
-      state: this.hookState
-    };
-    await this.config.runHook('preexportobject', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
+    await this.runHook('preexportobject', {
+      objectConfig
     });
   }
 
@@ -308,19 +307,9 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     objectConfig: ObjectConfig,
     result: ObjectSaveResult
   ) {
-    const hookResult: PostExportObjectResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
+    await this.runHook('postexportobject', {
       objectConfig,
-      result,
-      service: this,
-      state: this.hookState
-    };
-    await this.config.runHook('postexportobject', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
+      result
     });
   }
 
@@ -363,34 +352,9 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     return result;
   }
 
-  private async preExport(): Promise<void> {
-    const hookResult: PreExportResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
-      service: this,
-      state: this.hookState
-    };
-    await this.config.runHook('preexport', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
-    });
-  }
-
   private async postExport(results: ObjectSaveResult[]): Promise<void> {
-    const hookResult: PostExportResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
-      results,
-      service: this,
-      state: this.hookState
-    };
-    await this.config.runHook('postexport', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
+    await this.runHook('postexport', {
+      results
     });
   }
 }

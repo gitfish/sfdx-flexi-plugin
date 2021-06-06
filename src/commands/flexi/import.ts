@@ -24,10 +24,6 @@ import {
   DataService,
   ObjectConfig,
   ObjectSaveResult,
-  PostImportObjectResult,
-  PostImportResult,
-  PreImportObjectResult,
-  PreImportResult,
   RecordSaveResult,
   SaveContext,
   SaveOperation
@@ -283,11 +279,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   public async run(): Promise<AnyJson> {
     this.ux.log(
-      `Processing records from ${
+      `${this.flags.remove ? 'Deleting' : 'Importing'} records from ${
         this.dataDir
-      } to org ${this.org.getOrgId()} (${this.org.getUsername()}) using ${colors.green(
-        this.importHandlerKey
-      )} as the import handler.`
+      } to org ${this.org.getOrgId()} as user ${this.org.getUsername()}`
     );
 
     const objectConfigs = this.objectsToProcess;
@@ -303,8 +297,6 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       }
     }
 
-    await this.postImport(results);
-
     return results as unknown as AnyJson;
   }
 
@@ -313,7 +305,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     records: Record[]
   ): Promise<ObjectSaveResult> {
     this.ux.startSpinner(
-      `Processing ${colors.green(objectConfig.sObjectType)} records`
+      `${this.flags.remove ? 'Deleting' : 'Importing'} ${colors.green(
+        objectConfig.sObjectType
+      )} records using the ${colors.yellow(this.getImportHandlerKey(objectConfig))} handler`
     );
 
     let importResult: ObjectSaveResult;
@@ -391,11 +385,11 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     };
   }
 
-  protected resolveImportHandler(importHandlerKey?: string): SaveOperation {
-    if (!importHandlerKey) {
-      importHandlerKey = this.importHandlerKey;
-    }
+  protected getImportHandlerKey(objectConfig: ObjectConfig): string {
+    return objectConfig.importHandler || this.importHandlerKey;
+  }
 
+  protected resolveImportHandler(importHandlerKey: string): SaveOperation {
     let importHandler = this.importHandlers[importHandlerKey];
     if (!importHandler) {
       let modulePath = importHandlerKey;
@@ -420,9 +414,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   }
 
   protected async _saveImpl(context: SaveContext): Promise<RecordSaveResult[]> {
-    return this.resolveImportHandler(context.objectConfig.importHandler)(
-      context
-    );
+    return this.resolveImportHandler(
+      this.getImportHandlerKey(context.objectConfig)
+    )(context);
   }
 
   protected async assignProject(): Promise<void> {
@@ -439,6 +433,21 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     }
   }
 
+  protected async runHook(name: string, opts?: { [key: string]: unknown }): Promise<void> {
+    await this.config.runHook(name, {
+      Command: this.ctor,
+      argv: this.argv,
+      commandId: this.id,
+      result: {
+        config: this.dataConfig,
+        scope: this.objectsToProcess,
+        isDelete: this.flags.remove,
+        service: this,
+        state: this.hookState,
+        ...opts
+      }
+    });
+  }
   private getObjectPath(objectConfig: ObjectConfig): string {
     return pathUtils.join(
       this.dataDir,
@@ -497,41 +506,21 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   }
 
   private async preImportObject(objectConfig: ObjectConfig, records: Record[]) {
-    const hookResult: PreImportObjectResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
-      isDelete: this.flags.remove,
+    await this.runHook('preimportobject', {
       objectConfig,
-      records,
-      service: this,
-      state: this.hookState
-    };
-    await this.config.runHook('preimportobject', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
+      records
     });
   }
 
   private async postImportObject(
     objectConfig: ObjectConfig,
+    records: Record[],
     importResult: ObjectSaveResult
   ) {
-    const hookResult: PostImportObjectResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
-      isDelete: this.flags.remove,
+    await this.runHook('postimportobject', {
       objectConfig,
-      importResult,
-      service: this,
-      state: this.hookState
-    };
-    await this.config.runHook('postimportobject', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
+      records,
+      importResult
     });
   }
 
@@ -548,41 +537,12 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
     const result = await this.saveRecordsInternal(objectConfig, records);
 
-    await this.postImportObject(objectConfig, result);
+    await this.postImportObject(objectConfig, records, result);
 
     return result;
   }
 
   private async preImport(): Promise<void> {
-    const hookResult: PreImportResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
-      isDelete: this.flags.remove,
-      service: this,
-      state: this.hookState
-    };
-    await this.config.runHook('preimport', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
-    });
-  }
-
-  private async postImport(results: ObjectSaveResult[]): Promise<void> {
-    const hookResult: PostImportResult = {
-      config: this.dataConfig,
-      scope: this.objectsToProcess,
-      isDelete: this.flags.remove,
-      service: this,
-      state: this.hookState,
-      results
-    };
-    await this.config.runHook('postimport', {
-      Command: this.ctor,
-      argv: this.argv,
-      commandId: this.id,
-      result: hookResult
-    });
+    await this.runHook('preimport');
   }
 }
