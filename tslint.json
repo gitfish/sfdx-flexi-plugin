@@ -1,4 +1,11 @@
 {
-    "extends": "@salesforce/dev-config/tslint"
+  "extends": ["tslint-microsoft-contrib/recommended"],
+  "rules": {
+    "no-relative-imports": false,
+    "export-name": false,
+    "import-name": false,
+    "mocha-no-side-effect-code": false,
+    "max-func-body-length": false,
+    "non-literal-fs-path": false
   }
-  
+}

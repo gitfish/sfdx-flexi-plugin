@@ -4,7 +4,7 @@ import { AnyJson } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { FileService, fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
-import { requireFunctionRef } from '../../common/Require';
+import { RequireFunc, requireFunctionRef } from '../../common/Require';
 import { getModuleFunction } from '../../common/scriptHelper';
 import { ScriptContext, ScriptFunction, ScriptHookContext } from '../../types';
 
@@ -20,7 +20,7 @@ export const DEFAULT_HOOKS_DIR = 'hooks';
 export class ScriptCommand extends SfdxCommand {
   public get hook(): ScriptHookContext {
     if (!this.hookInternal) {
-      this.hookInternal = this._resolveHookContext();
+      this.hookInternal = this.resolveHookContext();
     }
     return this.hookInternal;
   }
@@ -28,13 +28,13 @@ export class ScriptCommand extends SfdxCommand {
     this.hookInternal = value;
   }
 
-  public get requireFunc(): NodeRequireFunction {
+  public get requireFunc(): RequireFunc {
     if (!this.requireFuncInternal) {
       return requireFunctionRef.current;
     }
     return this.requireFuncInternal;
   }
-  public set requireFunc(value: NodeRequireFunction) {
+  public set requireFunc(value: RequireFunc) {
     this.requireFuncInternal = value;
   }
 
@@ -89,7 +89,7 @@ export class ScriptCommand extends SfdxCommand {
   };
 
   private hookInternal: ScriptHookContext;
-  private requireFuncInternal: NodeRequireFunction;
+  private requireFuncInternal: RequireFunc;
   private fileServiceInternal: FileService;
 
   public async run(): Promise<AnyJson> {
@@ -150,7 +150,7 @@ export class ScriptCommand extends SfdxCommand {
       // the flexi hooks config will be configured against the hooks key in the project config
       const hookConfig = projectConfig.hooks;
 
-      r = hookConfig?.[this.hook.hookType] as string;
+      r = <string>hookConfig?.[this.hook.hookType];
     }
 
     if (!r) {
@@ -198,7 +198,7 @@ export class ScriptCommand extends SfdxCommand {
     }
   }
 
-  private _resolveHookContext(): ScriptHookContext {
+  private resolveHookContext(): ScriptHookContext {
     const hookContextId = this.flags.hookcontext;
     if (hookContextId) {
       let hookContext = hookContextStore[hookContextId];

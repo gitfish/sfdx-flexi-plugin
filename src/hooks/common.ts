@@ -51,7 +51,7 @@ export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec
         if (value) {
           dest.push(`--${spec.name}`);
           if (spec.type === FlagType.string) {
-            dest.push(value as string);
+            dest.push(<string>value);
           }
         }
      }

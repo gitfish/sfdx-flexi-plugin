@@ -5,8 +5,6 @@ import { JsonMap } from '@salesforce/ts-types';
 import { DeployResult, Record } from 'jsforce';
 
 export enum HookType {
-  prerun = 'prerun',
-  postrun = 'postrun',
   predeploy = 'predeploy',
   postdeploy = 'postdeploy',
   preretrieve = 'preretrieve',
@@ -16,8 +14,6 @@ export enum HookType {
   preimport = 'preimport',
   preimportobject = 'preimportobject',
   postimportobject = 'postimportobject',
-  postimport = 'postimport',
-  preexport = 'preexport',
   preexportobject = 'preexportobject',
   postexportobject = 'postexportobject',
   postexport = 'postexport'
@@ -83,6 +79,7 @@ export interface ObjectConfig {
   filename?: string;
   cleanupFields?: string[];
   hasRecordTypes?: boolean;
+  importHandler?: string; // the import handler to use for the object - by default uses the data level config
   [key: string]: unknown; // for extra config
 }
 
@@ -91,7 +88,7 @@ export interface ObjectConfig {
  */
 export interface DataConfig {
   importRetries?: number;
-  importHandler?: string; // defaults to standard, but can be 'bourne' to use the bourne importer
+  importHandler?: string; // the default handler for the import - will default to standard
   allObjects?: string[]; // NOTE: to support legacy config
   objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
   allowPartial?: boolean;
@@ -102,7 +99,7 @@ export interface SaveContext {
   config: DataConfig;
   objectConfig: ObjectConfig;
   isDelete: boolean;
-  records: Array<Record<object>>;
+  records: Record<object>[];
   org: Org;
   ux: UX;
 }
@@ -111,7 +108,7 @@ export interface RecordSaveResult {
   recordId?: string;
   externalId?: string;
   message?: string;
-  result?: 'SUCCESS' | 'FAILED';
+  success?: boolean;
 }
 
 export type SaveOperation = (context: SaveContext) => Promise<RecordSaveResult[]>;
@@ -125,7 +122,6 @@ export interface ObjectSaveResult {
   failure?: number;
   success?: number;
   failureResults?: RecordSaveResult[];
-  [key: string]: unknown;
 }
 
 export interface DataService {
@@ -136,7 +132,7 @@ export interface DataService {
   ): Promise<ObjectSaveResult>;
 }
 
-export interface PreDataOpResult {
+export interface DataOpResult {
   config: DataConfig;
   scope: ObjectConfig[];
   service: DataService;
@@ -145,7 +141,7 @@ export interface PreDataOpResult {
   };
 }
 
-export interface PreImportResult extends PreDataOpResult {
+export interface PreImportResult extends DataOpResult {
   isDelete: boolean;
 }
 
@@ -159,13 +155,7 @@ export interface PostImportObjectResult extends PreImportResult {
   importResult: ObjectSaveResult;
 }
 
-export interface PostImportResult extends PreImportResult {
-  results: ObjectSaveResult[];
-}
-
-export type PreExportResult = PreDataOpResult;
-
-export interface PreExportObjectResult extends PreExportResult {
+export interface PreExportObjectResult extends DataOpResult {
   objectConfig: ObjectConfig;
 }
 
@@ -173,7 +163,7 @@ export interface PostExportObjectResult extends PreExportObjectResult {
   result: ObjectSaveResult;
 }
 
-export interface PostExportResult extends PreExportResult {
+export interface PostExportResult extends DataOpResult {
   results: ObjectSaveResult[];
 }
 
@@ -187,8 +177,6 @@ export type HookResult =
   | PreImportResult
   | PreImportObjectResult
   | PostImportObjectResult
-  | PostImportResult
-  | PreExportResult
   | PreExportObjectResult
   | PostExportObjectResult
   | PostExportResult;

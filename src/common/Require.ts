@@ -1,6 +1,10 @@
 import Ref from './Ref';
 
-export const requireFunctionRef = new Ref<NodeRequireFunction>({
+export interface RequireFunc {
+    (id: string): any;
+}
+
+export const requireFunctionRef = new Ref<RequireFunc>({
     defaultSupplier: () => {
         return require;
     }
