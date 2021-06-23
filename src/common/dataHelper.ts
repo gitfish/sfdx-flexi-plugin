@@ -1,6 +1,5 @@
 import { SfdxError } from "@salesforce/core";
-import { ErrorResult, SuccessResult } from "jsforce";
-import { Record } from "jsforce";
+import { ErrorResult, SuccessResult, Record } from "jsforce";
 import * as pathUtils from "path";
 import {
   DataConfig,
@@ -191,10 +190,12 @@ export const standardImport: SaveOperation = async (
     return standardDelete(context);
   }
 
+  const records: Record<{ [key: string]: unknown }>[] = context.records;
+
   const upsertResults = await context.org
     .getConnection()
     .sobject(context.objectConfig.sObjectType)
-    .upsert(context.records, context.objectConfig.externalid, {
+    .upsert(records, context.objectConfig.externalid, {
       allOrNone: !context.config.allowPartial,
       allowRecursive: true,
     });

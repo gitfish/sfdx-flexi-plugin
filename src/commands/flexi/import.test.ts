@@ -10,8 +10,7 @@ import { fileServiceRef } from '../../common/FileService';
 import {
   DataConfig,
   ObjectSaveResult,
-  RecordSaveResult,
-  SaveContext
+  RecordSaveResult
 } from '../../types';
 import ImportCommand from './import';
 
@@ -103,7 +102,7 @@ describe('import test', () => {
     };
 
     defaultImportHandlerRef.current = async (
-      context: SaveContext
+      
     ): Promise<RecordSaveResult[]> => {
       return [
         {
@@ -207,7 +206,7 @@ describe('import test', () => {
     };
 
     defaultImportHandlerRef.current = async (
-      context: SaveContext
+      
     ): Promise<RecordSaveResult[]> => {
       return [
         {
@@ -509,7 +508,7 @@ describe('import test', () => {
             console.log('-- Standard Import: ' + type);
             types.push(type);
             return {
-              async upsert(records, externalId, opts) {
+              async upsert() {
                 return [
                   {
                     id: 'test-id-1',
@@ -635,7 +634,7 @@ describe('import test', () => {
                   }
                 ];
               },
-              async delete(records, externalId, opts) {
+              async delete() {
                 deleteCalled = true;
                 return [
                   {
@@ -834,7 +833,7 @@ describe('import test', () => {
             console.log('-- Standard Import: ' + type);
             types.push(type);
             return {
-              async upsert(records, externalId, opts) {
+              async upsert(records, externalId) {
                 upsertRecords = records;
                 upsertExternalId = externalId;
                 return [

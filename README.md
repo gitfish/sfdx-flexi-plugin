@@ -21,7 +21,7 @@ $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-sfdx-flexi-plugin/20.0.0 darwin-x64 node-v14.17.0
+sfdx-flexi-plugin/20.0.0 darwin-x64 node-v12.13.0
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
