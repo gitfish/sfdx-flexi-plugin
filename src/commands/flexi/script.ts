@@ -127,10 +127,17 @@ export class ScriptCommand extends SfdxCommand {
     };
 
     // resolve our handler func
-    const func: ScriptFunction = getModuleFunction(path, {
-      resolvePath: this.basePath,
-      requireFunc: this.requireFunc
-    });
+    let func: ScriptFunction;
+    try {
+      func = getModuleFunction(path, {
+        resolvePath: this.basePath,
+        requireFunc: this.requireFunc
+      });
+    } catch(err) {
+      this.ux.log(`Error loading module: ${path} with resolve path: ${this.basePath}`);
+      this.logger.error(err);
+      throw err;
+    }
 
     let result;
 
@@ -176,7 +183,7 @@ export class ScriptCommand extends SfdxCommand {
     return r ? pathUtils.isAbsolute(r) ? r : pathUtils.join(this.basePath, r) : undefined;
   }
 
-  // tslint:disable-next-line: no-any
+  // eslint-disable-next-line
   protected async catch(err: any): Promise<void> {
     await super.catch(err);
     if (this.hook) {
