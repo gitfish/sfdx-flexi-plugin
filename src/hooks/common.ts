@@ -43,7 +43,7 @@ export const getFlagValue = (argv: string[], spec: FlagSpec): unknown => {
   }
 };
 
-export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec[]) => {
+export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec[]): void => {
   if (specs && source && dest) {
     specs.forEach(spec => {
       if (!containsFlag(dest, spec)) {

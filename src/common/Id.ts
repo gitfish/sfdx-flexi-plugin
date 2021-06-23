@@ -5,7 +5,7 @@ export interface Sequence {
 export class SimpleSequence implements Sequence {
     private _prefix: string;
     private _id: number;
-    constructor(prefix: string = '') {
+    constructor(prefix = '') {
         this._prefix = prefix;
     }
     public next(): string {

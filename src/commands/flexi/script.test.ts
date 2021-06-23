@@ -39,10 +39,10 @@ describe('flexi:script', () => {
         Org.create = mockOrgCreate;
 
         fileServiceRef.current = {
-            existsSync(path: string) {
+            existsSync() {
                 return true;
             },
-            readFileSync(path: string) {
+            readFileSync() {
                 throw new Error('Illegal Call');
             },
             mkdirSync() {
@@ -116,7 +116,7 @@ describe('flexi:script', () => {
             existsSync() {
                 return true;
             },
-            readFileSync(path: string) {
+            readFileSync() {
                 throw new Error('Illegal Call');
             },
             mkdirSync() {
@@ -190,7 +190,7 @@ describe('flexi:script', () => {
             existsSync() {
                 return true;
             },
-            readFileSync(path: string) {
+            readFileSync() {
                 throw new Error('Illegal Call');
             },
             mkdirSync() {
@@ -387,7 +387,7 @@ describe('flexi:script', () => {
             existsSync() {
                 return true;
             },
-            readFileSync(path: string) {
+            readFileSync() {
                 throw new Error('Illegal Call');
             },
             mkdirSync() {

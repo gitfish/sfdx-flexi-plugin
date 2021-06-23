@@ -19,7 +19,8 @@ export const defaultModuleLoadOptions: ModuleLoadOptions = {
  * @param opts the module load options
  * @returns
  */
-export const loadModule = (path: string, opts?: ModuleLoadOptions) => {
+// eslint-disable-next-line
+export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   opts = { ...defaultModuleLoadOptions, ...opts };
   const { resolvePath, requireFunc } = opts;
   path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
@@ -63,6 +64,7 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions) => {
  * @param module the module to resolve the function from
  * @returns
  */
+// eslint-disable-next-line
 export const getFunction = <T>(module: any): T => {
   let r: T;
   if (typeof module === 'function') {

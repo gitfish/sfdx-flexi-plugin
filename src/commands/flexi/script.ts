@@ -176,7 +176,7 @@ export class ScriptCommand extends SfdxCommand {
     return r ? pathUtils.isAbsolute(r) ? r : pathUtils.join(this.basePath, r) : undefined;
   }
 
-  // tslint:disable-next-line: no-any
+  // eslint-disable-next-line
   protected async catch(err: any): Promise<void> {
     await super.catch(err);
     if (this.hook) {

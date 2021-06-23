@@ -1,7 +1,7 @@
 import Ref from './Ref';
 
 export interface RequireFunc {
-    (id: string): any;
+    (id: string): any; // eslint-disable-line
 }
 
 export const requireFunctionRef = new Ref<RequireFunc>({
