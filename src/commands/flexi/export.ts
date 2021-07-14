@@ -60,9 +60,9 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
-    `$ sfdx flexi:export -o Product2 -u myOrg -c config/cpq-cli-def.json
-    Requesting data, please wait.... Request completed! Received X records.
-    `
+    `$ sfdx flexi:export -o Product2 -u myOrg -c config/cpq-cli-def.json`,
+    `$ sfdx flexi:export -u myOrg -c config/cpq-cli-def.json`,
+    `$ sfdx flexi:export -u myOrg -c config/cpq-cli-def.json -d woo`
   ];
 
   public static requiresUsername = true;

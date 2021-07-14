@@ -127,17 +127,10 @@ export class ScriptCommand extends SfdxCommand {
     };
 
     // resolve our handler func
-    let func: ScriptFunction;
-    try {
-      func = getModuleFunction(path, {
-        resolvePath: this.basePath,
-        requireFunc: this.requireFunc
-      });
-    } catch(err) {
-      this.ux.log(`Error loading module: ${path} with resolve path: ${this.basePath}`);
-      this.logger.error(err);
-      throw err;
-    }
+    const func: ScriptFunction = getModuleFunction(path, {
+      resolvePath: this.basePath,
+      requireFunc: this.requireFunc
+    });
 
     let result;
 

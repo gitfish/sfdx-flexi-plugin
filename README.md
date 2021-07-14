@@ -166,3 +166,7 @@ EXAMPLES
 
 _See code: [src/commands/flexi/script.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v20.0.0/src/commands/flexi/script.ts)_
 <!-- commandsstop -->
+
+## Additional Documentation
+
+- [Script Command](./doc/commands/flexi/script.md)
