@@ -60,16 +60,25 @@ or export a specific object (or objects) (Contact in this case) with:
 
 ## Hooks
 
-Much like the `flexi:script` command, a hook is basically a function exported by a typescript or javascript module. A hook function is provided with a context that contains a `hook` property to provide hook specific context (such as what records are being imported and so on).
+The hook implementation delegates to a function exported by a typescript or javascript module. The hook function is invoked with a context that contains a `hook` property to provide hook specific context (such as what records are being imported and so on).
 
 The following hooks can be defined in the project:
 
 ### Pre Import
 
-This hook is called before the import of any object. The default paths are `hooks/preimport.ts` or `hooks/preimport.js` and this can be overridden in `sfdx-project.json` with a `preimport` entry under `hooks`. Example:
+Called before the import of any object.
+
+#### Configuration
+
+The default paths are `hooks/preimport.ts` or `hooks/preimport.js` and this can be overridden in `sfdx-project.json` with a `preimport` entry under `hooks`.
+
+#### Example
 
 ```typescript
-import { PreImportResult, ScriptContext } from 'sfdx-flexi-plugin/lib/types';
+import {
+    PreImportResult,
+    ScriptContext 
+} from 'sfdx-flexi-plugin/lib/types';
 
 export default async (context: ScriptContext<PreImportResult>) => {
     const { hook } = context;
@@ -79,10 +88,67 @@ export default async (context: ScriptContext<PreImportResult>) => {
 
 ### Pre Import Object
 
-This hook is called before the import of a specific object. The default paths are `hooks/preimportobject.ts` or `hooks/preimportobject.js` and this can be overriden in `sfdx-project.json` with a `preimportobject` entry under `hooks`.
+Called before the import of a specific object.
+
+#### Configuration
+
+The default paths are `hooks/preimportobject.ts` or `hooks/preimportobject.js` and this can be overridden in `sfdx-project.json` with a `preimportobject` entry under `hooks`.
+
+#### Example
+
+The following example will suffix all the name field on all Account records with `-hook` that don't have the suffix before they're saved to the org:
+
+```typescript
+import {
+	ScriptContext,
+	PreImportObjectResult
+} from "sfdx-flexi-plugin/lib/types";
+
+export const run = async (context: ScriptContext<PreImportObjectResult>) => {
+	const { hook } = context;
+    if (result.objectConfig.sObjectType === 'Account') {
+        hook.result.records.forEach((record) => {
+            if(!record.Name.endsWith('-hook')) {
+                record.Name += '-hook';
+            }
+        });
+    }
+};
+```
+
+### Post Import Object
+
+Called after the import of a specific object.
+
+#### Configuration
+
+The default paths are `hooks/postimportobject.ts` or `hooks/postimportobject.js` and this can be overridden in `sfdx-project.json` with a `postimportobject` entry under `hooks`.
+
+#### Example
+
+```typescript
+import {
+    PostImporObjectResult,
+    ScriptContext 
+} from 'sfdx-flexi-plugin/lib/types';
+
+export default async (context: ScriptContext<PostImporObjectResult>) => {
+    const { hook } = context;
+    // ... do you worst
+}
+```
+
+### Pre Export Object
+
+Called after the export of a specific object.
+
+#### Configuration
+The default paths are `hooks/postexportobject.ts` or `hooks/postexportobject.js` and this can be overridden in `sfdx-project.json` with a `preexportobject` entry under `hooks`.
+
+### Example
 
 
-- `postimportobject` - default path: `hooks/postimportobject.ts` or `hooks/postimportobject.js`
+
 - `preexportobject` - default path: `hooks/preexportobject.ts` or `hooks/preexportobject.js`
 - `postexportobject` - default path: `hooks/postexportobject.ts` or `hooks/postexportobject.js`
 - `postexport` - default path: `hooks/postexport.ts` or `hooks/postexport.js`
