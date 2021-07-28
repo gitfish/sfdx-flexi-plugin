@@ -1,8 +1,8 @@
 # Import and Export Command
 
-The import command is for importing data to an org from a set of local json files. This is typically used in conjunction with the export command as analogies to the metadata push/pull (or more accurately deploy/retrieve)
+The import command is for importing data to an org from a set of local json files. This is typically used in conjunction with the export command as analogies to the metadata push/pull (or more accurately deploy/retrieve) commands.
 
-These command were created as a compatible but more flexible alternative to the [json bourne](https://github.com/realestate-com-au/json-bourne-sfdx-cli) and support is still maintained for the [json bourne managed package](https://github.com/realestate-com-au/json-bourne-sfdx-pkg) API for importing data. Most importantly, the flexi commands support hooks as outlined below.
+These command were created as a compatible but more flexible alternative to the [json bourne](https://github.com/realestate-com-au/json-bourne-sfdx-cli) and support is still maintained for the [json bourne managed package](https://github.com/realestate-com-au/json-bourne-sfdx-pkg) API for importing data. The most useful additions are being able to use an importer per-object and hooks as outlined below. 
 
 ## Configuration
 
@@ -94,9 +94,13 @@ Called before the import of a specific object.
 
 The default paths are `hooks/preimportobject.ts` or `hooks/preimportobject.js` and this can be overridden in `sfdx-project.json` with a `preimportobject` entry under `hooks`.
 
+#### Use cases
+
+The primary use case for this step would be to modify data before it is imported to an org and to set any state that might be used in another hook later in the import process. The hook result maintains a state instance that persists for the duration of the import operation. This is typically useful if you want to get around managed package triggers or validation rules that you have no control over during the import process.
+
 #### Example
 
-The following example will suffix all the name field on all Account records with `-hook` that don't have the suffix before they're saved to the org:
+The following example will suffix the name field on all Account records with `-hook` before they're saved to the target org. It also adds in some state to restore the original account records in another hook.
 
 ```typescript
 import {
@@ -104,14 +108,30 @@ import {
 	PreImportObjectResult
 } from "sfdx-flexi-plugin/lib/types";
 
+const SUFFIX_HOOK = '-hook';
+const OBJECT_TYPE_ACCOUNT = 'Account';
+
 export const run = async (context: ScriptContext<PreImportObjectResult>) => {
-	const { hook } = context;
-    if (result.objectConfig.sObjectType === 'Account') {
-        hook.result.records.forEach((record) => {
-            if(!record.Name.endsWith('-hook')) {
-                record.Name += '-hook';
-            }
+	const { hook, ux } = context;
+    const result = hook.result;
+    const objectConfig = result.objectConfig;
+
+    if (result.objectConfig.sObjectType === OBJECT_TYPE_ACCOUNT) {
+        // track the original records
+        const forRestore = result.records.map((record) => {
+            return { ...record };
         });
+
+        result.records.forEach((record) => {
+            record.Name += HOOK_SUFFIX;
+        });
+
+        // this will be called in the post import object example below (to restore the original account records)
+        result.state.restoreAccounts = async () => {
+            ux.startSpinner("Restoring Account Records");
+			await result.service.saveRecords(objectConfig, forRestore);
+			ux.stopSpinner();
+        };
     }
 };
 ```
@@ -124,7 +144,13 @@ Called after the import of a specific object.
 
 The default paths are `hooks/postimportobject.ts` or `hooks/postimportobject.js` and this can be overridden in `sfdx-project.json` with a `postimportobject` entry under `hooks`.
 
+#### Use cases
+
+A good use case for this hook might be to restore some data that was modified by a previous step.
+
 #### Example
+
+This restores accounts based on the pre import object example above.
 
 ```typescript
 import {
@@ -132,9 +158,15 @@ import {
     ScriptContext 
 } from 'sfdx-flexi-plugin/lib/types';
 
+const OBJECT_TYPE_CONTACT = 'Contact';
+
 export default async (context: ScriptContext<PostImporObjectResult>) => {
     const { hook } = context;
-    // ... do you worst
+    const result = hook.result;
+
+    if(result.objectConfig.sObjectType === OBJECT_TYPE_CONTACT && result.state.restoreAccounts) {
+        await result.state.restoreAccounts();
+    }
 }
 ```
 
@@ -144,6 +176,8 @@ Called after the export of a specific object.
 
 #### Configuration
 The default paths are `hooks/postexportobject.ts` or `hooks/postexportobject.js` and this can be overridden in `sfdx-project.json` with a `preexportobject` entry under `hooks`.
+
+#### Use Cases
 
 ### Example
 
