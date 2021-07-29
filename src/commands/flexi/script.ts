@@ -6,7 +6,7 @@ import { FileService, fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
 import { RequireFunc, requireFunctionRef } from '../../common/Require';
 import { getModuleFunction } from '../../common/scriptHelper';
-import { ScriptContext, ScriptFunction, ScriptHookContext } from '../../types';
+import { SfdxContext, SfdxFunction, SfdxHookContext } from '../../types';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -18,13 +18,13 @@ const messages = Messages.loadMessages('sfdx-flexi-plugin', 'script');
 export const DEFAULT_HOOKS_DIR = 'hooks';
 
 export class ScriptCommand extends SfdxCommand {
-  public get hook(): ScriptHookContext {
+  public get hook(): SfdxHookContext {
     if (!this.hookInternal) {
       this.hookInternal = this.resolveHookContext();
     }
     return this.hookInternal;
   }
-  public set hook(value: ScriptHookContext) {
+  public set hook(value: SfdxHookContext) {
     this.hookInternal = value;
   }
 
@@ -88,7 +88,7 @@ export class ScriptCommand extends SfdxCommand {
     })
   };
 
-  private hookInternal: ScriptHookContext;
+  private hookInternal: SfdxHookContext;
   private requireFuncInternal: RequireFunc;
   private fileServiceInternal: FileService;
 
@@ -110,7 +110,7 @@ export class ScriptCommand extends SfdxCommand {
       throw new SfdxError(`Unable to find script: ${path}`);
     }
 
-    const context: ScriptContext = {
+    const context: SfdxContext = {
       args: this.args,
       configAggregator: this.configAggregator,
       flags: this.flags,
@@ -127,7 +127,7 @@ export class ScriptCommand extends SfdxCommand {
     };
 
     // resolve our handler func
-    const func: ScriptFunction = getModuleFunction(path, {
+    const func: SfdxFunction = getModuleFunction(path, {
       resolvePath: this.basePath,
       requireFunc: this.requireFunc
     });
@@ -198,7 +198,7 @@ export class ScriptCommand extends SfdxCommand {
     }
   }
 
-  private resolveHookContext(): ScriptHookContext {
+  private resolveHookContext(): SfdxHookContext {
     const hookContextId = this.flags.hookcontext;
     if (hookContextId) {
       let hookContext = hookContextStore[hookContextId];

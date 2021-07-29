@@ -72,18 +72,25 @@ Called before the import of any object.
 
 The default paths are `hooks/preimport.ts` or `hooks/preimport.js` and this can be overridden in `sfdx-project.json` with a `preimport` entry under `hooks`.
 
+#### Uses
+- Turn off triggers for the whole import
+- Setup import session state (e.g. an import session record in salesforce)
+
 #### Example
 
 ```typescript
 import {
-    PreImportResult,
-    ScriptContext 
-} from 'sfdx-flexi-plugin/lib/types';
+    SfdxContext,
+    PreImportResult
+} from "sfdx-flexi-plugin/lib/types";
 
-export default async (context: ScriptContext<PreImportResult>) => {
-    const { hook } = context;
-    // ... do you worst
-}
+export const run = async (context: SfdxContext<PreImportResult>): Promise<void> => {
+    const { hook, ux } = context;
+    const result = hook.result;
+    // do something real - I'm out of ideas
+    ux.log('Pre Import Result');
+    ux.logJson(result);
+};
 ```
 
 ### Pre Import Object
@@ -94,25 +101,25 @@ Called before the import of a specific object.
 
 The default paths are `hooks/preimportobject.ts` or `hooks/preimportobject.js` and this can be overridden in `sfdx-project.json` with a `preimportobject` entry under `hooks`.
 
-#### Use cases
-
-The primary use case for this step would be to modify data before it is imported to an org and to set any state that might be used in another hook later in the import process. The hook result maintains a state instance that persists for the duration of the import operation. This is typically useful if you want to get around managed package triggers or validation rules that you have no control over during the import process.
+#### Use ideas
+- Disabling trigger(s) for the target object (provided you have a way to do that - i.e. custom setting)
+- Modifying records before they are imported
 
 #### Example
 
-The following example will suffix the name field on all Account records with `-hook` before they're saved to the target org. It also adds in some state to restore the original account records in another hook.
+The following (fairly contrived) example will suffix the name field on all Account records with `-hook` before they're saved to the target org. It also adds in some state to restore the original account records in another hook.
 
 ```typescript
 import {
-	ScriptContext,
-	PreImportObjectResult
+    SfdxContext,
+    PreImportObjectResult
 } from "sfdx-flexi-plugin/lib/types";
 
 const SUFFIX_HOOK = '-hook';
 const OBJECT_TYPE_ACCOUNT = 'Account';
 
-export const run = async (context: ScriptContext<PreImportObjectResult>) => {
-	const { hook, ux } = context;
+export const run = async (context: SfdxContext<PreImportObjectResult>): Promise<void> => {
+    const { hook, ux } = context;
     const result = hook.result;
     const objectConfig = result.objectConfig;
 
@@ -123,14 +130,14 @@ export const run = async (context: ScriptContext<PreImportObjectResult>) => {
         });
 
         result.records.forEach((record) => {
-            record.Name += HOOK_SUFFIX;
+            record.Name += SUFFIX_HOOK;
         });
 
         // this will be called in the post import object example below (to restore the original account records)
         result.state.restoreAccounts = async () => {
             ux.startSpinner("Restoring Account Records");
-			await result.service.saveRecords(objectConfig, forRestore);
-			ux.stopSpinner();
+            await result.service.saveRecords(objectConfig, forRestore);
+            ux.stopSpinner();
         };
     }
 };
@@ -144,9 +151,9 @@ Called after the import of a specific object.
 
 The default paths are `hooks/postimportobject.ts` or `hooks/postimportobject.js` and this can be overridden in `sfdx-project.json` with a `postimportobject` entry under `hooks`.
 
-#### Use cases
-
-A good use case for this hook might be to restore some data that was modified by a previous step.
+#### Use ideas
+- Enabling trigger(s) for the target object
+- Restoring any other state that might have been modified in the pre import object hook
 
 #### Example
 
@@ -154,35 +161,162 @@ This restores accounts based on the pre import object example above.
 
 ```typescript
 import {
-    PostImporObjectResult,
-    ScriptContext 
-} from 'sfdx-flexi-plugin/lib/types';
+    PostImportObjectResult,
+    SfdxContext
+} from 'sfdx-flexi-plugin/types';
 
 const OBJECT_TYPE_CONTACT = 'Contact';
 
-export default async (context: ScriptContext<PostImporObjectResult>) => {
+export default async (context: SfdxContext<PostImportObjectResult>): Promise<void> => {
     const { hook } = context;
     const result = hook.result;
 
-    if(result.objectConfig.sObjectType === OBJECT_TYPE_CONTACT && result.state.restoreAccounts) {
-        await result.state.restoreAccounts();
+    if (result.objectConfig.sObjectType === OBJECT_TYPE_CONTACT && result.state.restoreAccounts) {
+        await (<() => Promise<void>>result.state.restoreAccounts)();
     }
 }
 ```
 
+### Post Import
+
+Called after the import of all objects
+
+#### Configuration
+
+The default paths are `hooks/postmport.ts` or `hooks/postimport.js` and this can be overridden in `sfdx-project.json` with a `postimport` entry under `hooks`.
+
+#### Use ideas
+- Enable triggers
+- Update any state regarding the import process (e.g. you might want to update an import session record in Salesforce with the completed date)
+
+#### Example
+
+```typescript
+import {
+    SfdxContext,
+    PostImportResult
+} from "../types";
+
+export const run = async (context: SfdxContext<PostImportResult>): Promise<void> => {
+    const { hook, ux } = context;
+    const result = hook.result;
+    // do something real - I'm out of ideas
+    ux.log('Post Import Result');
+    ux.logJson(result);
+};
+```
+
+### Pre Export
+
+Called before any object is exported
+
+#### Configuration
+
+The default paths are `hooks/preexport.ts` or `hooks/preexport.js` and this can be overridden in `sfdx-project.json` with a `preexport` entry under `hooks`.
+
+#### Use ideas
+- Preparation
+
+#### Example
+
+```typescript
+import {
+    SfdxContext,
+    PreExportResult
+} from "../types";
+
+export const run = async (context: SfdxContext<PreExportResult>): Promise<void> => {
+    const { hook, ux } = context;
+    const result = hook.result;
+    // do something real - I'm out of ideas
+    ux.log('Pre Export Result');
+    ux.logJson(result);
+};
+```
+
 ### Pre Export Object
+
+Called before the export of a specific object.
+
+#### Configuration
+The default paths are `hooks/preexportobject.ts` or `hooks/preexportobject.js` and this can be overridden in `sfdx-project.json` with a `preexportobject` entry under `hooks`.
+
+#### Use ideas
+- Preparation of directory / directories
+- Haven't thought of any great ideas yet
+
+#### Example
+
+```typescript
+import {
+    SfdxContext,
+    PreExportObjectResult
+} from "../types";
+
+export const run = async (context: SfdxContext<PreExportObjectResult>): Promise<void> => {
+    const { hook, ux } = context;
+    const result = hook.result;
+    // do something real - I'm out of ideas
+    ux.log('Pre Export Object Result');
+    ux.logJson(result);
+};
+```
+
+### Post Export Object
 
 Called after the export of a specific object.
 
 #### Configuration
-The default paths are `hooks/postexportobject.ts` or `hooks/postexportobject.js` and this can be overridden in `sfdx-project.json` with a `preexportobject` entry under `hooks`.
 
-#### Use Cases
+The default paths are `hooks/postexportobject.ts` or `hooks/postexportobject.js` and this can be overridden in `sfdx-project.json` with a `postexportobject` entry under `hooks`.
 
-### Example
+#### Use ideas
+- Cleanup
+- Modify records
 
+#### Example
 
+```typescript
+import {
+    SfdxContext,
+    PostExportObjectResult
+} from "../types";
 
-- `preexportobject` - default path: `hooks/preexportobject.ts` or `hooks/preexportobject.js`
-- `postexportobject` - default path: `hooks/postexportobject.ts` or `hooks/postexportobject.js`
-- `postexport` - default path: `hooks/postexport.ts` or `hooks/postexport.js`
+export const run = async (context: SfdxContext<PostExportObjectResult>): Promise<void> => {
+    const { hook, ux } = context;
+    const result = hook.result;
+    // do something real - I'm out of ideas
+    ux.log('Post Export Object Result');
+    ux.logJson(result);
+};
+```
+
+### Post Export
+
+Called after all objects have been exported.
+
+#### Configuration
+
+The default paths are `hooks/postexport.ts` or `hooks/postexport.js` and this can be overridden in `sfdx-project.json` with a `postexport` entry under `hooks`.
+
+#### Use ideas
+- Cleanup
+- Modify records
+
+#### Example
+
+```typescript
+import {
+    SfdxContext,
+    PostExportResult
+} from "../types";
+
+export const run = async (context: SfdxContext<PostExportResult>): Promise<void> => {
+    const { hook, ux } = context;
+    const result = hook.result;
+    // do something real - I'm out of ideas
+    ux.log('Post Export Result');
+    ux.logJson(result);
+};
+```
+

@@ -3,7 +3,7 @@ import * as pathUtils from 'path';
 import { DEFAULT_HOOKS_DIR } from '../commands/flexi/script';
 import { fileServiceRef } from '../common/FileService';
 import { requireFunctionRef } from '../common/Require';
-import { HookType, PreDeployResult, ScriptContext } from '../types';
+import { HookType, PreDeployResult, SfdxContext } from '../types';
 import {
   copyFlagValues,
   createScriptDelegate,
@@ -102,7 +102,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: ScriptContext<PreDeployResult>;
+    let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     requireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -113,7 +113,7 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: ScriptContext<PreDeployResult>) => {
+      return (context: SfdxContext<PreDeployResult>) => {
         runContext = context;
       };
     };
@@ -229,7 +229,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: ScriptContext<PreDeployResult>;
+    let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     requireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -240,7 +240,7 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: ScriptContext<PreDeployResult>) => {
+      return (context: SfdxContext<PreDeployResult>) => {
         runContext = context;
       };
     };
@@ -359,7 +359,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: ScriptContext<PreDeployResult>;
+    let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     requireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -370,7 +370,7 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: ScriptContext<PreDeployResult>) => {
+      return (context: SfdxContext<PreDeployResult>) => {
         runContext = context;
       };
     };
@@ -483,7 +483,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: ScriptContext<PreDeployResult>;
+    let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     requireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -494,7 +494,7 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: ScriptContext<PreDeployResult>) => {
+      return (context: SfdxContext<PreDeployResult>) => {
         runContext = context;
       };
     };
@@ -607,7 +607,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: ScriptContext<PreDeployResult>;
+    let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     requireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -618,7 +618,7 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: ScriptContext<PreDeployResult>) => {
+      return (context: SfdxContext<PreDeployResult>) => {
         runContext = context;
       };
     };

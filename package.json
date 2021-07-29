@@ -7,25 +7,26 @@
   "dependencies": {
     "@oclif/command": "^1.8.0",
     "@oclif/config": "^1.17.0",
-    "@oclif/errors": "^1.3.4",
-    "@salesforce/command": "^3.1.3",
-    "@salesforce/core": "^2.23.4",
+    "@oclif/errors": "^1.3.5",
+    "@salesforce/command": "^4.0.4",
+    "@salesforce/core": "^2.26.1",
     "resolve": "^1.20.0",
-    "tslib": "^2.2.0"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1.26.0",
     "@oclif/plugin-help": "^3.2.2",
     "@salesforce/dev-config": "2.1.2",
-    "@types/jest": "^26.0.23",
-    "@types/jsforce": "^1.9.30",
-    "@types/node": "^15.12.4",
-    "@typescript-eslint/eslint-plugin": "^4.28.0",
-    "@typescript-eslint/parser": "^4.28.0",
-    "eslint": "^7.29.0",
-    "jest": "^27.0.5",
-    "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "@types/jest": "^26.0.24",
+    "@types/jsforce": "^1.9.33",
+    "@types/node": "^16.4.6",
+    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/parser": "^4.28.5",
+    "del-cli": "^4.0.1",
+    "eslint": "^7.31.0",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.4",
+    "typescript": "^4.3.5"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -58,6 +59,8 @@
       "preimport": "./lib/hooks/preimport",
       "preimportobject": "./lib/hooks/preimportobject",
       "postimportobject": "./lib/hooks/postimportobject",
+      "postimport": "./lib/hooks/postimport",
+      "preexport": "./lib/hooks/preexport",
       "preexportobject": "./lib/hooks/preexportobject",
       "postexportobject": "./lib/hooks/postexportobject",
       "postexport": "./lib/hooks/postexport"
@@ -71,8 +74,8 @@
     "build": "tsc",
     "lint": "eslint . --ext .ts,.tsx --format stylish",
     "lint:fix": "eslint . --ext .ts,.tsx --format stylish --fix",
-    "postpack": "rm -f oclif.manifest.json",
-    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "postpack": "del-cli -f oclif.manifest.json",
+    "prepack": "del-cli -f lib && tsc -b && oclif-dev manifest && oclif-dev readme",
     "test": "jest",
     "version": "oclif-dev readme && git add README.md"
   }

@@ -1,33 +1,5 @@
-# Script Command
-
-The script command allows execution of a function exported by a typescript or javascript module. The function is provided with the sfdx context including such items as the current project, the target org and so on.
-
-## Module structure
-The command will resolve the first exported function from the module - where that's `default` or named - i.e. the following are equivalent:
-
-```typescript
-import { ScriptContext } from "sfdx-flexi-plugin/lib/types";
-
-export default async (context: ScriptContext) => {
-    
-}
-```
-
-```typescript
-import { ScriptContext } from "sfdx-flexi-plugin/lib/types";
-
-export const run = async (context: ScriptContext) => {
-    
-}
-```
-
-## Example
-
-The following (typescript) example is used to list the status of deployments in an org:
-
-```typescript
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SfdxContext } from "sfdx-flexi-plugin/lib/types";
+import { SfdxContext } from "../types";
 
 export default async (context: SfdxContext): Promise<void> => {
   const { ux, org, varargs } = context;
@@ -110,19 +82,3 @@ export default async (context: SfdxContext): Promise<void> => {
     ],
   });
 };
-```
-
-Suppose this script was saved in the project at `tasks/deploymentSummary.ts` then we'd execute this function using the following command:
-
-    sfdx flexi:script -p tasks/deploymentSummary.ts -u ORGNAME limit=13
-
-where
-
-    - `ORGNAME` is the username or the alias of the org we want to retrieve the deployment summary for
-    - `limit` is the number of records we want to display (this is optional and would default to 10)
-
-NOTE: To use typescript, you have to ensure (ts-node)(https://github.com/TypeStrong/ts-node) is installed as a peer dependency in your project.
-
-In this example, you can see that we're retrieving DeployRequest records using the tooling api and making use of the sfdx ux to render a table of the records.
-
-

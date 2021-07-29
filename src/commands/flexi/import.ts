@@ -279,8 +279,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   public async run(): Promise<AnyJson> {
     this.ux.log(
-      `${this.flags.remove ? 'Deleting' : 'Importing'} records from ${
-        this.dataDir
+      `${this.flags.remove ? 'Deleting' : 'Importing'} records from ${this.dataDir
       } to org ${this.org.getOrgId()} as user ${this.org.getUsername()}`
     );
 
@@ -296,6 +295,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
         results.push(objectResult);
       }
     }
+
+    await this.postImport();
 
     return <AnyJson>(<unknown>results);
   }
@@ -334,8 +335,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     }
 
     this.ux.stopSpinner(
-      `${importResult.total} record${importResult.total > 1 ? 's' : ''} ${
-        this.flags.remove ? 'deleted' : 'saved'
+      `${importResult.total} record${importResult.total > 1 ? 's' : ''} ${this.flags.remove ? 'deleted' : 'saved'
       }`
     );
 
@@ -348,6 +348,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       !this.dataConfig.allowPartial &&
       !this.flags.allowpartial
     ) {
+      // TODO: support import error hook
+
       throw new SfdxError(
         `Import was unsuccessful after ${this.dataConfig.importRetries} attempts`
       );
@@ -363,13 +365,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const results: RecordSaveResult[] =
       records.length > 0
         ? await this.saveImpl({
-            org: this.org,
-            ux: this.ux,
-            config: this.dataConfig,
-            objectConfig,
-            isDelete: this.flags.remove,
-            records
-          })
+          org: this.org,
+          ux: this.ux,
+          config: this.dataConfig,
+          objectConfig,
+          isDelete: this.flags.remove,
+          records
+        })
         : [];
 
     const failureResults = results.filter(result => !result.success);
@@ -544,5 +546,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
   private async preImport(): Promise<void> {
     await this.runHook('preimport');
+  }
+
+  private async postImport(): Promise<void> {
+    await this.runHook('postimport');
   }
 }

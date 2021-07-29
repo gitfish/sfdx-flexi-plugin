@@ -4,7 +4,7 @@ import { fileServiceRef } from '../../common/FileService';
 import hookContextStore from '../../common/hookContextStore';
 import { next } from '../../common/Id';
 import { requireFunctionRef } from '../../common/Require';
-import { HookType, PreDeployResult, ScriptContext, ScriptHookContext } from '../../types';
+import { HookType, PreDeployResult, SfdxContext, SfdxHookContext } from '../../types';
 import ScriptCommand from './script';
 
 jest.mock('resolve', () => {
@@ -63,7 +63,7 @@ describe('flexi:script', () => {
         };
 
         let requiredId: string;
-        let runContext: ScriptContext;
+        let runContext: SfdxContext;
         let tsNodeRegisterOpts;
 
         requireFunctionRef.current = (id: string) => {
@@ -75,7 +75,7 @@ describe('flexi:script', () => {
                 };
             }
             requiredId = id;
-            return (context: ScriptContext) => {
+            return (context: SfdxContext) => {
                 runContext = context;
             };
         };
@@ -137,7 +137,7 @@ describe('flexi:script', () => {
         };
 
         let requiredId: string;
-        let runContext: ScriptContext;
+        let runContext: SfdxContext;
         let tsNodeRegisterOpts;
         requireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
@@ -148,7 +148,7 @@ describe('flexi:script', () => {
                 };
             }
             requiredId = id;
-            return (context: ScriptContext) => {
+            return (context: SfdxContext) => {
                 runContext = context;
             };
         };
@@ -211,7 +211,7 @@ describe('flexi:script', () => {
         };
 
         let requiredId: string;
-        let runContext: ScriptContext;
+        let runContext: SfdxContext;
         let tsNodeRegisterOpts;
         requireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
@@ -222,7 +222,7 @@ describe('flexi:script', () => {
                 };
             }
             requiredId = id;
-            return (context: ScriptContext) => {
+            return (context: SfdxContext) => {
                 runContext = context;
             };
         };
@@ -242,7 +242,7 @@ describe('flexi:script', () => {
             }
         };
 
-        const hookContext: ScriptHookContext = {
+        const hookContext: SfdxHookContext = {
             commandId: 'test:run',
             hookType: HookType.predeploy,
             result: preDeployResult
@@ -300,7 +300,7 @@ describe('flexi:script', () => {
             }
         };
 
-        const hookContext: ScriptHookContext = {
+        const hookContext: SfdxHookContext = {
             commandId: 'test:run',
             hookType: HookType.predeploy,
             result: preDeployResult
@@ -335,7 +335,7 @@ describe('flexi:script', () => {
         };
 
         let requiredId: string;
-        let runContext: ScriptContext;
+        let runContext: SfdxContext;
         let tsNodeRegisterOpts;
         requireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
@@ -346,7 +346,7 @@ describe('flexi:script', () => {
                 };
             }
             requiredId = id;
-            return (context: ScriptContext) => {
+            return (context: SfdxContext) => {
                 runContext = context;
             };
         };
@@ -408,7 +408,7 @@ describe('flexi:script', () => {
         };
 
         let requiredId: string;
-        let runContext: ScriptContext;
+        let runContext: SfdxContext;
         let tsNodeRegisterOpts;
         requireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
@@ -419,7 +419,7 @@ describe('flexi:script', () => {
                 };
             }
             requiredId = id;
-            return (context: ScriptContext) => {
+            return (context: SfdxContext) => {
                 runContext = context;
             };
         };

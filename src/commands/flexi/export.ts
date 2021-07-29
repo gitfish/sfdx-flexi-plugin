@@ -128,6 +128,8 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   public async run(): Promise<AnyJson> {
     this.ux.log(`Export records from org ${this.org.getOrgId()} (${this.org.getUsername()}) to ${this.dataDir}`);
 
+    await this.preExport();
+
     const objectConfigs = this.objectsToProcess;
 
     const results: ObjectSaveResult[] = [];
@@ -348,6 +350,10 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     this.ux.stopSpinner(`Saved ${result.total} records to ${result.path}`);
 
     return result;
+  }
+
+  private async preExport(): Promise<void> {
+    await this.runHook('preexport');
   }
 
   private async postExport(results: ObjectSaveResult[]): Promise<void> {
