@@ -1,19 +1,4 @@
-# Pre Deploy Hook
-
-Fires after the CLI converts your source files to Metadata API format but before it sends the files to the org.
-
-Please see the [sfdx hooks documentation](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm) for more details.
-
-## Configuration
-
-The default paths are `hooks/predeploy.ts` or `hooks/predeploy.js` and this can be overridden in `sfdx-project.json` with a `predeploy` entry under `hooks`.
-
-## Example
-
-The following example modifies profiles to remove certain user permissions when they're being deployed.
-
-```typescript
-import { PreDeployItem, PreDeployResult, SfdxContext } from "sfdx-flexi-plugin/lib/types";
+import { PreDeployItem, PreDeployResult, SfdxContext } from "../types";
 import { parseStringPromise, Builder } from "xml2js";
 import { promises as fsp } from "fs";
 
@@ -105,4 +90,3 @@ export default async (context: SfdxContext<PreDeployResult>): Promise<void> => {
         await removePermissions(item, context);
     }
 };
-```
