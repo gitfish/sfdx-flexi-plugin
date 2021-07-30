@@ -14,9 +14,11 @@ export enum HookType {
   preimport = 'preimport',
   preimportobject = 'preimportobject',
   postimportobject = 'postimportobject',
+  postimport = 'postimport',
+  preexport = 'preexport',
   preexportobject = 'preexportobject',
   postexportobject = 'postexportobject',
-  postexport = 'postexport'
+  postexport = 'postexport',
 }
 
 export interface WorkspaceElement {
@@ -111,7 +113,9 @@ export interface RecordSaveResult {
   success?: boolean;
 }
 
-export type SaveOperation = (context: SaveContext) => Promise<RecordSaveResult[]>;
+export type SaveOperation = (
+  context: SaveContext
+) => Promise<RecordSaveResult[]>;
 
 export interface ObjectSaveResult {
   sObjectType: string;
@@ -155,6 +159,12 @@ export interface PostImportObjectResult extends PreImportResult {
   importResult: ObjectSaveResult;
 }
 
+export interface PostImportResult extends PreImportResult {
+  results: ObjectSaveResult[];
+}
+
+export type PreExportResult = DataOpResult;
+
 export interface PreExportObjectResult extends DataOpResult {
   objectConfig: ObjectConfig;
 }
@@ -177,6 +187,8 @@ export type HookResult =
   | PreImportResult
   | PreImportObjectResult
   | PostImportObjectResult
+  | PostImportResult
+  | PreExportResult
   | PreExportObjectResult
   | PostExportObjectResult
   | PostExportResult;
@@ -188,9 +200,12 @@ export interface HookOptions<R extends HookResult> {
   result?: R;
 }
 
-export type HookFunction<R extends HookResult> = (this: Hook.Context, options: HookOptions<R>) => Promise<unknown>;
+export type HookFunction<R extends HookResult> = (
+  this: Hook.Context,
+  options: HookOptions<R>
+) => Promise<unknown>;
 
-export interface ScriptHookContext<R extends HookResult = HookResult> {
+export interface SfdxHookContext<R extends HookResult = HookResult> {
   context?: Hook.Context; // the original hook context
   hookType: HookType;
   commandId: string;
@@ -199,10 +214,12 @@ export interface ScriptHookContext<R extends HookResult = HookResult> {
   argv?: string[];
 }
 
+export type ScriptHookContext = SfdxHookContext;
+
 /**
  * This is the context provided to the script
  */
-export interface ScriptContext<R extends HookResult = HookResult> {
+export interface SfdxContext<R extends HookResult = HookResult> {
   logger: Logger;
   ux: UX;
   configAggregator: ConfigAggregator;
@@ -214,12 +231,20 @@ export interface ScriptContext<R extends HookResult = HookResult> {
   args: { [key: string]: unknown };
   argv: string[];
   varargs: JsonMap;
-  hook?: ScriptHookContext<R>;
+  hook?: SfdxHookContext<R>;
   config: IConfig;
 }
 
-export type ScriptFunction<R extends HookResult = HookResult> = (context: ScriptContext<R>)  => unknown | Promise<unknown>;
+export type ScriptContext = SfdxContext;
 
-export interface ScriptModule<R extends HookResult = HookResult> {
-  [key: string]: ScriptFunction<R>;
+export type SfdxFunction<R extends HookResult = HookResult> = (
+  context: SfdxContext<R>
+) => unknown | Promise<unknown>;
+
+export type ScriptFunction = SfdxFunction;
+
+export interface SfdxModule<R extends HookResult = HookResult> {
+  [key: string]: SfdxFunction<R>;
 }
+
+export type ScriptModule = SfdxModule;

@@ -1,5 +1,5 @@
-import { ScriptHookContext } from '../types';
+import { SfdxHookContext } from '../types';
 
-export const hookContextStore: { [key: string]: ScriptHookContext } = {};
+export const hookContextStore: { [key: string]: SfdxHookContext } = {};
 
 export { hookContextStore as default };

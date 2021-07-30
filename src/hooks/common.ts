@@ -1,7 +1,7 @@
 import ScriptCommand from '../commands/flexi/script';
 import hookContextStore from '../common/hookContextStore';
 import { next } from '../common/Id';
-import { HookFunction, HookOptions, HookResult, HookType, ScriptHookContext } from '../types';
+import { HookFunction, HookOptions, HookResult, HookType, SfdxHookContext } from '../types';
 
 export enum ErrorBehaviour {
   exit = 'exit',
@@ -54,7 +54,7 @@ export const copyFlagValues = (source: string[], dest: string[], specs: FlagSpec
             dest.push(<string>value);
           }
         }
-     }
+      }
     });
   }
 };
@@ -80,8 +80,8 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
 
   // Note that we're using a standard function as arrow functions are bound to the current 'this'.
   // tslint:disable-next-line: only-arrow-functions
-  return async function(hookOpts: HookOptions<R>) {
-    const hookContext: ScriptHookContext = {
+  return async function (hookOpts: HookOptions<R>) {
+    const hookContext: SfdxHookContext = {
       context: this,
       hookType,
       commandId: hookOpts.commandId || hookOpts.Command?.id,
@@ -98,6 +98,6 @@ export const createScriptDelegate = <R extends HookResult = HookResult>(
     copyFlagValues(hookOpts.argv, scriptCommandArgs, scriptCopyFlagSpecs);
 
     // run our script command
-    await ScriptCommand.run(scriptCommandArgs);
+    await ScriptCommand.run(scriptCommandArgs); // TODO: test passing the hook config as load options here
   };
 };

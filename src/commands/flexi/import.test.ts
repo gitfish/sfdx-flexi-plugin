@@ -102,7 +102,7 @@ describe('import test', () => {
     };
 
     defaultImportHandlerRef.current = async (
-      
+
     ): Promise<RecordSaveResult[]> => {
       return [
         {
@@ -206,7 +206,7 @@ describe('import test', () => {
     };
 
     defaultImportHandlerRef.current = async (
-      
+
     ): Promise<RecordSaveResult[]> => {
       return [
         {

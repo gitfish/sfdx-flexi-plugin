@@ -60,9 +60,9 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   public static description = messages.getMessage('commandDescription');
 
   public static examples = [
-    `$ sfdx flexi:export -o Product2 -u myOrg -c config/cpq-cli-def.json
-    Requesting data, please wait.... Request completed! Received X records.
-    `
+    `$ sfdx flexi:export -o Product2 -u myOrg -c config/cpq-cli-def.json`,
+    `$ sfdx flexi:export -u myOrg -c config/cpq-cli-def.json`,
+    `$ sfdx flexi:export -u myOrg -c config/cpq-cli-def.json -d woo`
   ];
 
   public static requiresUsername = true;
@@ -127,6 +127,8 @@ export default class ExportCommand extends SfdxCommand implements DataService {
 
   public async run(): Promise<AnyJson> {
     this.ux.log(`Export records from org ${this.org.getOrgId()} (${this.org.getUsername()}) to ${this.dataDir}`);
+
+    await this.preExport();
 
     const objectConfigs = this.objectsToProcess;
 
@@ -348,6 +350,10 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     this.ux.stopSpinner(`Saved ${result.total} records to ${result.path}`);
 
     return result;
+  }
+
+  private async preExport(): Promise<void> {
+    await this.runHook('preexport');
   }
 
   private async postExport(results: ObjectSaveResult[]): Promise<void> {

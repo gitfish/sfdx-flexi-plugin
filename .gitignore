@@ -11,3 +11,4 @@ node_modules
 .vscode/settings.json
 .vscode/tasks.json
 oclif.manifest.json
+__coverage__
