@@ -1,12 +1,14 @@
-# Import and Export Command
+# Import Command
 
-The import command is for importing data to an org from a set of local json files. This is typically used in conjunction with the export command as analogies to the metadata push/pull (or more accurately deploy/retrieve) commands.
+The import command is for importing data to an org from a set of local json files. The data is typically considered 'reference' data and is intended to be stored in version control.
 
-These command were created as a compatible but more flexible alternative to the [json bourne](https://github.com/realestate-com-au/json-bourne-sfdx-cli) and support is still maintained for the [json bourne managed package](https://github.com/realestate-com-au/json-bourne-sfdx-pkg) API for importing data. The most useful additions are being able to use an importer per-object and hooks as outlined below. 
+This command was created as a compatible but more flexible alternative to the [json bourne](https://github.com/realestate-com-au/json-bourne-sfdx-cli) import command and support is still maintained for the [json bourne managed package](https://github.com/realestate-com-au/json-bourne-sfdx-pkg) API for importing data. The most useful additions are:
+- Being able to change the import implementation on a per-object (sobject) basis
+- Hooks
 
 ## Configuration
 
-The import and export configuration are captured in a single configuration file. An basic example configuration file for importing and exporting Accounts and related Contacts would be:
+The import and export configuration are captured in a single configuration file. A basic example configuration file for importing and exporting Accounts and related Contacts would be:
 
 ```json
 {
@@ -50,14 +52,6 @@ or import a specific object (or objects) (Account in this case) with:
 
     sfdx flexi:import -c config/data-config.json -o Account -u ORGNAME
 
-An example exporting all objects to the `woohoo` project directory (the default is `data` under the project directory):
-
-    sfdx flexi:export -c config/data-config.json -u ORGNAME -d woohoo
-
-or export a specific object (or objects) (Contact in this case) with:
-
-    sfdx flexi:export -c config/data-config.json -u ORGNAME -d woohoo -o Contact
-
 ## Hooks
 
 The hook implementation delegates to a function exported by a typescript or javascript module. The hook function is invoked with a context that contains a `hook` property to provide hook specific context (such as what records are being imported and so on).
@@ -66,13 +60,13 @@ The following hooks can be defined in the project:
 
 ### Pre Import
 
-Called before the import of any object.
+Called before the import of any specific object.
 
 #### Configuration
 
 The default paths are `hooks/preimport.ts` or `hooks/preimport.js` and this can be overridden in `sfdx-project.json` with a `preimport` entry under `hooks`.
 
-#### Uses
+#### Use ideas
 - Turn off triggers for the whole import
 - Setup import session state (e.g. an import session record in salesforce)
 
@@ -177,9 +171,11 @@ export default async (context: SfdxContext<PostImportObjectResult>): Promise<voi
 }
 ```
 
-### Post Import
+### Post Import (Current unavailable)
 
 Called after the import of all objects
+
+**NOTE** This is currently unavailable as it hangs and then fails when invoked for some inexplicable reason - it requires investigation.
 
 #### Configuration
 
@@ -206,117 +202,6 @@ export const run = async (context: SfdxContext<PostImportResult>): Promise<void>
 };
 ```
 
-### Pre Export
+## Future Work
 
-Called before any object is exported
-
-#### Configuration
-
-The default paths are `hooks/preexport.ts` or `hooks/preexport.js` and this can be overridden in `sfdx-project.json` with a `preexport` entry under `hooks`.
-
-#### Use ideas
-- Preparation
-
-#### Example
-
-```typescript
-import {
-    SfdxContext,
-    PreExportResult
-} from "../types";
-
-export const run = async (context: SfdxContext<PreExportResult>): Promise<void> => {
-    const { hook, ux } = context;
-    const result = hook.result;
-    // do something real - I'm out of ideas
-    ux.log('Pre Export Result');
-    ux.logJson(result);
-};
-```
-
-### Pre Export Object
-
-Called before the export of a specific object.
-
-#### Configuration
-The default paths are `hooks/preexportobject.ts` or `hooks/preexportobject.js` and this can be overridden in `sfdx-project.json` with a `preexportobject` entry under `hooks`.
-
-#### Use ideas
-- Preparation of directory / directories
-- Haven't thought of any great ideas yet
-
-#### Example
-
-```typescript
-import {
-    SfdxContext,
-    PreExportObjectResult
-} from "../types";
-
-export const run = async (context: SfdxContext<PreExportObjectResult>): Promise<void> => {
-    const { hook, ux } = context;
-    const result = hook.result;
-    // do something real - I'm out of ideas
-    ux.log('Pre Export Object Result');
-    ux.logJson(result);
-};
-```
-
-### Post Export Object
-
-Called after the export of a specific object.
-
-#### Configuration
-
-The default paths are `hooks/postexportobject.ts` or `hooks/postexportobject.js` and this can be overridden in `sfdx-project.json` with a `postexportobject` entry under `hooks`.
-
-#### Use ideas
-- Cleanup
-- Modify records
-
-#### Example
-
-```typescript
-import {
-    SfdxContext,
-    PostExportObjectResult
-} from "../types";
-
-export const run = async (context: SfdxContext<PostExportObjectResult>): Promise<void> => {
-    const { hook, ux } = context;
-    const result = hook.result;
-    // do something real - I'm out of ideas
-    ux.log('Post Export Object Result');
-    ux.logJson(result);
-};
-```
-
-### Post Export
-
-Called after all objects have been exported.
-
-#### Configuration
-
-The default paths are `hooks/postexport.ts` or `hooks/postexport.js` and this can be overridden in `sfdx-project.json` with a `postexport` entry under `hooks`.
-
-#### Use ideas
-- Cleanup
-- Modify records
-
-#### Example
-
-```typescript
-import {
-    SfdxContext,
-    PostExportResult
-} from "../types";
-
-export const run = async (context: SfdxContext<PostExportResult>): Promise<void> => {
-    const { hook, ux } = context;
-    const result = hook.result;
-    // do something real - I'm out of ideas
-    ux.log('Post Export Result');
-    ux.logJson(result);
-};
-```
-
+Moving forward, the implementation will move to an approach of staging the data in a temporary location, with two lifecycle hooks only (i.e. `preimport` and `preexport`) being provided with results that reference this staging location. This approach will simplify the process greatly - it's mostly in the current state for backwards compatibility with `bourne`.

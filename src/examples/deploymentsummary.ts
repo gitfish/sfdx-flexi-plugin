@@ -1,84 +1,76 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SfdxContext } from "../types";
+import { SfdxContext } from '../types';
 
 export default async (context: SfdxContext): Promise<void> => {
   const { ux, org, varargs } = context;
   const conn = org.getConnection();
   const r = await conn.tooling.query(
-    `select Id, CreatedDate, CreatedBy.Name, StartDate, CompletedDate, Status, StateDetail, CheckOnly, NumberComponentsTotal, NumberComponentErrors, NumberComponentsDeployed, NumberTestsTotal, NumberTestsCompleted, NumberTestErrors, ErrorMessage from DeployRequest ORDER BY CreatedDate desc NULLS LAST limit ${varargs.limit || 10
+    `select Id, CreatedDate, CreatedBy.Name, StartDate, CompletedDate, Status, StateDetail, CheckOnly, NumberComponentsTotal, NumberComponentErrors, NumberComponentsDeployed, NumberTestsTotal, NumberTestsCompleted, NumberTestErrors, ErrorMessage from DeployRequest ORDER BY CreatedDate desc NULLS LAST limit ${
+      varargs.limit || 10
     }`
   );
-  /**
-   * NOTE: At the time of writing: the get implementation on column has to cast any due
-   * to type definition issue in cli-ux 4.9.3. Hopefully sf command
-   * can update the dependency soon-ish
-   */
+  
   ux.table(r.records, {
     columns: [
-      { key: "Id", label: "ID" },
+      { key: 'Id', label: 'ID' },
       {
-        key: "Created",
-        label: "Created",
-        get(row) {
-          const r = <any>row;
-          return `${new Date(
-            Date.parse(r.CreatedDate)
-          ).toLocaleString()} by ${r.CreatedBy.Name}`;
+        key: 'Created',
+        label: 'Created',
+        get(row: any) {
+          return `${new Date(Date.parse(row.CreatedDate)).toLocaleString()} by ${
+            row.CreatedBy.Name
+          }`;
         },
       },
       {
-        key: "StartDate",
-        label: "Start Date",
-        get(row) {
-          const r = <any>row;
-          if (r.StartDate) {
-            return new Date(Date.parse(r.StartDate)).toLocaleString();
+        key: 'StartDate',
+        label: 'Start Date',
+        get(row: any) {
+          if (row.StartDate) {
+            return new Date(Date.parse(row.StartDate)).toLocaleString();
           }
-          return "";
+          return '';
         },
       },
       {
-        key: "CompletedDate",
-        label: "Completed Date",
-        get(row) {
-          const r = <any>row;
-          if (r.CompletedDate) {
-            return new Date(Date.parse(r.CompletedDate)).toLocaleString();
+        key: 'CompletedDate',
+        label: 'Completed Date',
+        get(row: any) {
+          if (row.CompletedDate) {
+            return new Date(Date.parse(row.CompletedDate)).toLocaleString();
           }
-          return "";
+          return '';
         },
       },
-      { key: "CheckOnly", label: "Check Only" },
-      { key: "Status", label: "Status" },
+      { key: 'CheckOnly', label: 'Check Only' },
+      { key: 'Status', label: 'Status' },
       {
-        key: "Components",
-        label: "Components",
-        get(row) {
-          const r = <any>row;
-          if (r.NumberComponentsTotal) {
-            if (r.NumberComponentsDeployed === r.NumberComponentsTotal) {
-              return `${r.NumberComponentsTotal}`;
+        key: 'Components',
+        label: 'Components',
+        get(row: any) {
+          if (row.NumberComponentsTotal) {
+            if (row.NumberComponentsDeployed === row.NumberComponentsTotal) {
+              return `${row.NumberComponentsTotal}`;
             }
-            return `${r.NumberComponentsDeployed} / ${r.NumberComponentsTotal}`;
+            return `${row.NumberComponentsDeployed} / ${row.NumberComponentsTotal}`;
           }
-          return "";
+          return '';
         },
       },
       {
-        key: "Tests",
-        label: "Tests",
-        get(row) {
-          const r = <any>row;
-          if (r.NumberTestsTotal) {
-            if (r.NumberTestsCompleted === r.NumberTestsTotal) {
-              return `${r.NumberTestsTotal}`;
+        key: 'Tests',
+        label: 'Tests',
+        get(row: any) {
+          if (row.NumberTestsTotal) {
+            if (row.NumberTestsCompleted === row.NumberTestsTotal) {
+              return `${row.NumberTestsTotal}`;
             }
-            return `${r.NumberTestsCompleted} / ${r.NumberTestsTotal}`;
+            return `${row.NumberTestsCompleted} / ${row.NumberTestsTotal}`;
           }
-          return "";
+          return '';
         },
       },
-      { key: "ErrorMessage", label: "Error Message" },
+      { key: 'ErrorMessage', label: 'Error Message' },
     ],
   });
 };

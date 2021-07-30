@@ -296,7 +296,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       }
     }
 
-    await this.postImport();
+    //await this.postImport(results); disabled - encountering an inexplicable issue at
 
     return <AnyJson>(<unknown>results);
   }
@@ -548,7 +548,11 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     await this.runHook('preimport');
   }
 
-  private async postImport(): Promise<void> {
-    await this.runHook('postimport');
+  /* Disabled for now
+  private async postImport(results: ObjectSaveResult[]): Promise<void> {
+    await this.runHook('postimport', {
+      results
+    });
   }
+  */
 }

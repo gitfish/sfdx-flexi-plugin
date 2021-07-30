@@ -159,7 +159,9 @@ export interface PostImportObjectResult extends PreImportResult {
   importResult: ObjectSaveResult;
 }
 
-export type PostImportResult = PreImportResult;
+export interface PostImportResult extends PreImportResult {
+  results: ObjectSaveResult[];
+}
 
 export type PreExportResult = DataOpResult;
 
