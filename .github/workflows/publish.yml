@@ -17,7 +17,9 @@ jobs:
     - run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-    - name: tag-release
+    - name: get-package-version
+        run: node -p -e '`PACKAGE_VERSION=${require("./package.json").version}`' >> $GITHUB_ENV
+    - name: tag-release-with-package-version
       uses: pkgdeps/git-tag-action@v2
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
