@@ -54,6 +54,8 @@ export class ScriptCommand extends SfdxCommand {
 
   public static description = messages.getMessage('commandDescription');
 
+  public static aliases = ['flexi:run', 'flexi:exec'];
+
   public static examples = [
     '$ sfdx flexi:script --path <script file path>',
     '$ sfdx flexi:script --hookcontext <hook context json>',
