@@ -1,18 +1,18 @@
 import * as pathUtils from 'path';
-import { fileServiceRef } from './fs';
+import { FileServiceRef } from './fs';
 
 describe('File Service', () => {
 
     test('default ref', () => {
-        expect(fileServiceRef.current).toBeTruthy();
+        expect(FileServiceRef.current).toBeTruthy();
     });
 
     test('default exists', async () => {
-        expect(await fileServiceRef.current.exists(pathUtils.join(__dirname, 'FileService.ts'))).toBeTruthy();
+        expect(await FileServiceRef.current.exists(pathUtils.join(__dirname, 'FileService.ts'))).toBeTruthy();
     });
 
     test('default read', async () => {
-        const contents = await fileServiceRef.current.readFile(pathUtils.join(__dirname, 'FileService.ts'));
+        const contents = await FileServiceRef.current.readFile(pathUtils.join(__dirname, 'FileService.ts'));
         expect(contents).toBeTruthy();
     });
 });

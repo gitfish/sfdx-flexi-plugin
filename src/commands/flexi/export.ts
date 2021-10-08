@@ -10,7 +10,7 @@ import {
   getObjectsToProcess,
   removeField
 } from '../../common/data';
-import { FileService, fileServiceRef } from '../../common/fs';
+import { FileService, FileServiceRef } from '../../common/fs';
 import {
   DataConfig,
   DataService,
@@ -25,7 +25,7 @@ const messages = Messages.loadMessages('sfdx-flexi-plugin', 'export');
 export default class ExportCommand extends SfdxCommand implements DataService {
   public get fileService(): FileService {
     if (!this.fileServiceInternal) {
-      return fileServiceRef.current;
+      return FileServiceRef.current;
     }
     return this.fileServiceInternal;
   }

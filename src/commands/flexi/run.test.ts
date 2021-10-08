@@ -1,8 +1,8 @@
 import { Org, SfdxProject } from '@salesforce/core';
 import * as pathUtils from 'path';
-import { fileServiceRef } from '../../common/fs';
+import { FileServiceRef } from '../../common/fs';
 import { next } from '../../common/id';
-import { requireFunctionRef } from '../../common/Require';
+import { RequireFunctionRef } from '../../common/Require';
 import { HookType, PreDeployResult, SfdxContext, SfdxHookContext } from '../../types';
 import ScriptCommand from './run';
 
@@ -37,7 +37,7 @@ describe('flexi:script', () => {
 
         Org.create = mockOrgCreate;
 
-        fileServiceRef.current = {
+        FileServiceRef.current = {
             existsSync() {
                 return true;
             },
@@ -65,7 +65,7 @@ describe('flexi:script', () => {
         let runContext: SfdxContext;
         let tsNodeRegisterOpts;
 
-        requireFunctionRef.current = (id: string) => {
+        RequireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {
@@ -111,7 +111,7 @@ describe('flexi:script', () => {
 
         Org.create = mockOrgCreate;
 
-        fileServiceRef.current = {
+        FileServiceRef.current = {
             existsSync() {
                 return true;
             },
@@ -138,7 +138,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: SfdxContext;
         let tsNodeRegisterOpts;
-        requireFunctionRef.current = (id: string) => {
+        RequireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {
@@ -185,7 +185,7 @@ describe('flexi:script', () => {
 
         Org.create = mockOrgCreate;
 
-        fileServiceRef.current = {
+        FileServiceRef.current = {
             existsSync() {
                 return true;
             },
@@ -212,7 +212,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: SfdxContext;
         let tsNodeRegisterOpts;
-        requireFunctionRef.current = (id: string) => {
+        RequireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {
@@ -309,7 +309,7 @@ describe('flexi:script', () => {
 
         let hookContextPathRead: string;
 
-        fileServiceRef.current = {
+        FileServiceRef.current = {
             existsSync() {
                 return true;
             },
@@ -338,7 +338,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: SfdxContext;
         let tsNodeRegisterOpts;
-        requireFunctionRef.current = (id: string) => {
+        RequireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {
@@ -384,7 +384,7 @@ describe('flexi:script', () => {
 
         Org.create = mockOrgCreate;
 
-        fileServiceRef.current = {
+        FileServiceRef.current = {
             existsSync() {
                 return true;
             },
@@ -411,7 +411,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: SfdxContext;
         let tsNodeRegisterOpts;
-        requireFunctionRef.current = (id: string) => {
+        RequireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
                     register(opts) {

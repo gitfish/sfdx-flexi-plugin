@@ -8,7 +8,7 @@ import {
   SaveContext,
   SaveOperation,
 } from "../types";
-import { fileServiceRef } from "./fs";
+import { FileServiceRef } from "./fs";
 import { Ref } from "./ref";
 
 export const defaultConfig = {
@@ -113,7 +113,7 @@ export const getObjectsToProcess = (
 export const getDataConfig = async (
   basePath: string,
   flags: { [key: string]: unknown },
-  fileService = fileServiceRef.current
+  fileService = FileServiceRef.current
 ): Promise<DataConfig> => {
   let configPath = <string>flags.configfile;
   if (!configPath) {

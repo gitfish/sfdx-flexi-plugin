@@ -6,7 +6,7 @@ import {
   BourneSaveResult
 } from '../../bourne/import';
 import { defaultImportHandlerRef } from '../../common/data';
-import { fileServiceRef } from '../../common/fs';
+import { FileServiceRef } from '../../common/fs';
 import {
   DataConfig,
   ObjectSaveResult,
@@ -49,7 +49,7 @@ describe('import test', () => {
 
     let configPath: string;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
@@ -153,7 +153,7 @@ describe('import test', () => {
 
     let configPath: string;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
@@ -278,7 +278,7 @@ describe('import test', () => {
 
     Org.create = mockOrgCreate;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
@@ -398,7 +398,7 @@ describe('import test', () => {
 
     Org.create = mockOrgCreate;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
@@ -524,7 +524,7 @@ describe('import test', () => {
 
     Org.create = mockOrgCreate;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
@@ -650,7 +650,7 @@ describe('import test', () => {
 
     Org.create = mockOrgCreate;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
@@ -745,7 +745,7 @@ describe('import test', () => {
 
     Org.create = mockOrgCreate;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
@@ -864,7 +864,7 @@ describe('import test', () => {
 
     Org.create = mockOrgCreate;
 
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;

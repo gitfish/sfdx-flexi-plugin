@@ -1,8 +1,8 @@
 import { Org, SfdxProject, SfdxProjectJson } from '@salesforce/core';
 import * as pathUtils from 'path';
 import { DEFAULT_HOOKS_DIR } from '../commands/flexi/run';
-import { fileServiceRef } from '../common/fs';
-import { requireFunctionRef } from '../common/Require';
+import { FileServiceRef } from '../common/fs';
+import { RequireFunctionRef } from '../common/Require';
 import { HookType, PreDeployResult, SfdxContext } from '../types';
 import {
   copyFlagValues,
@@ -74,7 +74,7 @@ describe('Hook Common', () => {
     Org.create = mockOrgCreate;
 
     const readFilePaths: string[] = [];
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return true;
@@ -104,7 +104,7 @@ describe('Hook Common', () => {
     let requiredId: string;
     let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
-    requireFunctionRef.current = (id: string) => {
+    RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
         return {
           register(opts) {
@@ -201,7 +201,7 @@ describe('Hook Common', () => {
     Org.create = mockOrgCreate;
 
     const readFilePaths: string[] = [];
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return path.endsWith('.ts');
@@ -231,7 +231,7 @@ describe('Hook Common', () => {
     let requiredId: string;
     let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
-    requireFunctionRef.current = (id: string) => {
+    RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
         return {
           register(opts) {
@@ -331,7 +331,7 @@ describe('Hook Common', () => {
     Org.create = mockOrgCreate;
 
     const readFilePaths: string[] = [];
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return true;
@@ -361,7 +361,7 @@ describe('Hook Common', () => {
     let requiredId: string;
     let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
-    requireFunctionRef.current = (id: string) => {
+    RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
         return {
           register(opts) {
@@ -455,7 +455,7 @@ describe('Hook Common', () => {
     Org.create = mockOrgCreate;
 
     const readFilePaths: string[] = [];
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return true;
@@ -485,7 +485,7 @@ describe('Hook Common', () => {
     let requiredId: string;
     let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
-    requireFunctionRef.current = (id: string) => {
+    RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
         return {
           register(opts) {
@@ -579,7 +579,7 @@ describe('Hook Common', () => {
     Org.create = mockOrgCreate;
 
     const readFilePaths: string[] = [];
-    fileServiceRef.current = {
+    FileServiceRef.current = {
       existsSync(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return true;
@@ -609,7 +609,7 @@ describe('Hook Common', () => {
     let requiredId: string;
     let runContext: SfdxContext<PreDeployResult>;
     let tsNodeRegisterOpts;
-    requireFunctionRef.current = (id: string) => {
+    RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
         return {
           register(opts) {

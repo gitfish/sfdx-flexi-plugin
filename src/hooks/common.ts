@@ -1,6 +1,6 @@
 import ScriptCommand from '../commands/flexi/run';
 import hookContextStore from '../common/hookContextStore';
-import { next } from '../common/Id';
+import { next } from '../common/id';
 import { HookFunction, HookOptions, HookResult, HookType, SfdxHookContext } from '../types';
 
 export enum ErrorBehaviour {

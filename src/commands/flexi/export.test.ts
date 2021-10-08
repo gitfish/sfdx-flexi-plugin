@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
 import { defaultConfig } from '../../common/data';
-import { fileServiceRef } from '../../common/fs';
+import { FileServiceRef } from '../../common/fs';
 import { DataConfig, ObjectSaveResult } from '../../types';
 import ExportCommand from './export';
 
@@ -77,7 +77,7 @@ describe('export test', () => {
 
         const unlinkPaths: string[] = [];
         const written: { [path: string]: string } = {};
-        fileServiceRef.current = {
+        FileServiceRef.current = {
             existsSync(path: string) {
                 console.log('-- Export Exists Sync: ' + path);
                 return true;
