@@ -1,7 +1,7 @@
 import { Org, SfdxProject, SfdxProjectJson } from '@salesforce/core';
 import * as pathUtils from 'path';
-import { DEFAULT_HOOKS_DIR } from '../commands/flexi/script';
-import { fileServiceRef } from '../common/FileService';
+import { DEFAULT_HOOKS_DIR } from '../commands/flexi/run';
+import { fileServiceRef } from '../common/fs';
 import { requireFunctionRef } from '../common/Require';
 import { HookType, PreDeployResult, SfdxContext } from '../types';
 import {

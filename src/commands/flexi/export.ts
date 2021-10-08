@@ -9,8 +9,8 @@ import {
   getDataConfig,
   getObjectsToProcess,
   removeField
-} from '../../common/dataHelper';
-import { FileService, fileServiceRef } from '../../common/FileService';
+} from '../../common/data';
+import { FileService, fileServiceRef } from '../../common/fs';
 import {
   DataConfig,
   DataService,

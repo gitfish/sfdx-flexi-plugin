@@ -1,15 +1,14 @@
 import * as fs from 'fs';
-import Ref from './Ref';
+import { Ref } from './ref';
 
 /**
  * File service interface used by commands - this is abstracted for testing as mocking the fs module's a bit messy
  */
 export interface FileService {
-    existsSync(path: string): boolean;
-    readFileSync(path: string): string;
-    readdirSync(path: string): string[];
+    exists(path: string): Promise<boolean>;
+    readFile(path: string): Promise<string>;
     readdir(path: string): Promise<string[]>;
-    mkdirSync(path: string): void;
+    mkdir(path: string): Promise<string>;
     unlink(path: string): Promise<void>;
     writeFile(path: string, content: string): Promise<void>;
 }
@@ -18,20 +17,22 @@ export interface FileService {
  * Default file service implementation making use of fs module
  */
 export class DefaultFileService implements FileService {
-    public existsSync(path: string): boolean {
-        return fs.existsSync(path);
+    public async exists(path: string): Promise<boolean> {
+        try {
+            await fs.promises.stat(path);
+            return true;
+        } catch(err) {
+            return false;
+        }
     }
-    public readFileSync(path: string): string {
-        return fs.readFileSync(path, { encoding: 'utf8' });
-    }
-    public readdirSync(path: string): string[] {
-        return fs.readdirSync(path);
+    public readFile(path: string): Promise<string> {
+        return fs.promises.readFile(path, { encoding: 'utf8' });
     }
     public readdir(path: string): Promise<string[]> {
         return fs.promises.readdir(path);
     }
-    public mkdirSync(path: string): void {
-        fs.mkdirSync(path);
+    public mkdir(path: string): Promise<string> {
+        return fs.promises.mkdir(path, { recursive: true });
     }
     public unlink(path: string): Promise<void> {
         return fs.promises.unlink(path);
@@ -44,7 +45,7 @@ export class DefaultFileService implements FileService {
 /**
  * Reference to the file service - typically overridden from default during testing.
  */
-export const fileServiceRef = new Ref<FileService>({
+export const FileServiceRef = new Ref<FileService>({
     defaultSupplier: () => {
         return new DefaultFileService();
     }

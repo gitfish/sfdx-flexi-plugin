@@ -15,10 +15,10 @@ import {
   defaultImportHandlerRef,
   getDataConfig,
   getObjectsToProcess
-} from '../../common/dataHelper';
-import { FileService, fileServiceRef } from '../../common/FileService';
-import requireFunctionRef, { RequireFunc } from '../../common/Require';
-import { getModuleFunction } from '../../common/scriptHelper';
+} from '../../common/data';
+import { FileServiceRef } from '../../common/fs';
+import { RequireFunctionRef } from '../../common/require';
+import { getModuleFunction } from '../../common/module';
 import {
   DataConfig,
   DataService,
@@ -43,31 +43,7 @@ const objectImportResultTableOptions: TableOptions = {
 };
 
 export default class ImportCommand extends SfdxCommand implements DataService {
-  /**
-   * The require function to use for hooks
-   */
-  public get requireFunc(): RequireFunc {
-    if (!this.requireFuncInternal) {
-      return requireFunctionRef.current;
-    }
-    return this.requireFuncInternal;
-  }
-  public set requireFunc(value: RequireFunc) {
-    this.requireFuncInternal = value;
-  }
 
-  /**
-   * The file service to use
-   */
-  public get fileService(): FileService {
-    if (!this.fileServiceInternal) {
-      return fileServiceRef.current;
-    }
-    return this.fileServiceInternal;
-  }
-  public set fileService(value: FileService) {
-    this.fileServiceInternal = value;
-  }
 
   /**
    * Get the data configuration

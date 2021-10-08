@@ -1,7 +1,7 @@
-import requireFunctionRef from './Require';
+import { RequireFunctionRef } from './require';
 
 describe('Require Test', () => {
     test('default', () => {
-        expect(requireFunctionRef.current).toBeTruthy();
+        expect(RequireFunctionRef.current).toBeTruthy();
     });
 });

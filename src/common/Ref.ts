@@ -20,5 +20,3 @@ export class Ref<T> {
         this._current = value;
     }
 }
-
-export { Ref as default };

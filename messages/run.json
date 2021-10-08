@@ -1,0 +1,5 @@
+{
+    "commandDescription": "Executes a function resolved from a js or ts module with a provided sfdx context",
+    "pathFlagDescription": "The script module path to load the function from",
+    "exportFlagDescription": "The module export to execute"
+}

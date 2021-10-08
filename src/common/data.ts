@@ -8,8 +8,8 @@ import {
   SaveContext,
   SaveOperation,
 } from "../types";
-import { fileServiceRef } from "./FileService";
-import Ref from "./Ref";
+import { fileServiceRef } from "./fs";
+import { Ref } from "./ref";
 
 export const defaultConfig = {
   dataDir: "data",
@@ -110,11 +110,11 @@ export const getObjectsToProcess = (
  * @param flags
  * @returns
  */
-export const getDataConfig = (
+export const getDataConfig = async (
   basePath: string,
   flags: { [key: string]: unknown },
   fileService = fileServiceRef.current
-): DataConfig => {
+): Promise<DataConfig> => {
   let configPath = <string>flags.configfile;
   if (!configPath) {
     throw new SfdxError("A configuration file path must be specified");
@@ -122,8 +122,8 @@ export const getDataConfig = (
   if (!pathUtils.isAbsolute(configPath)) {
     configPath = pathUtils.join(basePath, configPath);
   }
-  if (fileService.existsSync(configPath)) {
-    return JSON.parse(fileService.readFileSync(configPath));
+  if (await fileService.exists(configPath)) {
+    return JSON.parse(await fileService.readFile(configPath));
   }
 
   throw new SfdxError(`Unable to find configuration file: ${flags.configpath}`);

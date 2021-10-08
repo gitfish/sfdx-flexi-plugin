@@ -1,11 +1,10 @@
 import { Org, SfdxProject } from '@salesforce/core';
 import * as pathUtils from 'path';
-import { fileServiceRef } from '../../common/FileService';
-import hookContextStore from '../../common/hookContextStore';
-import { next } from '../../common/Id';
+import { fileServiceRef } from '../../common/fs';
+import { next } from '../../common/id';
 import { requireFunctionRef } from '../../common/Require';
 import { HookType, PreDeployResult, SfdxContext, SfdxHookContext } from '../../types';
-import ScriptCommand from './script';
+import ScriptCommand from './run';
 
 jest.mock('resolve', () => {
     return {
@@ -242,6 +241,7 @@ describe('flexi:script', () => {
             }
         };
 
+        /*
         const hookContext: SfdxHookContext = {
             commandId: 'test:run',
             hookType: HookType.predeploy,
@@ -262,6 +262,7 @@ describe('flexi:script', () => {
         expect(runContext.flags.targetusername).toBe('woo@test.com');
         expect(runContext.hook).toBeTruthy();
         expect(runContext.hook.commandId).toBe('test:run');
+        */
     });
 
     test('hook context from path', async () => {

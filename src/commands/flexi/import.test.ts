@@ -5,8 +5,8 @@ import {
   BourneImportRequest,
   BourneSaveResult
 } from '../../bourne/import';
-import { defaultImportHandlerRef } from '../../common/dataHelper';
-import { fileServiceRef } from '../../common/FileService';
+import { defaultImportHandlerRef } from '../../common/data';
+import { fileServiceRef } from '../../common/fs';
 import {
   DataConfig,
   ObjectSaveResult,

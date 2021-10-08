@@ -1,4 +1,4 @@
-import ScriptCommand from '../commands/flexi/script';
+import ScriptCommand from '../commands/flexi/run';
 import hookContextStore from '../common/hookContextStore';
 import { next } from '../common/Id';
 import { HookFunction, HookOptions, HookResult, HookType, SfdxHookContext } from '../types';

@@ -2,8 +2,8 @@ import { Org, SfdxProject } from '@salesforce/core';
 import { EventEmitter } from 'events';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
-import { defaultConfig } from '../../common/dataHelper';
-import { fileServiceRef } from '../../common/FileService';
+import { defaultConfig } from '../../common/data';
+import { fileServiceRef } from '../../common/fs';
 import { DataConfig, ObjectSaveResult } from '../../types';
 import ExportCommand from './export';
 
