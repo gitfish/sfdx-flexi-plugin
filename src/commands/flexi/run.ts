@@ -13,8 +13,6 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'run');
 
-export const DEFAULT_HOOKS_DIR = 'hooks';
-
 export class RunCommand extends SfdxCommand {
 
   get basePath(): string {
