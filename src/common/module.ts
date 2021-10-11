@@ -10,7 +10,6 @@ export interface ModuleLoadOptions {
 
 export const defaultModuleLoadOptions: ModuleLoadOptions = {
   resolvePath: process.cwd(),
-  requireFunc: RequireFunctionRef.current
 };
 
 /**
@@ -22,7 +21,8 @@ export const defaultModuleLoadOptions: ModuleLoadOptions = {
 // eslint-disable-next-line
 export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   opts = { ...defaultModuleLoadOptions, ...opts };
-  const { resolvePath, requireFunc } = opts;
+  const { resolvePath } = opts;
+  const requireFunc = opts.requireFunc || RequireFunctionRef.current;
   path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
 
   if (path.endsWith('.ts')) {
@@ -36,7 +36,7 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
         transpileOnly: true,
         skipProject: true,
         compilerOptions: {
-          target: 'es2017',
+          target: 'es2021',
           module: 'commonjs',
           strict: false,
           skipLibCheck: true,
@@ -87,7 +87,7 @@ export const getFunction = <T>(module: any, exportName?: string): T => {
 };
 
 export interface GetModuleFunctionOptions extends ModuleLoadOptions {
-  exportName: string;
+  exportName?: string;
 }
 
 /**

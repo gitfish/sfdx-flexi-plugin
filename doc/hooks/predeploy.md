@@ -97,8 +97,8 @@ const removePermissions = async (item: PreDeployItem, context: SfdxContext) => {
     }
 };
 
-export default async (context: SfdxContext<PreDeployResult>): Promise<void> => {
-    const result = context.hook.result;
+export default async (context: SfdxHookContext<PreDeployResult>): Promise<void> => {
+    const result = context.result;
     const itemKeys = Object.keys(result);
     for (const key of itemKeys) {
         const item = result[key];

@@ -2,9 +2,8 @@ import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
-import { RequireFunctionRef } from '../../common/require';
 import { getModuleFunction } from '../../common/module';
-import { SfdxContext, SfdxFunction } from '../../types';
+import { RunFlags, SfdxRunContext, SfdxRunFunction } from '../../types';
 
 // Initialize Messages with the current plugin directory
 Messages.importMessagesDirectory(__dirname);
@@ -49,31 +48,27 @@ export class RunCommand extends SfdxCommand {
     })
   };
 
-  public async run(): Promise<AnyJson> {
+  public override async run(): Promise<AnyJson> {
     let modulePath: string = this.flags.path;
     if(!pathUtils.isAbsolute(modulePath)) {
       modulePath = pathUtils.join(this.basePath, modulePath);
     }
 
-    const context: SfdxContext = {
-      args: this.args,
+    const context: SfdxRunContext = {
       configAggregator: this.configAggregator,
-      flags: this.flags,
       logger: this.logger,
-      result: this.result,
       ux: this.ux,
       hubOrg: this.hubOrg,
       org: this.org,
       project: this.project,
+      flags: <RunFlags>this.flags,
       varargs: this.varargs,
-      config: this.config,
-      argv: this.argv
+      config: this.config
     };
 
     // resolve our handler func
-    const func: SfdxFunction = getModuleFunction(modulePath, {
+    const func: SfdxRunFunction = getModuleFunction(modulePath, {
       resolvePath: this.basePath,
-      requireFunc: RequireFunctionRef.current,
       exportName: this.flags.export
     });
 
@@ -85,12 +80,7 @@ export class RunCommand extends SfdxCommand {
     throw new Error(`Unable to resolve function from module ${modulePath}`);
   }
 
-  protected async resolveScriptPath(): Promise<string> {
-    const r = this.flags.path;
-    return r ? pathUtils.isAbsolute(r) ? r : pathUtils.join(this.basePath, r) : undefined;
-  }
-
-  protected async assignProject(): Promise<void> {
+  protected override async assignProject(): Promise<void> {
     // Throw an error if the command requires to be run from within an SFDX project but we
     // don't have a local config.
     try {

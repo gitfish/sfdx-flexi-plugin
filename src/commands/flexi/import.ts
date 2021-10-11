@@ -15,11 +15,11 @@ import {
   defaultImportHandlerRef,
   getDataConfig,
   getObjectsToProcess
-} from '../../common/data';
+} from '../../helper/data';
 import { FileServiceRef } from '../../common/fs';
-import { RequireFunctionRef } from '../../common/require';
 import { getModuleFunction } from '../../common/module';
 import {
+  DataCommandFlags,
   DataConfig,
   DataService,
   ObjectConfig,
@@ -44,39 +44,13 @@ const objectImportResultTableOptions: TableOptions = {
 
 export default class ImportCommand extends SfdxCommand implements DataService {
 
-
-  /**
-   * Get the data configuration
-   */
-  protected get dataConfig(): DataConfig {
-    if (!this.dataConfigInternal) {
-      this.dataConfigInternal = getDataConfig(
-        this.basePath,
-        this.flags,
-        this.fileService
-      );
-    }
-    return this.dataConfigInternal;
-  }
-
-  /**
-   * Get objects (i.e. sobjects) to process
-   */
-  protected get objectsToProcess(): ObjectConfig[] {
-    if (!this.objectsToProcessInternal) {
-      const items = getObjectsToProcess(this.flags, this.dataConfig);
-      if (this.flags.remove) {
-        items.reverse();
-      }
-      this.objectsToProcessInternal = items;
-    }
-    return this.objectsToProcessInternal;
-  }
+  private dataConfig: DataConfig;
+  private objectsToProcess: ObjectConfig[];
 
   /**
    * Get the data directory - i.e. the directory containing the json files representing records
    */
-  protected get dataDir(): string {
+  get dataDir(): string {
     const r = this.flags.datadir || defaultConfig.dataDir;
     return pathUtils.isAbsolute(r) ? r : pathUtils.join(this.basePath, r);
   }
@@ -169,8 +143,6 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       description: messages.getMessage('importHandlerFlagDescription')
     })
   };
-  private requireFuncInternal: RequireFunc;
-  private fileServiceInternal: FileService;
 
   private importHandlers: { [key: string]: SaveOperation } = {
     bourne: bourneImport,
@@ -180,10 +152,6 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   };
 
   private hookState: { [key: string]: unknown } = {};
-
-  private objectsToProcessInternal: ObjectConfig[];
-
-  private dataConfigInternal: DataConfig;
 
   /**
    * Get records to process for the object
@@ -200,8 +168,8 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const records: Record[] = [];
     if (objectConfig) {
       const objectDirPath = this.getObjectPath(objectConfig);
-      if (this.fileService.existsSync(objectDirPath)) {
-        const files = this.fileService.readdirSync(objectDirPath);
+      if (await FileServiceRef.current.pathExists(objectDirPath)) {
+        const files = await FileServiceRef.current.readdir(objectDirPath);
         if (files.length > 0) {
           let recordTypes;
           if (objectConfig.hasRecordTypes) {
@@ -209,15 +177,15 @@ export default class ImportCommand extends SfdxCommand implements DataService {
               objectConfig.sObjectType
             );
           }
-          files.forEach(file => {
-            const record = this.readRecord(
+          await Promise.all(files.map(async file => {
+            const record = await this.readRecord(
               pathUtils.join(objectDirPath, file),
               recordTypes
             );
             if (record) {
               records.push(record);
             }
-          });
+          }));
         }
       }
     }
@@ -253,19 +221,21 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return this.saveRecordsInternal(objectConfig, records);
   }
 
-  public async run(): Promise<AnyJson> {
+  public override async run(): Promise<AnyJson> {
     this.ux.log(
       `${this.flags.remove ? 'Deleting' : 'Importing'} records from ${this.dataDir
       } to org ${this.org.getOrgId()} as user ${this.org.getUsername()}`
     );
 
-    const objectConfigs = this.objectsToProcess;
+    this.dataConfig = await getDataConfig(this.basePath, <DataCommandFlags>this.flags);
+
+    this.objectsToProcess = await getObjectsToProcess(<DataCommandFlags>this.flags, this.dataConfig);
 
     await this.preImport();
 
     const results: ObjectSaveResult[] = [];
 
-    for (const objectConfig of objectConfigs) {
+    for (const objectConfig of this.objectsToProcess) {
       const objectResult = await this.importRecordsForObject(objectConfig);
       if (objectResult) {
         results.push(objectResult);
@@ -374,10 +344,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       if (!pathUtils.isAbsolute(modulePath)) {
         modulePath = pathUtils.join(this.basePath, modulePath);
       }
-      if (this.fileService.existsSync(modulePath)) {
+      if (FileServiceRef.current.pathExists(modulePath)) {
         importHandler = getModuleFunction(modulePath, {
-          resolvePath: this.basePath,
-          requireFunc: this.requireFunc
+          resolvePath: this.basePath
         });
       }
     }
@@ -453,13 +422,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return r;
   }
 
-  private readRecord(
+  private async readRecord(
     recordPath: string,
     recordTypes: { [developerName: string]: Record }
-  ): Record {
+  ): Promise<Record> {
     let record: Record;
     try {
-      record = JSON.parse(this.fileService.readFileSync(recordPath));
+      record = JSON.parse(await FileServiceRef.current.readFile(recordPath));
     } catch (e) {
       this.ux.error(`Cound not load record from file: ${recordPath}`);
     }

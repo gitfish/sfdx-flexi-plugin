@@ -8,11 +8,11 @@ describe('File Service', () => {
     });
 
     test('default exists', async () => {
-        expect(await FileServiceRef.current.exists(pathUtils.join(__dirname, 'FileService.ts'))).toBeTruthy();
+        expect(await FileServiceRef.current.pathExists(pathUtils.join(__dirname, 'fs.ts'))).toBeTruthy();
     });
 
     test('default read', async () => {
-        const contents = await FileServiceRef.current.readFile(pathUtils.join(__dirname, 'FileService.ts'));
+        const contents = await FileServiceRef.current.readFile(pathUtils.join(__dirname, 'fs.ts'));
         expect(contents).toBeTruthy();
     });
 });

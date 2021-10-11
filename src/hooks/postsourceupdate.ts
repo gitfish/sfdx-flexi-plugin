@@ -1,4 +1,6 @@
 import { HookType, PostSourceUpdateResult } from '../types';
-import { createScriptDelegate } from './common';
+import { createHookDelegate } from './common';
 
-export const hook = createScriptDelegate<PostSourceUpdateResult>(HookType.postsourceupdate);
+export const hook = createHookDelegate<PostSourceUpdateResult>({
+    type: HookType.postsourceupdate
+});

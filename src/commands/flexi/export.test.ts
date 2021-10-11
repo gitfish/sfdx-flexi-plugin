@@ -2,7 +2,7 @@ import { Org, SfdxProject } from '@salesforce/core';
 import { EventEmitter } from 'events';
 import { Record } from 'jsforce';
 import * as pathUtils from 'path';
-import { defaultConfig } from '../../common/data';
+import { defaultConfig } from '../../helper/data';
 import { FileServiceRef } from '../../common/fs';
 import { DataConfig, ObjectSaveResult } from '../../types';
 import ExportCommand from './export';
@@ -78,11 +78,11 @@ describe('export test', () => {
         const unlinkPaths: string[] = [];
         const written: { [path: string]: string } = {};
         FileServiceRef.current = {
-            existsSync(path: string) {
+            async pathExists(path: string) {
                 console.log('-- Export Exists Sync: ' + path);
                 return true;
             },
-            readFileSync(path: string) {
+            async readFile(path: string) {
                 console.log('-- Export Read File: ' + path);
                 if (path.endsWith('test.config.json')) {
                     const dataConfig: DataConfig = {
@@ -100,19 +100,13 @@ describe('export test', () => {
                 }
                 return null;
             },
-            mkdirSync(path: string) {
+            async mkdir(path: string) {
                 console.log('-- Export Make Dir: ' + path);
                 // does nothing
+                return null;
             },
             async readdir(path: string) {
                 console.log('-- Export Read Dir: ' + path);
-                if (path.endsWith('accounts')) {
-                    return ['test-account.json'];
-                }
-                return [];
-            },
-            readdirSync(path: string) {
-                console.log('-- Export Read Dir Sync: ' + path);
                 if (path.endsWith('accounts')) {
                     return ['test-account.json'];
                 }

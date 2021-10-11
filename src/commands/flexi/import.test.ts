@@ -5,7 +5,7 @@ import {
   BourneImportRequest,
   BourneSaveResult
 } from '../../bourne/import';
-import { defaultImportHandlerRef } from '../../common/data';
+import { defaultImportHandlerRef } from '../../helper/data';
 import { FileServiceRef } from '../../common/fs';
 import {
   DataConfig,
@@ -13,6 +13,10 @@ import {
   RecordSaveResult
 } from '../../types';
 import ImportCommand from './import';
+
+const throwInvalidCall = async () => {
+  throw new Error('Invalid Call');
+};
 
 jest.mock('resolve', () => {
   return {
@@ -50,11 +54,11 @@ describe('import test', () => {
     let configPath: string;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           configPath = path;
@@ -80,25 +84,16 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return ['test-account.json'];
         }
         return [];
       },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     defaultImportHandlerRef.current = async (
@@ -154,11 +149,11 @@ describe('import test', () => {
     let configPath: string;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           configPath = path;
@@ -184,13 +179,8 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return ['test-account.json'];
@@ -279,11 +269,11 @@ describe('import test', () => {
     Org.create = mockOrgCreate;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           const dataConfig: DataConfig = {
@@ -308,25 +298,16 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return ['test-account.json'];
         }
         return [];
       },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     const result: ObjectSaveResult[] = await ImportCommand.run([
@@ -399,11 +380,11 @@ describe('import test', () => {
     Org.create = mockOrgCreate;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           const dataConfig: DataConfig = {
@@ -428,25 +409,16 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return ['test-account.json'];
         }
         return [];
       },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     const result: ObjectSaveResult[] = await ImportCommand.run([
@@ -525,11 +497,11 @@ describe('import test', () => {
     Org.create = mockOrgCreate;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           const dataConfig: DataConfig = {
@@ -554,25 +526,16 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return ['test-account.json'];
         }
         return [];
       },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     const result: ObjectSaveResult[] = await ImportCommand.run([
@@ -651,11 +614,11 @@ describe('import test', () => {
     Org.create = mockOrgCreate;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           const dataConfig: DataConfig = {
@@ -680,25 +643,16 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return ['test-account.json'];
         }
         return [];
       },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     const result: ObjectSaveResult[] = await ImportCommand.run([
@@ -746,11 +700,11 @@ describe('import test', () => {
     Org.create = mockOrgCreate;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           const dataConfig: DataConfig = {
@@ -769,25 +723,16 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return [];
         }
         return [];
       },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     const result: ObjectSaveResult[] = await ImportCommand.run([
@@ -834,6 +779,7 @@ describe('import test', () => {
             types.push(type);
             return {
               async upsert(records, externalId) {
+                console.log('-- Upsert Records', records);
                 upsertRecords = records;
                 upsertExternalId = externalId;
                 return [
@@ -865,11 +811,11 @@ describe('import test', () => {
     Org.create = mockOrgCreate;
 
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Import Exists Sync: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Import Read File: ' + path);
         if (path.endsWith('test.config.json')) {
           const dataConfig: DataConfig = {
@@ -909,13 +855,8 @@ describe('import test', () => {
 
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync(path: string) {
+      mkdir: throwInvalidCall,
+      async readdir(path: string) {
         console.log('-- Import Read Dir: ' + path);
         if (path.endsWith('accounts')) {
           return ['test-account.json'];
@@ -925,12 +866,8 @@ describe('import test', () => {
         }
         return [];
       },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     const result: ObjectSaveResult[] = await ImportCommand.run([

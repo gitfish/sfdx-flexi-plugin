@@ -1,14 +1,13 @@
 import {
-    SfdxContext,
-    PreImportObjectResult
+    PreImportObjectResult,
+    SfdxHookContext
 } from "../types";
 
 const SUFFIX_HOOK = '-hook';
 const OBJECT_TYPE_ACCOUNT = 'Account';
 
-export const run = async (context: SfdxContext<PreImportObjectResult>): Promise<void> => {
-    const { hook, ux } = context;
-    const result = hook.result;
+export const run = async (context: SfdxHookContext<PreImportObjectResult>): Promise<void> => {
+    const { result, ux } = context;
     const objectConfig = result.objectConfig;
 
     if (result.objectConfig.sObjectType === OBJECT_TYPE_ACCOUNT) {

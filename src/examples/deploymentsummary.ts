@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SfdxContext } from '../types';
+import { SfdxRunContext } from '../types';
 
-export default async (context: SfdxContext): Promise<void> => {
+export default async (context: SfdxRunContext): Promise<void> => {
   const { ux, org, varargs } = context;
   const conn = org.getConnection();
   const r = await conn.tooling.query(

@@ -1,14 +1,16 @@
-import { Org, SfdxProject, SfdxProjectJson } from '@salesforce/core';
+import { Org, SfdxProject } from '@salesforce/core';
+import { JsonMap } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
-import { DEFAULT_HOOKS_DIR } from '../commands/flexi/run';
 import { FileServiceRef } from '../common/fs';
 import { RequireFunctionRef } from '../common/Require';
-import { HookType, PreDeployResult, SfdxContext } from '../types';
+import { HookType, PreDeployResult, SfdxHookContext } from '../types';
 import {
-  copyFlagValues,
-  createScriptDelegate,
-  FlagType
+  createHookDelegate, getTargetDevHubUsername, getTargetUsername, HOOKS_DIR, isJson, JS_HOOKS_MODULE, TS_HOOKS_MODULE
 } from './common';
+
+const throwInvalidCall = async () => {
+  throw new Error('Invalid Call');
+};
 
 jest.mock('resolve', () => {
   return {
@@ -19,26 +21,18 @@ jest.mock('resolve', () => {
 });
 
 describe('Hook Common', () => {
-  test('copy flag values', () => {
-    const source = ['--json', '--targetusername', 'test@woo.com'];
-    const dest = [];
-    copyFlagValues(source, dest, [
-      {
-        name: 'json',
-        type: FlagType.boolean
-      },
-      {
-        name: 'targetusername',
-        type: FlagType.string
-      }
-    ]);
+  test('get arg values', () => {
+    let source = ['--json', '--targetusername', 'test@woo.com'];
+    expect(getTargetUsername(source)).toBe('test@woo.com');
+    expect(isJson(source)).toBeTruthy();
 
-    expect(source[0]).toBe('--json');
-    expect(source[1]).toBe('--targetusername');
-    expect(source[2]).toBe('test@woo.com');
+    source = ['--targetdevhubusername', 'test@hub.com'];
+    expect(isJson(source)).toBeFalsy();
+    expect(getTargetUsername(source)).toBeFalsy();
+    expect(getTargetDevHubUsername(source)).toBe('test@hub.com');
   });
 
-  test('hook delegate default', async () => {
+  test('Hook JS Module', async () => {
     const projectPath = `${pathUtils.sep}test-project`;
 
     const mockResolveProject = jest.fn();
@@ -46,18 +40,14 @@ describe('Hook Common', () => {
       getPath() {
         return projectPath;
       },
-      getSfdxProjectJson(): Partial<SfdxProjectJson> {
+      async resolveProjectConfig(): Promise<JsonMap> {
         return {
-          getContents() {
-            return {
-              packageDirectories: [
-                {
-                  path: 'force-app',
-                  default: true
-                }
-              ]
-            };
-          }
+          packageDirectories: [
+            {
+              path: 'force-app',
+              default: true
+            }
+          ]
         };
       }
     });
@@ -75,34 +65,23 @@ describe('Hook Common', () => {
 
     const readFilePaths: string[] = [];
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      mkdir: throwInvalidCall,
+      readdir: throwInvalidCall,
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     let requiredId: string;
-    let runContext: SfdxContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -113,12 +92,14 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PreDeployResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
+    const predeploy = createHookDelegate<PreDeployResult>({
+      type: HookType.predeploy
+    });
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -151,21 +132,20 @@ describe('Hook Common', () => {
     expect(requiredId).toBe(
       pathUtils.join(
         projectPath,
-        DEFAULT_HOOKS_DIR,
-        'predeploy.js'
+        JS_HOOKS_MODULE
       )
     );
     expect(runContext).toBeTruthy();
-    expect(runContext.hook.commandId).toBe('hook:parent');
-    expect(runContext.hook.hookType).toBe(HookType.predeploy);
-    expect(runContext.hook.result).toBeTruthy();
-    expect(runContext.hook.result.woo).toBeTruthy();
+    expect(runContext.commandId).toBe('hook:parent');
+    expect(runContext.type).toBe(HookType.predeploy);
+    expect(runContext.result).toBeTruthy();
+    expect(runContext.result.woo).toBeTruthy();
     expect(tsNodeRegisterOpts).toBeFalsy(); // in this case, the js file is found, so no need to load ts
 
     expect(readFilePaths.length).toBe(0);
   });
 
-  test('hook delegate default typescript', async () => {
+  test('Hook Dir JS Module', async () => {
     const projectPath = `${pathUtils.sep}test-project`;
 
     const mockResolveProject = jest.fn();
@@ -173,18 +153,14 @@ describe('Hook Common', () => {
       getPath() {
         return projectPath;
       },
-      getSfdxProjectJson(): Partial<SfdxProjectJson> {
+      async resolveProjectConfig(): Promise<JsonMap> {
         return {
-          getContents() {
-            return {
-              packageDirectories: [
-                {
-                  path: 'force-app',
-                  default: true
-                }
-              ]
-            };
-          }
+          packageDirectories: [
+            {
+              path: 'force-app',
+              default: true
+            }
+          ]
         };
       }
     });
@@ -202,34 +178,22 @@ describe('Hook Common', () => {
 
     const readFilePaths: string[] = [];
     FileServiceRef.current = {
-      existsSync(path: string) {
-        console.log('-- Checking Path Exists: ' + path);
-        return path.endsWith('.ts');
+      async pathExists(path: string) {
+        return path.includes(HOOKS_DIR + pathUtils.sep);
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      mkdir: throwInvalidCall,
+      readdir: throwInvalidCall,
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     let requiredId: string;
-    let runContext: SfdxContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -240,12 +204,14 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PreDeployResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
+    const predeploy = createHookDelegate<PreDeployResult>({
+      type: HookType.predeploy
+    });
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -278,15 +244,128 @@ describe('Hook Common', () => {
     expect(requiredId).toBe(
       pathUtils.join(
         projectPath,
-        DEFAULT_HOOKS_DIR,
-        'predeploy.ts'
+        HOOKS_DIR,
+        `predeploy.js`
       )
     );
     expect(runContext).toBeTruthy();
-    expect(runContext.hook.commandId).toBe('hook:parent');
-    expect(runContext.hook.hookType).toBe(HookType.predeploy);
-    expect(runContext.hook.result).toBeTruthy();
-    expect(runContext.hook.result.woo).toBeTruthy();
+    expect(runContext.commandId).toBe('hook:parent');
+    expect(runContext.type).toBe(HookType.predeploy);
+    expect(runContext.result).toBeTruthy();
+    expect(runContext.result.woo).toBeTruthy();
+    expect(tsNodeRegisterOpts).toBeFalsy(); // in this case, the js file is found, so no need to load ts
+
+    expect(readFilePaths.length).toBe(0);
+  });
+
+  test('Hook TS Module', async () => {
+    const projectPath = `${pathUtils.sep}test-project`;
+
+    const mockResolveProject = jest.fn();
+    mockResolveProject.mockResolvedValue({
+      getPath() {
+        return projectPath;
+      },
+      async resolveProjectConfig(): Promise<JsonMap> {
+        return {
+          packageDirectories: [
+            {
+              path: 'force-app',
+              default: true
+            }
+          ]
+        };
+      }
+    });
+
+    SfdxProject.resolve = mockResolveProject;
+
+    const mockOrgCreate = jest.fn();
+    mockOrgCreate.mockResolvedValue({
+      getOrgId() {
+        return 'test-org-id';
+      }
+    });
+
+    Org.create = mockOrgCreate;
+
+    const readFilePaths: string[] = [];
+    FileServiceRef.current = {
+      async pathExists(path: string) {
+        console.log('-- Checking Path Exists: ' + path);
+        return path.endsWith('.ts');
+      },
+      async readFile(path: string) {
+        console.log('-- Read File: ' + path);
+        readFilePaths.push(path);
+        return null;
+      },
+      mkdir: throwInvalidCall,
+      readdir: throwInvalidCall,
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
+    };
+
+    let requiredId: string;
+    let runContext: SfdxHookContext<PreDeployResult>;
+    let tsNodeRegisterOpts;
+    RequireFunctionRef.current = (id: string) => {
+      if (id === 'ts-node') {
+        return {
+          register(opts) {
+            tsNodeRegisterOpts = opts;
+          }
+        };
+      }
+      requiredId = id;
+      return (context: SfdxHookContext<PreDeployResult>) => {
+        runContext = context;
+      };
+    };
+
+    const predeploy = createHookDelegate<PreDeployResult>({
+      type: HookType.predeploy
+    });
+    expect(predeploy).toBeTruthy();
+
+    const preDeployResult: PreDeployResult = {
+      woo: {
+        mdapiFilePath: 'poo/woo/xml',
+        workspaceElements: [
+          {
+            fullName: 'woo.xml',
+            metadataName: 'Woo',
+            sourcePath: 'src/woo.xml',
+            state: 'dunno',
+            deleteSupported: false
+          }
+        ]
+      }
+    };
+
+    await Promise.resolve(
+      predeploy.call(
+        {},
+        {
+          Command: null,
+          commandId: 'hook:parent',
+          argv: [],
+          result: preDeployResult
+        }
+      )
+    );
+
+    expect(requiredId).toBe(
+      pathUtils.join(
+        projectPath,
+        TS_HOOKS_MODULE
+      )
+    );
+    expect(runContext).toBeTruthy();
+    expect(runContext.commandId).toBe('hook:parent');
+    expect(runContext.type).toBe(HookType.predeploy);
+    expect(runContext.result).toBeTruthy();
+    expect(runContext.result.woo).toBeTruthy();
     expect(tsNodeRegisterOpts).toBeTruthy(); // in this case, the js file is found, so no need to load ts
 
     expect(readFilePaths.length).toBe(0);
@@ -300,20 +379,20 @@ describe('Hook Common', () => {
       getPath() {
         return projectPath;
       },
-      getSfdxProjectJson(): Partial<SfdxProjectJson> {
+      async resolveProjectConfig(): Promise<JsonMap> {
         return {
-          getContents() {
-            return {
-              packageDirectories: [
-                {
-                  path: 'force-app',
-                  default: true
-                }
-              ],
+          packageDirectories: [
+            {
+              path: 'force-app',
+              default: true
+            }
+          ],
+          plugins: {
+            flexi: {
               hooks: {
                 predeploy: 'woo.js'
               }
-            };
+            }
           }
         };
       }
@@ -332,34 +411,23 @@ describe('Hook Common', () => {
 
     const readFilePaths: string[] = [];
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      mkdir: throwInvalidCall,
+      readdir: throwInvalidCall,
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     let requiredId: string;
-    let runContext: SfdxContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -370,12 +438,14 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PreDeployResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
+    const predeploy = createHookDelegate<PreDeployResult>({
+      type: HookType.predeploy
+    });
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -407,10 +477,10 @@ describe('Hook Common', () => {
 
     expect(requiredId).toBe(pathUtils.join(projectPath, 'woo.js'));
     expect(runContext).toBeTruthy();
-    expect(runContext.hook.commandId).toBe('hook:parent');
-    expect(runContext.hook.hookType).toBe(HookType.predeploy);
-    expect(runContext.hook.result).toBeTruthy();
-    expect(runContext.hook.result.woo).toBeTruthy();
+    expect(runContext.commandId).toBe('hook:parent');
+    expect(runContext.type).toBe(HookType.predeploy);
+    expect(runContext.result).toBeTruthy();
+    expect(runContext.result.woo).toBeTruthy();
     expect(tsNodeRegisterOpts).toBeFalsy(); // in this case, the js file is found, so no need to load ts
 
     expect(readFilePaths.length).toBe(0);
@@ -424,20 +494,20 @@ describe('Hook Common', () => {
       getPath() {
         return projectPath;
       },
-      getSfdxProjectJson(): Partial<SfdxProjectJson> {
+      async resolveProjectConfig(): Promise<JsonMap> {
         return {
-          getContents() {
-            return {
-              packageDirectories: [
-                {
-                  path: 'force-app',
-                  default: true
-                }
-              ],
+          packageDirectories: [
+            {
+              path: 'force-app',
+              default: true
+            }
+          ],
+          plugins: {
+            flexi: {
               hooks: {
                 predeploy: 'woo.ts'
               }
-            };
+            }
           }
         };
       }
@@ -456,34 +526,23 @@ describe('Hook Common', () => {
 
     const readFilePaths: string[] = [];
     FileServiceRef.current = {
-      existsSync(path: string) {
+      async pathExists(path: string) {
         console.log('-- Checking Path Exists: ' + path);
         return true;
       },
-      readFileSync(path: string) {
+      async readFile(path: string) {
         console.log('-- Read File: ' + path);
         readFilePaths.push(path);
         return null;
       },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
+      mkdir: throwInvalidCall,
+      readdir: throwInvalidCall,
+      unlink: throwInvalidCall,
+      writeFile: throwInvalidCall
     };
 
     let requiredId: string;
-    let runContext: SfdxContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PreDeployResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -494,12 +553,14 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PreDeployResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
+    const predeploy = createHookDelegate<PreDeployResult>({
+      type: HookType.predeploy
+    });
     expect(predeploy).toBeTruthy();
 
     const preDeployResult: PreDeployResult = {
@@ -531,136 +592,14 @@ describe('Hook Common', () => {
 
     expect(requiredId).toBe(pathUtils.join(projectPath, 'woo.ts'));
     expect(runContext).toBeTruthy();
-    expect(runContext.hook.commandId).toBe('hook:parent');
-    expect(runContext.hook.hookType).toBe(HookType.predeploy);
-    expect(runContext.hook.result).toBeTruthy();
-    expect(runContext.hook.result.woo).toBeTruthy();
+    expect(runContext.commandId).toBe('hook:parent');
+    expect(runContext.type).toBe(HookType.predeploy);
+    expect(runContext.result).toBeTruthy();
+    expect(runContext.result.woo).toBeTruthy();
     expect(tsNodeRegisterOpts).toBeTruthy(); // in this case, the js file is found, so no need to load ts
 
     expect(readFilePaths.length).toBe(0);
   });
 
-  test('hook delegate from project config ts', async () => {
-    const projectPath = `${pathUtils.sep}test-project`;
 
-    const mockResolveProject = jest.fn();
-    mockResolveProject.mockResolvedValue({
-      getPath() {
-        return projectPath;
-      },
-      getSfdxProjectJson(): Partial<SfdxProjectJson> {
-        return {
-          getContents() {
-            return {
-              packageDirectories: [
-                {
-                  path: 'force-app',
-                  default: true
-                }
-              ],
-              hooks: {
-                predeploy: 'woo.ts'
-              }
-            };
-          }
-        };
-      }
-    });
-
-    SfdxProject.resolve = mockResolveProject;
-
-    const mockOrgCreate = jest.fn();
-    mockOrgCreate.mockResolvedValue({
-      getOrgId() {
-        return 'test-org-id';
-      }
-    });
-
-    Org.create = mockOrgCreate;
-
-    const readFilePaths: string[] = [];
-    FileServiceRef.current = {
-      existsSync(path: string) {
-        console.log('-- Checking Path Exists: ' + path);
-        return true;
-      },
-      readFileSync(path: string) {
-        console.log('-- Read File: ' + path);
-        readFilePaths.push(path);
-        return null;
-      },
-      mkdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async readdir() {
-        throw new Error('Illegal Call');
-      },
-      readdirSync() {
-        throw new Error('Illegal Call');
-      },
-      async unlink() {
-        throw new Error('Illegal Call');
-      },
-      async writeFile() {
-        throw new Error('Illegal Call');
-      }
-    };
-
-    let requiredId: string;
-    let runContext: SfdxContext<PreDeployResult>;
-    let tsNodeRegisterOpts;
-    RequireFunctionRef.current = (id: string) => {
-      if (id === 'ts-node') {
-        return {
-          register(opts) {
-            tsNodeRegisterOpts = opts;
-          }
-        };
-      }
-      requiredId = id;
-      return (context: SfdxContext<PreDeployResult>) => {
-        runContext = context;
-      };
-    };
-
-    const predeploy = createScriptDelegate<PreDeployResult>(HookType.predeploy);
-    expect(predeploy).toBeTruthy();
-
-    const preDeployResult: PreDeployResult = {
-      woo: {
-        mdapiFilePath: 'poo/woo/xml',
-        workspaceElements: [
-          {
-            fullName: 'woo.xml',
-            metadataName: 'Woo',
-            sourcePath: 'src/woo.xml',
-            state: 'dunno',
-            deleteSupported: false
-          }
-        ]
-      }
-    };
-
-    await Promise.resolve(
-      predeploy.call(
-        {},
-        {
-          Command: null,
-          commandId: 'hook:parent',
-          argv: [],
-          result: preDeployResult
-        }
-      )
-    );
-
-    expect(requiredId).toBe(pathUtils.join(projectPath, 'woo.ts'));
-    expect(runContext).toBeTruthy();
-    expect(runContext.hook.commandId).toBe('hook:parent');
-    expect(runContext.hook.hookType).toBe(HookType.predeploy);
-    expect(runContext.hook.result).toBeTruthy();
-    expect(runContext.hook.result.woo).toBeTruthy();
-    expect(tsNodeRegisterOpts).toBeTruthy(); // in this case, the js file is found, so no need to load ts
-
-    expect(readFilePaths.length).toBe(0);
-  });
 });

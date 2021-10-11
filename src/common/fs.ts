@@ -5,7 +5,7 @@ import { Ref } from './ref';
  * File service interface used by commands - this is abstracted for testing as mocking the fs module's a bit messy
  */
 export interface FileService {
-    exists(path: string): Promise<boolean>;
+    pathExists(path: string): Promise<boolean>;
     readFile(path: string): Promise<string>;
     readdir(path: string): Promise<string[]>;
     mkdir(path: string): Promise<string>;
@@ -17,7 +17,7 @@ export interface FileService {
  * Default file service implementation making use of fs module
  */
 export class DefaultFileService implements FileService {
-    public async exists(path: string): Promise<boolean> {
+    public async pathExists(path: string): Promise<boolean> {
         try {
             await fs.promises.stat(path);
             return true;

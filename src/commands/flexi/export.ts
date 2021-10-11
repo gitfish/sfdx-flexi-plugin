@@ -9,11 +9,13 @@ import {
   getDataConfig,
   getObjectsToProcess,
   removeField
-} from '../../common/data';
-import { FileService, FileServiceRef } from '../../common/fs';
+} from '../../helper/data';
+import { FileServiceRef } from '../../common/fs';
 import {
+  DataCommandFlags,
   DataConfig,
   DataService,
+  HookType,
   ObjectConfig,
   ObjectSaveResult
 } from '../../types';
@@ -23,28 +25,9 @@ Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'export');
 
 export default class ExportCommand extends SfdxCommand implements DataService {
-  public get fileService(): FileService {
-    if (!this.fileServiceInternal) {
-      return FileServiceRef.current;
-    }
-    return this.fileServiceInternal;
-  }
-  public set fileService(value: FileService) {
-    this.fileServiceInternal = value;
-  }
 
-  protected get dataConfig(): DataConfig {
-    if (!this.dataConfigInternal) {
-      this.dataConfigInternal = getDataConfig(this.basePath, this.flags, this.fileService);
-    }
-    return this.dataConfigInternal;
-  }
-  protected get objectsToProcess(): ObjectConfig[] {
-    if (!this.objectsToProcessInternal) {
-      this.objectsToProcessInternal = getObjectsToProcess(this.flags, this.dataConfig);
-    }
-    return this.objectsToProcessInternal;
-  }
+  private dataConfig: DataConfig;
+  private objectsToProcess: ObjectConfig[];
 
   get basePath(): string {
     return this.project ? this.project.getPath() : process.cwd();
@@ -117,16 +100,15 @@ export default class ExportCommand extends SfdxCommand implements DataService {
       default: defaultConfig.dataDir
     })
   };
-  private fileServiceInternal: FileService;
 
   private hookState: { [key: string]: unknown } = {};
 
-  private objectsToProcessInternal: ObjectConfig[];
-
-  private dataConfigInternal: DataConfig;
-
   public async run(): Promise<AnyJson> {
     this.ux.log(`Export records from org ${this.org.getOrgId()} (${this.org.getUsername()}) to ${this.dataDir}`);
+
+    this.dataConfig = await getDataConfig(this.basePath, <DataCommandFlags>this.flags);
+
+    this.objectsToProcess = await getObjectsToProcess(<DataCommandFlags>this.flags, this.dataConfig);
 
     await this.preExport();
 
@@ -261,7 +243,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
         dirPath,
         `${fileName.replace(/\s+/g, '-')}.json`
       );
-      await this.fileService.writeFile(fileName, JSON.stringify(record, undefined, 2));
+      await FileServiceRef.current.writeFile(fileName, JSON.stringify(record, undefined, 2));
     });
 
     await Promise.all(promises);
@@ -286,19 +268,19 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   }
 
   private async clearDirectory(dirPath: string): Promise<void> {
-    if (this.fileService.existsSync(dirPath)) {
-      const items = await this.fileService.readdir(dirPath);
+    if (await FileServiceRef.current.pathExists(dirPath)) {
+      const items = await FileServiceRef.current.readdir(dirPath);
       const promises = items.map(item => {
-        return this.fileService.unlink(pathUtils.join(dirPath, item));
+        return FileServiceRef.current.unlink(pathUtils.join(dirPath, item));
       });
       await Promise.all(promises);
     } else {
-      this.fileService.mkdirSync(dirPath);
+      await FileServiceRef.current.mkdir(dirPath);
     }
   }
 
   private async preExportObject(objectConfig: ObjectConfig) {
-    await this.runHook('preexportobject', {
+    await this.runHook(HookType.preexportobject, {
       objectConfig
     });
   }
@@ -307,7 +289,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     objectConfig: ObjectConfig,
     result: ObjectSaveResult
   ) {
-    await this.runHook('postexportobject', {
+    await this.runHook(HookType.postexportobject, {
       objectConfig,
       result
     });
@@ -353,11 +335,11 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   }
 
   private async preExport(): Promise<void> {
-    await this.runHook('preexport');
+    await this.runHook(HookType.preexport);
   }
 
   private async postExport(results: ObjectSaveResult[]): Promise<void> {
-    await this.runHook('postexport', {
+    await this.runHook(HookType.postexport, {
       results
     });
   }

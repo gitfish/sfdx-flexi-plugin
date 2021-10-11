@@ -1,4 +1,6 @@
 import { HookType, PreImportObjectResult } from '../types';
-import { createScriptDelegate } from './common';
+import { createHookDelegate } from './common';
 
-export const hook = createScriptDelegate<PreImportObjectResult>(HookType.preimportobject);
+export const hook = createHookDelegate<PreImportObjectResult>({
+    type: HookType.preimportobject
+});

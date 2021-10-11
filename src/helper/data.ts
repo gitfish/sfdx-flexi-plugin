@@ -2,14 +2,15 @@ import { SfdxError } from "@salesforce/core";
 import { ErrorResult, SuccessResult, Record } from "jsforce";
 import * as pathUtils from "path";
 import {
+  DataCommandFlags,
   DataConfig,
   ObjectConfig,
   RecordSaveResult,
   SaveContext,
   SaveOperation,
 } from "../types";
-import { FileServiceRef } from "./fs";
-import { Ref } from "./ref";
+import { FileServiceRef } from "../common/fs";
+import { Ref } from "../common/ref";
 
 export const defaultConfig = {
   dataDir: "data",
@@ -65,10 +66,7 @@ const objectConfigKeyGetter = (item: ObjectConfig): string => {
  * @param config
  * @returns
  */
-export const getObjectsToProcess = (
-  flags: { [key: string]: unknown },
-  config: DataConfig
-): ObjectConfig[] => {
+export const getObjectsToProcess = (flags: DataCommandFlags, config: DataConfig): ObjectConfig[] => {
   let sObjectTypes: string[];
   if (flags.object) {
     if (Array.isArray(flags.object)) {
@@ -105,28 +103,26 @@ export const getObjectsToProcess = (
   return keyBasedDedup(objectConfigs, objectConfigKeyGetter);
 };
 
+export interface GetDataConfigOptions {
+  basePath: string;
+  flags: DataCommandFlags;
+}
+
 /**
  * Load in data configuration
  * @param flags
  * @returns
  */
-export const getDataConfig = async (
-  basePath: string,
-  flags: { [key: string]: unknown },
-  fileService = FileServiceRef.current
-): Promise<DataConfig> => {
-  let configPath = <string>flags.configfile;
-  if (!configPath) {
+export const getDataConfig = async (basePath: string, flags: DataCommandFlags): Promise<DataConfig> => {
+  let configPath = flags.configfile;
+  if(!configPath) {
     throw new SfdxError("A configuration file path must be specified");
   }
-  if (!pathUtils.isAbsolute(configPath)) {
+  if(!pathUtils.isAbsolute(configPath)) {
     configPath = pathUtils.join(basePath, configPath);
   }
-  if (await fileService.exists(configPath)) {
-    return JSON.parse(await fileService.readFile(configPath));
-  }
 
-  throw new SfdxError(`Unable to find configuration file: ${flags.configpath}`);
+  return JSON.parse(await FileServiceRef.current.readFile(configPath));
 };
 
 const escapeSetValue = (value: string): string => {
