@@ -1,5 +1,5 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
-import { Messages, SfdxProject } from '@salesforce/core';
+import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { getModuleFunction } from '../../common/module';
@@ -62,7 +62,7 @@ export class RunCommand extends SfdxCommand {
       org: this.org,
       project: this.project,
       flags: <RunFlags>this.flags,
-      varargs: this.varargs,
+      args: this.varargs,
       config: this.config
     };
 
@@ -77,7 +77,7 @@ export class RunCommand extends SfdxCommand {
       return <AnyJson>result;
     }
 
-    throw new Error(`Unable to resolve function from module ${modulePath}`);
+    throw new SfdxError(`Unable to resolve function from ${modulePath}${this.flags.export ? ':' : ''}${this.flags.export || ''}`);
   }
 
   protected override async assignProject(): Promise<void> {

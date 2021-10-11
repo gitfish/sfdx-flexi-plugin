@@ -250,9 +250,9 @@ export interface RunFlags extends StandardFlags {
 /**
  * The context provided to an exported function for the run command
  */
-export interface SfdxRunContext<VarArgsType = JsonMap> extends SfdxContext {
+export interface SfdxRunContext<ArgsType = JsonMap> extends SfdxContext {
   flags: RunFlags;
-  varargs: VarArgsType;
+  args: ArgsType; // NOTE: args here comes from the varargs property of the command
 }
 
 export type SfdxRunFunction = (

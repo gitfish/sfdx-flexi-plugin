@@ -103,6 +103,6 @@ const updateProjectMetaVersions = async (project: SfdxProject, version?: string)
 };
 
 export default async (ctx: SfdxRunContext): Promise<void> => {
-    const { project, varargs } = ctx;
+    const { project, args: varargs } = ctx;
     await updateProjectMetaVersions(project, varargs.version as string);
 };
