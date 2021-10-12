@@ -57,7 +57,7 @@ export const keyBasedDedup = <T>(
 };
 
 const objectConfigKeyGetter = (item: ObjectConfig): string => {
-  return item.sObjectType;
+  return item.object;
 };
 
 /**
@@ -66,41 +66,22 @@ const objectConfigKeyGetter = (item: ObjectConfig): string => {
  * @param config
  * @returns
  */
-export const getObjectsToProcess = (flags: DataCommandFlags, config: DataConfig): ObjectConfig[] => {
-  let sObjectTypes: string[];
-  if (flags.object) {
+export const getObjectConfigs = (flags: DataCommandFlags, config: DataConfig): ObjectConfig[] => {
+  const r = keyBasedDedup(config.objects, objectConfigKeyGetter);
+  let objects: string[];
+  if(flags.object) {
     if (Array.isArray(flags.object)) {
-      sObjectTypes = flags.object;
+      objects = flags.object;
     } else {
-      sObjectTypes = (<string>flags.object).split(",");
+      objects = (<string>flags.object).split(",").map(e => e.trim());
     }
-  } else {
-    if (Array.isArray(config.objects)) {
-      return keyBasedDedup(config.objects, objectConfigKeyGetter);
-    }
-    sObjectTypes = config.allObjects;
   }
 
-  if (!sObjectTypes || sObjectTypes.length === 0) {
-    throw new SfdxError(
-      "Please specify object types to import or configure objects correctly."
-    );
+  if(objects) {
+    return r.filter(e => objects.some(n => e.object === n));
   }
 
-  const objectConfigs = sObjectTypes.map((sObjectType) => {
-    const objectConfig = config.objects?.[sObjectType];
-    if (!objectConfig) {
-      throw new SfdxError(
-        `There is no configuration specified for object: ${sObjectType}`
-      );
-    }
-    return {
-      sObjectType,
-      ...config.objects[sObjectType],
-    };
-  });
-
-  return keyBasedDedup(objectConfigs, objectConfigKeyGetter);
+  return r;
 };
 
 export interface GetDataConfigOptions {
@@ -142,7 +123,7 @@ const standardDelete = async (
 ): Promise<RecordSaveResult[]> => {
   const externalIds = [];
   context.records.forEach((record) => {
-    const externalId = record[context.objectConfig.externalid];
+    const externalId = record[context.objectConfig.externalId];
     if (externalId && externalIds.indexOf(externalId) < 0) {
       externalIds.push(externalId);
     }
@@ -159,9 +140,9 @@ const standardDelete = async (
 
     const sObject = context.org
       .getConnection()
-      .sobject(context.objectConfig.sObjectType);
+      .sobject(context.objectConfig.object);
     const existing = await sObject.find(
-      `${context.objectConfig.externalid} in (${externalIdSetString})`
+      `${context.objectConfig.externalId} in (${externalIdSetString})`
     );
     if (existing && existing.length > 0) {
       const ids = existing.map((r) => r.Id);
@@ -190,8 +171,8 @@ export const standardImport: SaveOperation = async (
 
   const upsertResults = await context.org
     .getConnection()
-    .sobject(context.objectConfig.sObjectType)
-    .upsert(records, context.objectConfig.externalid, {
+    .sobject(context.objectConfig.object)
+    .upsert(records, context.objectConfig.externalId, {
       allOrNone: !context.config.allowPartial,
       allowRecursive: true,
     });
@@ -208,7 +189,7 @@ export const standardImport: SaveOperation = async (
           recordId: upsertResult.success
             ? (<SuccessResult>upsertResult).id
             : undefined,
-          externalId: context.records[index][context.objectConfig.externalid],
+          externalId: context.records[index][context.objectConfig.externalId],
           message,
           success: upsertResult.success,
         };

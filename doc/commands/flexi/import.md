@@ -19,14 +19,14 @@ The import and export configuration are captured in a single configuration file.
     "importHandler": "bourne",
     "objects": [
         {
-            "sObjectType": "Account",
+            "object": "Account",
             "query": "select Name, External_Id__c from Account",
             "externalid": "External_Id__c",
             "directory": "accounts",
             "filename": "External_Id__c"
         },
         {
-            "sObjectType": "Contact",
+            "object": "Contact",
             "query": "select FirstName, LastName, Email, External_Id__c, Account.External_Id__c from Contact",
             "externalid": "External_Id__c",
             "directory": "contacts",
@@ -117,7 +117,7 @@ export const run = async (context: SfdxContext<PreImportObjectResult>): Promise<
     const result = hook.result;
     const objectConfig = result.objectConfig;
 
-    if (result.objectConfig.sObjectType === OBJECT_TYPE_ACCOUNT) {
+    if (result.objectConfig.object === OBJECT_TYPE_ACCOUNT) {
         // track the original records
         const forRestore = result.records.map((record) => {
             return { ...record };
@@ -165,7 +165,7 @@ export default async (context: SfdxContext<PostImportObjectResult>): Promise<voi
     const { hook } = context;
     const result = hook.result;
 
-    if (result.objectConfig.sObjectType === OBJECT_TYPE_CONTACT && result.state.restoreAccounts) {
+    if (result.objectConfig.object === OBJECT_TYPE_CONTACT && result.state.restoreAccounts) {
         await (<() => Promise<void>>result.state.restoreAccounts)();
     }
 }

@@ -65,11 +65,11 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               }
             ]
           };
@@ -160,11 +160,11 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               }
             ]
           };
@@ -279,11 +279,11 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               }
             ]
           };
@@ -390,11 +390,11 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               }
             ]
           };
@@ -507,11 +507,11 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               }
             ]
           };
@@ -624,11 +624,11 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               }
             ]
           };
@@ -710,11 +710,11 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               }
             ]
           };
@@ -821,18 +821,18 @@ describe('import test', () => {
           const dataConfig: DataConfig = {
             objects: [
               {
-                sObjectType: 'Account',
+                object: 'Account',
                 query: 'select Id, Migration_ID__c from Account',
                 directory: 'accounts',
-                externalid: 'Migration_ID__c',
-                filename: 'Migration_ID__c'
+                externalId: 'Migration_ID__c',
+                filenameKey: 'Migration_ID__c'
               },
               {
-                sObjectType: 'Dunno__c',
+                object: 'Dunno__c',
                 query: 'select Id, Name from Dunno__c',
                 directory: 'dunnos',
-                externalid: 'Name',
-                filename: 'Name',
+                externalId: 'Name',
+                filenameKey: 'Name',
                 importHandler: 'default'
               }
             ]

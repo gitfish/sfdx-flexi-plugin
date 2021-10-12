@@ -14,7 +14,7 @@ import {
   defaultConfig,
   defaultImportHandlerRef,
   getDataConfig,
-  getObjectsToProcess
+  getObjectConfigs
 } from '../../helper/data';
 import { FileServiceRef } from '../../common/fs';
 import { getModuleFunction } from '../../common/module';
@@ -45,7 +45,7 @@ const objectImportResultTableOptions: TableOptions = {
 export default class ImportCommand extends SfdxCommand implements DataService {
 
   private dataConfig: DataConfig;
-  private objectsToProcess: ObjectConfig[];
+  private scope: ObjectConfig[];
 
   /**
    * Get the data directory - i.e. the directory containing the json files representing records
@@ -174,7 +174,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
           let recordTypes;
           if (objectConfig.hasRecordTypes) {
             recordTypes = await this.getRecordTypesByDeveloperName(
-              objectConfig.sObjectType
+              objectConfig.object
             );
           }
           await Promise.all(files.map(async file => {
@@ -208,7 +208,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
         : objectNameOrConfig;
     if (!records || records.length === 0) {
       return {
-        sObjectType: objectConfig.sObjectType,
+        sObjectType: objectConfig.object,
         path: this.getObjectPath(objectConfig),
         failure: 0,
         success: 0,
@@ -229,13 +229,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
     this.dataConfig = await getDataConfig(this.basePath, <DataCommandFlags>this.flags);
 
-    this.objectsToProcess = await getObjectsToProcess(<DataCommandFlags>this.flags, this.dataConfig);
+    this.scope = await getObjectConfigs(<DataCommandFlags>this.flags, this.dataConfig);
 
     await this.preImport();
 
     const results: ObjectSaveResult[] = [];
 
-    for (const objectConfig of this.objectsToProcess) {
+    for (const objectConfig of this.scope) {
       const objectResult = await this.importRecordsForObject(objectConfig);
       if (objectResult) {
         results.push(objectResult);
@@ -253,7 +253,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   ): Promise<ObjectSaveResult> {
     this.ux.startSpinner(
       `${this.flags.remove ? 'Deleting' : 'Importing'} ${colors.green(
-        objectConfig.sObjectType
+        objectConfig.object
       )} records using the ${colors.yellow(this.getImportHandlerKey(objectConfig))} handler`
     );
 
@@ -266,7 +266,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       while (retries < this.dataConfig.importRetries) {
         if (retries > 0) {
           this.ux.log(
-            `Retrying ${colors.green(objectConfig.sObjectType)} import...`
+            `Retrying ${colors.green(objectConfig.object)} import...`
           );
         }
 
@@ -322,7 +322,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
     const failureResults = results.filter(result => !result.success);
     return {
-      sObjectType: objectConfig.sObjectType,
+      sObjectType: objectConfig.object,
       path: this.getObjectPath(objectConfig),
       records,
       results,
@@ -387,7 +387,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       commandId: this.id,
       result: {
         config: this.dataConfig,
-        scope: this.objectsToProcess,
+        scope: this.scope,
         isDelete: this.flags.remove,
         service: this,
         state: this.hookState,
@@ -398,7 +398,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   private getObjectPath(objectConfig: ObjectConfig): string {
     return pathUtils.join(
       this.dataDir,
-      objectConfig.directory || objectConfig.sObjectType
+      objectConfig.directory || objectConfig.object
     );
   }
 

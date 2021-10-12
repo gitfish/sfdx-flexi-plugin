@@ -7,7 +7,7 @@ import * as pathUtils from 'path';
 import {
   defaultConfig,
   getDataConfig,
-  getObjectsToProcess,
+  getObjectConfigs,
   removeField
 } from '../../helper/data';
 import { FileServiceRef } from '../../common/fs';
@@ -27,7 +27,7 @@ const messages = Messages.loadMessages('sfdx-flexi-plugin', 'export');
 export default class ExportCommand extends SfdxCommand implements DataService {
 
   private dataConfig: DataConfig;
-  private objectsToProcess: ObjectConfig[];
+  private scope: ObjectConfig[];
 
   get basePath(): string {
     return this.project ? this.project.getPath() : process.cwd();
@@ -108,11 +108,11 @@ export default class ExportCommand extends SfdxCommand implements DataService {
 
     this.dataConfig = await getDataConfig(this.basePath, <DataCommandFlags>this.flags);
 
-    this.objectsToProcess = await getObjectsToProcess(<DataCommandFlags>this.flags, this.dataConfig);
+    this.scope = await getObjectConfigs(<DataCommandFlags>this.flags, this.dataConfig);
 
     await this.preExport();
 
-    const objectConfigs = this.objectsToProcess;
+    const objectConfigs = this.scope;
 
     const results: ObjectSaveResult[] = [];
     for (const objectConfig of objectConfigs) {
@@ -171,13 +171,13 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     const total = records ? records.length : 0;
 
     return {
-      sObjectType: objectConfig.sObjectType,
+      sObjectType: objectConfig.object,
       total,
       path,
       records,
       results: records.map(record => {
         return {
-          externalId: record[objectConfig.externalid],
+          externalId: record[objectConfig.externalId],
           success: true
         };
       }),
@@ -206,7 +206,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
       commandId: this.id,
       result: {
         config: this.dataConfig,
-        scope: this.objectsToProcess,
+        scope: this.scope,
         isDelete: this.flags.remove,
         service: this,
         state: this.hookState,
@@ -223,7 +223,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
       return;
     }
 
-    const externalIdField = objectConfig.externalid;
+    const externalIdField = objectConfig.externalId;
     if (records.length > 0 && !records[0][externalIdField]) {
       throw new SfdxError(
         "The External Id provided on the configuration file does not exist on the extracted record(s). Please ensure it is included in the object's query."
@@ -298,7 +298,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
   private getObjectPath(objectConfig: ObjectConfig): string {
     return pathUtils.join(
       this.dataDir,
-      objectConfig.directory || objectConfig.sObjectType
+      objectConfig.directory || objectConfig.object
     );
   }
 
@@ -309,7 +309,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
 
     if (!records || records.length === 0) {
       return {
-        sObjectType: objectConfig.sObjectType,
+        sObjectType: objectConfig.object,
         path: this.getObjectPath(objectConfig),
         failure: 0,
         success: 0,
@@ -320,7 +320,7 @@ export default class ExportCommand extends SfdxCommand implements DataService {
     }
 
     this.ux.startSpinner(
-      `Exporting ${colors.green(objectConfig.sObjectType)} records`
+      `Exporting ${colors.green(objectConfig.object)} records`
     );
 
     await this.preExportObject(objectConfig);

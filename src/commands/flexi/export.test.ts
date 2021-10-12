@@ -88,11 +88,11 @@ describe('export test', () => {
                     const dataConfig: DataConfig = {
                         objects: [
                             {
-                                sObjectType: 'Account',
+                                object: 'Account',
                                 query: 'select Id, Name, Migration_ID__c from Account',
                                 directory: 'accounts',
-                                externalid: 'Migration_ID__c',
-                                filename: 'Migration_ID__c'
+                                externalId: 'Migration_ID__c',
+                                filenameKey: 'Migration_ID__c'
                             }
                         ]
                     };

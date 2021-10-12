@@ -51,10 +51,10 @@ const buildRequests = (
     buildRequests({ ...context, records: splitRecords[1] }, requests);
   } else {
     requests.push({
-      extIdField: context.objectConfig.externalid,
+      extIdField: context.objectConfig.externalId,
       operation: context.isDelete ? 'delete' : 'upsert',
       payload: context.records,
-      sObjectType: context.objectConfig.sObjectType
+      sObjectType: context.objectConfig.object
     });
   }
 };

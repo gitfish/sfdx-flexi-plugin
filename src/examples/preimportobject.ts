@@ -10,7 +10,7 @@ export const run = async (context: SfdxHookContext<PreImportObjectResult>): Prom
     const { result, ux } = context;
     const objectConfig = result.objectConfig;
 
-    if (result.objectConfig.sObjectType === OBJECT_TYPE_ACCOUNT) {
+    if (result.objectConfig.object === OBJECT_TYPE_ACCOUNT) {
         // track the original records
         const forRestore = result.records.map((record) => {
             return { ...record };

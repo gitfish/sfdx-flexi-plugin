@@ -74,11 +74,11 @@ export interface PostRetrieveResult {
 export type PostDeployResult = DeployResult;
 
 export interface ObjectConfig {
-  sObjectType?: string;
+  object?: string;
   query?: string;
-  externalid?: string;
+  externalId?: string;
   directory?: string;
-  filename?: string;
+  filenameKey?: string;
   cleanupFields?: string[];
   hasRecordTypes?: boolean;
   importHandler?: string; // the import handler to use for the object - by default uses the data level config
@@ -109,9 +109,8 @@ export interface DataCommandFlags {
  */
 export interface DataConfig {
   importRetries?: number;
-  importHandler?: string; // the default handler for the import - will default to standard
-  allObjects?: string[]; // NOTE: to support legacy config
-  objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
+  importHandler?: string;
+  objects?: ObjectConfig[];
   allowPartial?: boolean;
   [key: string]: unknown; // for extra config
 }
