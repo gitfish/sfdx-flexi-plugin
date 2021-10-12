@@ -2,7 +2,7 @@ import { Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { FileServiceRef } from '../common/fs';
-import { RequireFunctionRef } from '../common/Require';
+import { RequireFunctionRef } from '../common/require';
 import { HookType, PreDeployResult, SfdxHookContext } from '../types';
 import {
   createHookDelegate, getTargetDevHubUsername, getTargetUsername, HOOKS_DIR, isJson, JS_HOOKS_MODULE, TS_HOOKS_MODULE
