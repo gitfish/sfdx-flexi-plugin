@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SfdxContext } from '../types';
+import { SfdxRunContext } from '../types';
 
-export default async (context: SfdxContext): Promise<void> => {
-  const { ux, org, varargs } = context;
+export interface DeploymentSummaryArgs {
+  limit: number | string;
+}
+
+export default async (context: SfdxRunContext<DeploymentSummaryArgs>): Promise<void> => {
+  const { ux, org, args } = context;
   const conn = org.getConnection();
   const r = await conn.tooling.query(
     `select Id, CreatedDate, CreatedBy.Name, StartDate, CompletedDate, Status, StateDetail, CheckOnly, NumberComponentsTotal, NumberComponentErrors, NumberComponentsDeployed, NumberTestsTotal, NumberTestsCompleted, NumberTestErrors, ErrorMessage from DeployRequest ORDER BY CreatedDate desc NULLS LAST limit ${
-      varargs.limit || 10
+      args.limit || 10
     }`
   );
   

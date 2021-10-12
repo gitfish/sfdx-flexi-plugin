@@ -14,12 +14,12 @@ import {
   defaultConfig,
   defaultImportHandlerRef,
   getDataConfig,
-  getObjectsToProcess
-} from '../../common/dataHelper';
-import { FileService, fileServiceRef } from '../../common/FileService';
-import requireFunctionRef, { RequireFunc } from '../../common/Require';
-import { getModuleFunction } from '../../common/scriptHelper';
+  getObjectConfigs
+} from '../../helper/data';
+import { FileServiceRef } from '../../common/fs';
+import { getModuleFunction } from '../../common/module';
 import {
+  DataCommandFlags,
   DataConfig,
   DataService,
   ObjectConfig,
@@ -43,64 +43,14 @@ const objectImportResultTableOptions: TableOptions = {
 };
 
 export default class ImportCommand extends SfdxCommand implements DataService {
-  /**
-   * The require function to use for hooks
-   */
-  public get requireFunc(): RequireFunc {
-    if (!this.requireFuncInternal) {
-      return requireFunctionRef.current;
-    }
-    return this.requireFuncInternal;
-  }
-  public set requireFunc(value: RequireFunc) {
-    this.requireFuncInternal = value;
-  }
 
-  /**
-   * The file service to use
-   */
-  public get fileService(): FileService {
-    if (!this.fileServiceInternal) {
-      return fileServiceRef.current;
-    }
-    return this.fileServiceInternal;
-  }
-  public set fileService(value: FileService) {
-    this.fileServiceInternal = value;
-  }
-
-  /**
-   * Get the data configuration
-   */
-  protected get dataConfig(): DataConfig {
-    if (!this.dataConfigInternal) {
-      this.dataConfigInternal = getDataConfig(
-        this.basePath,
-        this.flags,
-        this.fileService
-      );
-    }
-    return this.dataConfigInternal;
-  }
-
-  /**
-   * Get objects (i.e. sobjects) to process
-   */
-  protected get objectsToProcess(): ObjectConfig[] {
-    if (!this.objectsToProcessInternal) {
-      const items = getObjectsToProcess(this.flags, this.dataConfig);
-      if (this.flags.remove) {
-        items.reverse();
-      }
-      this.objectsToProcessInternal = items;
-    }
-    return this.objectsToProcessInternal;
-  }
+  private dataConfig: DataConfig;
+  private scope: ObjectConfig[];
 
   /**
    * Get the data directory - i.e. the directory containing the json files representing records
    */
-  protected get dataDir(): string {
+  get dataDir(): string {
     const r = this.flags.datadir || defaultConfig.dataDir;
     return pathUtils.isAbsolute(r) ? r : pathUtils.join(this.basePath, r);
   }
@@ -193,8 +143,6 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       description: messages.getMessage('importHandlerFlagDescription')
     })
   };
-  private requireFuncInternal: RequireFunc;
-  private fileServiceInternal: FileService;
 
   private importHandlers: { [key: string]: SaveOperation } = {
     bourne: bourneImport,
@@ -204,10 +152,6 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   };
 
   private hookState: { [key: string]: unknown } = {};
-
-  private objectsToProcessInternal: ObjectConfig[];
-
-  private dataConfigInternal: DataConfig;
 
   /**
    * Get records to process for the object
@@ -224,24 +168,24 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     const records: Record[] = [];
     if (objectConfig) {
       const objectDirPath = this.getObjectPath(objectConfig);
-      if (this.fileService.existsSync(objectDirPath)) {
-        const files = this.fileService.readdirSync(objectDirPath);
+      if (await FileServiceRef.current.pathExists(objectDirPath)) {
+        const files = await FileServiceRef.current.readdir(objectDirPath);
         if (files.length > 0) {
           let recordTypes;
           if (objectConfig.hasRecordTypes) {
             recordTypes = await this.getRecordTypesByDeveloperName(
-              objectConfig.sObjectType
+              objectConfig.object
             );
           }
-          files.forEach(file => {
-            const record = this.readRecord(
+          await Promise.all(files.map(async file => {
+            const record = await this.readRecord(
               pathUtils.join(objectDirPath, file),
               recordTypes
             );
             if (record) {
               records.push(record);
             }
-          });
+          }));
         }
       }
     }
@@ -264,7 +208,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
         : objectNameOrConfig;
     if (!records || records.length === 0) {
       return {
-        sObjectType: objectConfig.sObjectType,
+        sObjectType: objectConfig.object,
         path: this.getObjectPath(objectConfig),
         failure: 0,
         success: 0,
@@ -277,19 +221,21 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return this.saveRecordsInternal(objectConfig, records);
   }
 
-  public async run(): Promise<AnyJson> {
+  public override async run(): Promise<AnyJson> {
     this.ux.log(
       `${this.flags.remove ? 'Deleting' : 'Importing'} records from ${this.dataDir
       } to org ${this.org.getOrgId()} as user ${this.org.getUsername()}`
     );
 
-    const objectConfigs = this.objectsToProcess;
+    this.dataConfig = await getDataConfig(this.basePath, <DataCommandFlags>this.flags);
+
+    this.scope = await getObjectConfigs(<DataCommandFlags>this.flags, this.dataConfig);
 
     await this.preImport();
 
     const results: ObjectSaveResult[] = [];
 
-    for (const objectConfig of objectConfigs) {
+    for (const objectConfig of this.scope) {
       const objectResult = await this.importRecordsForObject(objectConfig);
       if (objectResult) {
         results.push(objectResult);
@@ -307,7 +253,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   ): Promise<ObjectSaveResult> {
     this.ux.startSpinner(
       `${this.flags.remove ? 'Deleting' : 'Importing'} ${colors.green(
-        objectConfig.sObjectType
+        objectConfig.object
       )} records using the ${colors.yellow(this.getImportHandlerKey(objectConfig))} handler`
     );
 
@@ -320,7 +266,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       while (retries < this.dataConfig.importRetries) {
         if (retries > 0) {
           this.ux.log(
-            `Retrying ${colors.green(objectConfig.sObjectType)} import...`
+            `Retrying ${colors.green(objectConfig.object)} import...`
           );
         }
 
@@ -376,7 +322,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
 
     const failureResults = results.filter(result => !result.success);
     return {
-      sObjectType: objectConfig.sObjectType,
+      sObjectType: objectConfig.object,
       path: this.getObjectPath(objectConfig),
       records,
       results,
@@ -398,10 +344,9 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       if (!pathUtils.isAbsolute(modulePath)) {
         modulePath = pathUtils.join(this.basePath, modulePath);
       }
-      if (this.fileService.existsSync(modulePath)) {
+      if (FileServiceRef.current.pathExists(modulePath)) {
         importHandler = getModuleFunction(modulePath, {
-          resolvePath: this.basePath,
-          requireFunc: this.requireFunc
+          resolvePath: this.basePath
         });
       }
     }
@@ -442,7 +387,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
       commandId: this.id,
       result: {
         config: this.dataConfig,
-        scope: this.objectsToProcess,
+        scope: this.scope,
         isDelete: this.flags.remove,
         service: this,
         state: this.hookState,
@@ -453,7 +398,7 @@ export default class ImportCommand extends SfdxCommand implements DataService {
   private getObjectPath(objectConfig: ObjectConfig): string {
     return pathUtils.join(
       this.dataDir,
-      objectConfig.directory || objectConfig.sObjectType
+      objectConfig.directory || objectConfig.object
     );
   }
 
@@ -477,13 +422,13 @@ export default class ImportCommand extends SfdxCommand implements DataService {
     return r;
   }
 
-  private readRecord(
+  private async readRecord(
     recordPath: string,
     recordTypes: { [developerName: string]: Record }
-  ): Record {
+  ): Promise<Record> {
     let record: Record;
     try {
-      record = JSON.parse(this.fileService.readFileSync(recordPath));
+      record = JSON.parse(await FileServiceRef.current.readFile(recordPath));
     } catch (e) {
       this.ux.error(`Cound not load record from file: ${recordPath}`);
     }

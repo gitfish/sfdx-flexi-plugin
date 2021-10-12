@@ -1,7 +1,7 @@
 import { SfdxError } from '@salesforce/core';
 import * as pathUtils from 'path';
 import { sync as resolveSync } from 'resolve';
-import { RequireFunc } from './Require';
+import { RequireFunc, RequireFunctionRef } from './require';
 
 export interface ModuleLoadOptions {
   resolvePath?: string;
@@ -10,7 +10,6 @@ export interface ModuleLoadOptions {
 
 export const defaultModuleLoadOptions: ModuleLoadOptions = {
   resolvePath: process.cwd(),
-  requireFunc: require
 };
 
 /**
@@ -22,7 +21,8 @@ export const defaultModuleLoadOptions: ModuleLoadOptions = {
 // eslint-disable-next-line
 export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   opts = { ...defaultModuleLoadOptions, ...opts };
-  const { resolvePath, requireFunc } = opts;
+  const { resolvePath } = opts;
+  const requireFunc = opts.requireFunc || RequireFunctionRef.current;
   path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
 
   if (path.endsWith('.ts')) {
@@ -36,7 +36,7 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
         transpileOnly: true,
         skipProject: true,
         compilerOptions: {
-          target: 'es2017',
+          target: 'es2021',
           module: 'commonjs',
           strict: false,
           skipLibCheck: true,
@@ -65,20 +65,30 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
  * @returns
  */
 // eslint-disable-next-line
-export const getFunction = <T>(module: any): T => {
-  let r: T;
+export const getFunction = <T>(module: any, exportName?: string): T => {
+  if(exportName) {
+    return module[exportName];
+  }
+  
   if (typeof module === 'function') {
-    r = module;
-  } else if (module !== null && typeof module === 'object') {
-    for (const key of Object.keys(module)) {
-      if (typeof module[key] === 'function') {
-        r = module[key];
-        break;
-      }
+    return module;
+  }
+
+  const defaultExport = module.default;
+  if(defaultExport) {
+    return defaultExport;
+  }
+
+  for (const key of Object.keys(module)) {
+    if (typeof module[key] === 'function') {
+      return module[key];
     }
   }
-  return r;
 };
+
+export interface GetModuleFunctionOptions extends ModuleLoadOptions {
+  exportName?: string;
+}
 
 /**
  * Load a project function using the project module loader
@@ -86,6 +96,6 @@ export const getFunction = <T>(module: any): T => {
  * @param opts module loading options
  * @returns
  */
-export const getModuleFunction = <T>(path: string, opts?: ModuleLoadOptions): T => {
-  return <T>getFunction(loadModule(path, opts));
+export const getModuleFunction = <T>(path: string, opts?: GetModuleFunctionOptions): T => {
+  return <T>getFunction(loadModule(path, opts), opts?.exportName);
 };

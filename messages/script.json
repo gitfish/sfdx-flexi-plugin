@@ -1,6 +1,0 @@
-{
-    "commandDescription": "Executes a script that is provided with sfdx context.",
-    "pathFlagDescription": "The path of the script to execute.",
-    "hookContextFlagDescription": "The hook context identifier - if a hook can't be found in the hook context store, then this will be treated as a file path.",
-    "hookDirFlagDescription": "The path to the directory to resolve hook scripts when no hook project configuration is provided"
-}

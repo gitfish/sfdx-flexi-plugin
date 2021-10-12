@@ -1,5 +1,5 @@
 import { Command, Hook, IConfig } from '@oclif/config';
-import { SfdxResult, UX } from '@salesforce/command';
+import { UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { DeployResult, Record } from 'jsforce';
@@ -74,15 +74,34 @@ export interface PostRetrieveResult {
 export type PostDeployResult = DeployResult;
 
 export interface ObjectConfig {
-  sObjectType?: string;
+  object?: string;
   query?: string;
-  externalid?: string;
+  externalId?: string;
   directory?: string;
-  filename?: string;
+  filenameKey?: string;
   cleanupFields?: string[];
   hasRecordTypes?: boolean;
   importHandler?: string; // the import handler to use for the object - by default uses the data level config
   [key: string]: unknown; // for extra config
+}
+
+export interface StandardFlags {
+  json?: boolean;
+  loglevel?: string;
+  targetusername?: string;
+  targetdevhubusername?: string;
+}
+
+/**
+ * Captures flags for data commands (import and export)
+ */
+export interface DataCommandFlags {
+  configfile: string;
+  object?: string | string[];
+  datadir: string;
+  remove?: boolean;
+  allowpartial?: boolean;
+  importhandler?: string;
 }
 
 /**
@@ -90,9 +109,8 @@ export interface ObjectConfig {
  */
 export interface DataConfig {
   importRetries?: number;
-  importHandler?: string; // the default handler for the import - will default to standard
-  allObjects?: string[]; // NOTE: to support legacy config
-  objects?: { [sObjectType: string]: ObjectConfig } | ObjectConfig[]; // NOTE: map setup to support legacy config
+  importHandler?: string;
+  objects?: ObjectConfig[];
   allowPartial?: boolean;
   [key: string]: unknown; // for extra config
 }
@@ -205,46 +223,66 @@ export type HookFunction<R extends HookResult> = (
   options: HookOptions<R>
 ) => Promise<unknown>;
 
-export interface SfdxHookContext<R extends HookResult = HookResult> {
-  context?: Hook.Context; // the original hook context
-  hookType: HookType;
-  commandId: string;
-  result: R;
-  config?: IConfig; // NOTE: this is the config from the original hook context
-  argv?: string[];
-}
-
-export type ScriptHookContext = SfdxHookContext;
-
-/**
- * This is the context provided to the script
- */
-export interface SfdxContext<R extends HookResult = HookResult> {
+export interface SfdxContext {
   logger: Logger;
   ux: UX;
   configAggregator: ConfigAggregator;
   org: Org;
   hubOrg?: Org;
   project?: SfdxProject;
-  result: SfdxResult;
-  flags: { [key: string]: unknown };
-  args: { [key: string]: unknown };
-  argv: string[];
-  varargs: JsonMap;
-  hook?: SfdxHookContext<R>;
-  config: IConfig;
+  config?: IConfig;
 }
 
-export type ScriptContext = SfdxContext;
+export interface SfdxHookContext<R extends HookResult = HookResult> extends SfdxContext {
+  context?: Hook.Context; // the original hook context
+  type: HookType;
+  commandId: string;
+  result: R;
+  argv?: string[]; // these were the args provided to the original command
+}
 
-export type SfdxFunction<R extends HookResult = HookResult> = (
-  context: SfdxContext<R>
+export interface RunFlags extends StandardFlags {
+  path: string;
+  export?: string;
+}
+
+/**
+ * The context provided to an exported function for the run command
+ */
+export interface SfdxRunContext<ArgsType = JsonMap> extends SfdxContext {
+  flags: RunFlags;
+  args: ArgsType; // NOTE: args here comes from the varargs property of the command
+}
+
+export type SfdxRunFunction = (
+  context: SfdxRunContext
 ) => unknown | Promise<unknown>;
 
-export type ScriptFunction = SfdxFunction;
+export type SfdxHookFunction = (
+  context: SfdxHookContext
+) => unknown | Promise<unknown>;
 
-export interface SfdxModule<R extends HookResult = HookResult> {
-  [key: string]: SfdxFunction<R>;
+export interface SfdxModule {
+  [key: string]: unknown;
 }
 
-export type ScriptModule = SfdxModule;
+export interface FlexiHooksConfig {
+  predeploy?: string;
+  postdeploy?: string;
+  preretrieve?: string;
+  postretrieve?: string;
+  postsourceupdate?: string;
+  postorgcreate?: string;
+  preimport?: string;
+  preimportobject?: string;
+  postimportobject?: string;
+  postimport?: string;
+  preexport?: string;
+  preexportobject?: string;
+  postexportobject?: string;
+  postexport?: string;
+}
+
+export interface FlexiPluginConfig {
+  hooks?: FlexiHooksConfig;
+}

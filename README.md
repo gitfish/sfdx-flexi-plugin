@@ -13,8 +13,6 @@ sfdx-flexi-plugin
 
 <!-- tocstop -->
 
-<!-- tocstop -->
-
 <!-- install -->
 <!-- usage -->
 ```sh-session
@@ -22,7 +20,7 @@ $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-sfdx-flexi-plugin/24.3.0 win32-x64 node-v14.16.0
+sfdx-flexi-plugin/25.0.0 darwin-x64 node-v14.17.5
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -33,7 +31,7 @@ USAGE
 <!-- commands -->
 * [`sfdx flexi:export [name=value...] -c <string> [-o <array>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport-namevalue--c-string--o-array--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx flexi:import [name=value...] -c <string> [-o <array>] [-d <string>] [-r] [-p] [-h <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport-namevalue--c-string--o-array--d-string--r--p--h-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
-* [`sfdx flexi:script [name=value...] [-p <string>] [-h <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiscript-namevalue--p-string--h-string--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
 ## `sfdx flexi:export [name=value...] -c <string> [-o <array>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -74,7 +72,7 @@ EXAMPLES
   $ sfdx flexi:export -u myOrg -c config/cpq-cli-def.json -d woo
 ```
 
-_See code: [src/commands/flexi/export.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v24.3.0/src/commands/flexi/export.ts)_
+_See code: [src/commands/flexi/export.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v25.0.0/src/commands/flexi/export.ts)_
 
 ## `sfdx flexi:import [name=value...] -c <string> [-o <array>] [-d <string>] [-r] [-p] [-h <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -123,35 +121,28 @@ EXAMPLE
        Deploying data, please wait.... Deployment completed!
 ```
 
-_See code: [src/commands/flexi/import.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v24.3.0/src/commands/flexi/import.ts)_
+_See code: [src/commands/flexi/import.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v25.0.0/src/commands/flexi/import.ts)_
 
-## `sfdx flexi:script [name=value...] [-p <string>] [-h <string>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
-Executes a script that is provided with sfdx context.
+Executes a function resolved from a js or ts module with a provided sfdx context
 
 ```
 USAGE
-  $ sfdx flexi:script [name=value...] [-p <string>] [-h <string>] [-d <string>] [-v <string>] [-u <string>] 
-  [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+  $ sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
+  [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -d, --hookdir=hookdir                                                             [default: hooks] The path to the
-                                                                                    directory to resolve hook scripts
-                                                                                    when no hook project configuration
-                                                                                    is provided
-
-  -h, --hookcontext=hookcontext                                                     The hook context identifier - if a
-                                                                                    hook can't be found in the hook
-                                                                                    context store, then this will be
-                                                                                    treated as a file path.
-
-  -p, --path=path                                                                   The path of the script to execute.
+  -p, --path=path                                                                   The script module path to load the
+                                                                                    function from
 
   -u, --targetusername=targetusername                                               username or alias for the target
                                                                                     org; overrides default target org
 
   -v, --targetdevhubusername=targetdevhubusername                                   username or alias for the dev hub
                                                                                     org; overrides default dev hub org
+
+  -x, --export=export                                                               The module export to execute
 
   --apiversion=apiversion                                                           override the api version used for
                                                                                     api requests made by this command
@@ -162,21 +153,21 @@ OPTIONS
                                                                                     this command invocation
 
 ALIASES
-  $ sfdx flexi:run
+  $ sfdx flexi:script
+  $ sfdx flexi:execute
   $ sfdx flexi:exec
 
 EXAMPLES
-  $ sfdx flexi:script --path <script file path>
-  $ sfdx flexi:script --hookcontext <hook context json>
-  $ sfdx flexi:script --hookcontextid <hook context json path>
+  $ sfdx flexi:run --path <module path>
+  $ sfdx flexi:run --path <module path> --export <module export name>
 ```
 
-_See code: [src/commands/flexi/script.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v24.3.0/src/commands/flexi/script.ts)_
+_See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v25.0.0/src/commands/flexi/run.ts)_
 <!-- commandsstop -->
 
 ## Additional Documentation
 
-- [Script Command](./doc/commands/flexi/script.md)
+- [Run Command](./doc/commands/flexi/run.md)
 
 - [Import Command](./doc/commands/flexi/import.md)
 

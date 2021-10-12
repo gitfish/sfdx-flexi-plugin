@@ -1,4 +1,4 @@
-import { PreDeployItem, PreDeployResult, SfdxContext } from "../types";
+import { PreDeployItem, PreDeployResult, SfdxHookContext } from "../types";
 import { parseStringPromise, Builder } from "xml2js";
 import { promises as fsp } from "fs";
 
@@ -68,7 +68,7 @@ export const removeUserPermissions = async (path: string, permissionsToRemove: s
     return modified;
 };
 
-const removePermissions = async (item: PreDeployItem, context: SfdxContext) => {
+const removePermissions = async (item: PreDeployItem, context: SfdxHookContext) => {
     const name = getMetadataName(item);
     // only looking at profiles and permission sets
     if (name !== "Profile" && name !== "PermissionSet") {
@@ -82,8 +82,8 @@ const removePermissions = async (item: PreDeployItem, context: SfdxContext) => {
     }
 };
 
-export default async (context: SfdxContext<PreDeployResult>): Promise<void> => {
-    const result = context.hook.result;
+export default async (context: SfdxHookContext<PreDeployResult>): Promise<void> => {
+    const result = context.result;
     const itemKeys = Object.keys(result);
     for (const key of itemKeys) {
         const item = result[key];

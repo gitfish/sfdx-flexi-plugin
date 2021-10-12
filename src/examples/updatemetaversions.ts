@@ -2,7 +2,7 @@ import { promises as fsp } from 'fs';
 import { parseStringPromise, Builder } from 'xml2js';
 import { NamedPackageDir, SfdxProject } from '@salesforce/core';
 import * as pathUtils from 'path';
-import { SfdxContext } from '../types';
+import { SfdxRunContext } from '../types';
 import * as glob from 'glob';
 
 interface TypeConfig {
@@ -102,7 +102,7 @@ const updateProjectMetaVersions = async (project: SfdxProject, version?: string)
     }));
 };
 
-export default async (ctx: SfdxContext): Promise<void> => {
-    const { project, varargs } = ctx;
+export default async (ctx: SfdxRunContext): Promise<void> => {
+    const { project, args: varargs } = ctx;
     await updateProjectMetaVersions(project, varargs.version as string);
 };

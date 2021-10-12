@@ -1,11 +1,10 @@
 import {
-    SfdxContext,
-    PostExportResult
+    PostExportResult,
+    SfdxHookContext
 } from "../types";
 
-export const run = async (context: SfdxContext<PostExportResult>): Promise<void> => {
-    const { hook, ux } = context;
-    const result = hook.result;
+export const run = async (context: SfdxHookContext<PostExportResult>): Promise<void> => {
+    const { result, ux } = context;
     // do something real - I'm out of ideas
     ux.log('Post Export Result');
     ux.logJson(result);
