@@ -169,8 +169,4 @@ _See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plu
 
 - [Run Command](./doc/commands/flexi/run.md)
 
-- [Import Command](./doc/commands/flexi/import.md)
-
-- [Export Command](./doc/commands/flexi/export.md)
-
 - [Pre Deploy Hook](./doc/hooks/predeploy.md)

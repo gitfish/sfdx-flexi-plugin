@@ -2,7 +2,7 @@ import { Command, Hook, IConfig } from '@oclif/config';
 import { UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { DeployResult, Record } from 'jsforce';
+import { DeployResult } from 'jsforce';
 
 export enum HookType {
   predeploy = 'predeploy',
@@ -10,15 +10,7 @@ export enum HookType {
   preretrieve = 'preretrieve',
   postretrieve = 'postretrieve',
   postsourceupdate = 'postsourceupdate',
-  postorgcreate = 'postorgcreate',
-  preimport = 'preimport',
-  preimportobject = 'preimportobject',
-  postimportobject = 'postimportobject',
-  postimport = 'postimport',
-  preexport = 'preexport',
-  preexportobject = 'preexportobject',
-  postexportobject = 'postexportobject',
-  postexport = 'postexport',
+  postorgcreate = 'postorgcreate'
 }
 
 export interface WorkspaceElement {
@@ -73,18 +65,6 @@ export interface PostRetrieveResult {
 
 export type PostDeployResult = DeployResult;
 
-export interface ObjectConfig {
-  object?: string;
-  query?: string;
-  externalId?: string;
-  directory?: string;
-  filenameKey?: string;
-  cleanupFields?: string[];
-  hasRecordTypes?: boolean;
-  importHandler?: string; // the import handler to use for the object - by default uses the data level config
-  [key: string]: unknown; // for extra config
-}
-
 export interface StandardFlags {
   json?: boolean;
   loglevel?: string;
@@ -92,108 +72,6 @@ export interface StandardFlags {
   targetdevhubusername?: string;
 }
 
-/**
- * Captures flags for data commands (import and export)
- */
-export interface DataCommandFlags {
-  configfile: string;
-  object?: string | string[];
-  datadir: string;
-  remove?: boolean;
-  allowpartial?: boolean;
-  importhandler?: string;
-}
-
-/**
- * The data configuration
- */
-export interface DataConfig {
-  importRetries?: number;
-  importHandler?: string;
-  objects?: ObjectConfig[];
-  allowPartial?: boolean;
-  [key: string]: unknown; // for extra config
-}
-
-export interface SaveContext {
-  config: DataConfig;
-  objectConfig: ObjectConfig;
-  isDelete: boolean;
-  records: Record[];
-  org: Org;
-  ux: UX;
-}
-
-export interface RecordSaveResult {
-  recordId?: string;
-  externalId?: string;
-  message?: string;
-  success?: boolean;
-}
-
-export type SaveOperation = (
-  context: SaveContext
-) => Promise<RecordSaveResult[]>;
-
-export interface ObjectSaveResult {
-  sObjectType: string;
-  path: string;
-  records?: Record[];
-  results?: RecordSaveResult[];
-  total?: number;
-  failure?: number;
-  success?: number;
-  failureResults?: RecordSaveResult[];
-}
-
-export interface DataService {
-  getRecords(objectNameOrConfig: string | ObjectConfig): Promise<Record[]>;
-  saveRecords(
-    objectNameOrConfig: string | ObjectConfig,
-    records: Record[]
-  ): Promise<ObjectSaveResult>;
-}
-
-export interface DataOpResult {
-  config: DataConfig;
-  scope: ObjectConfig[];
-  service: DataService;
-  state: {
-    [key: string]: unknown;
-  };
-}
-
-export interface PreImportResult extends DataOpResult {
-  isDelete: boolean;
-}
-
-export interface PreImportObjectResult extends PreImportResult {
-  objectConfig: ObjectConfig;
-  records: Record[];
-}
-
-export interface PostImportObjectResult extends PreImportResult {
-  objectConfig: ObjectConfig;
-  importResult: ObjectSaveResult;
-}
-
-export interface PostImportResult extends PreImportResult {
-  results: ObjectSaveResult[];
-}
-
-export type PreExportResult = DataOpResult;
-
-export interface PreExportObjectResult extends DataOpResult {
-  objectConfig: ObjectConfig;
-}
-
-export interface PostExportObjectResult extends PreExportObjectResult {
-  result: ObjectSaveResult;
-}
-
-export interface PostExportResult extends DataOpResult {
-  results: ObjectSaveResult[];
-}
 
 export type HookResult =
   | PreDeployResult
@@ -201,15 +79,7 @@ export type HookResult =
   | PreRetrieveResult
   | PostRetrieveResult
   | PostOrgCreateResult
-  | PostSourceUpdateResult
-  | PreImportResult
-  | PreImportObjectResult
-  | PostImportObjectResult
-  | PostImportResult
-  | PreExportResult
-  | PreExportObjectResult
-  | PostExportObjectResult
-  | PostExportResult;
+  | PostSourceUpdateResult;
 
 export interface HookOptions<R extends HookResult> {
   Command: Command.Class;
@@ -254,6 +124,8 @@ export interface SfdxRunContext<ArgsType = JsonMap> extends SfdxContext {
   args: ArgsType; // NOTE: args here comes from the varargs property of the command
 }
 
+export type SfdxAppContext = SfdxRunContext;
+
 export type SfdxRunFunction = (
   context: SfdxRunContext
 ) => unknown | Promise<unknown>;
@@ -273,14 +145,6 @@ export interface FlexiHooksConfig {
   postretrieve?: string;
   postsourceupdate?: string;
   postorgcreate?: string;
-  preimport?: string;
-  preimportobject?: string;
-  postimportobject?: string;
-  postimport?: string;
-  preexport?: string;
-  preexportobject?: string;
-  postexportobject?: string;
-  postexport?: string;
 }
 
 export interface FlexiPluginConfig {
