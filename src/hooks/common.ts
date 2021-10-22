@@ -1,6 +1,6 @@
 import { ConfigAggregator, SfdxProject, Org, Logger } from '@salesforce/core';
 import { UX } from '@salesforce/command';
-import { FlexiPluginConfig, HookFunction, HookOptions, HookResult, HookType, SfdxHookContext, SfdxHookFunction } from '../types';
+import { FlexiPluginConfig, HookFunction, HookOptions, HookType, SfdxHookContext, SfdxHookFunction } from '../types';
 import * as pathUtils from 'path';
 import { FileService, FileServiceRef } from '../common/fs';
 import { getFunction, getModuleFunction, loadModule } from '../common/module';
@@ -113,13 +113,14 @@ export interface ServiceOptions {
   requireFunc?: RequireFunc;
 }
 
-export interface CreateHookDelegateOptions<R extends HookResult = HookResult> extends ServiceOptions {
-  type: HookType;
+export interface CreateHookDelegateOptions<HookResult = unknown> extends ServiceOptions {
+  type?: HookType;
   noProject?: boolean;
   noOrg?: boolean;
   noHubOrg?: boolean;
-  getOrgUsername?: (opts: HookOptions<R>) => string;
-  getHubOrgUsername?: (opts: HookOptions<R>) => string;
+  getType?: (opts: HookOptions<HookResult>) => HookType;
+  getOrgUsername?: (opts: HookOptions<HookResult>) => string;
+  getHubOrgUsername?: (opts: HookOptions<HookResult>) => string;
 }
 
 /**
@@ -127,19 +128,24 @@ export interface CreateHookDelegateOptions<R extends HookResult = HookResult> ex
  * @param hookType the type of hook to create
  * @returns a HookFunction
  */
-export const createHookDelegate = <R extends HookResult = HookResult>(
-  opts: CreateHookDelegateOptions<R>
-): HookFunction<R> => {
+export const createHookDelegate = <HookResult = unknown>(
+  opts: CreateHookDelegateOptions<HookResult>
+): HookFunction<HookResult> => {
 
-  const { type, noOrg, noHubOrg, noProject, getOrgUsername, getHubOrgUsername } = opts;
+  const { noOrg, noHubOrg, noProject, getOrgUsername, getHubOrgUsername, getType } = opts;
+  const configuredType = opts.type;
 
   const fs = opts.fs || FileServiceRef.current;
   const requireFunc = opts.requireFunc || RequireFunctionRef.current;
 
   // Note that we're using a standard function as arrow functions are bound to the current 'this'.
   // tslint:disable-next-line: only-arrow-functions
-  return async function (hookOpts: HookOptions<R>) {
+  return async function (hookOpts: HookOptions<HookResult>) {
     const argv = hookOpts.argv;
+    let type = configuredType;
+    if(!type) {
+      type = getType(hookOpts);
+    }
 
     let project: SfdxProject;
     if (!noProject) {

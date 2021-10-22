@@ -9,12 +9,15 @@ sfdx-flexi-plugin
 
 
 <!-- commands -->
+* [`sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+
+## `sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
 Executes a function resolved from a js or ts module with a provided sfdx context
 
 ```
 USAGE
-
-  sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
+  $ sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
   [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
@@ -306,6 +309,21 @@ export default async (ctx: SfdxRunContext<UpdateMetaVersionArgs>): Promise<void>
 ```
 ## Hooks
 
+### Important
+
+The `force:source:push` / `force:source:deploy` and `force:source:pull` / `force:source:retrieve` hooks no longer receive the same result types (a part of the source-deploy-retrieve lib migration). These have effectively been split into separate handlers in the flexi plugin. You can register hooks against the following names:
+
+- prepush (`predeploy` for `force:source:push`)
+- predeploy (`predeploy` for `force:source:deploy`)
+- postpush (`postdeploy` for `force:source:push`)
+- postdeploy (`postdeploy` for `force:source:deploy`)
+- prepull (`preretrieve` for `force:source:pull`)
+- preretrieve (`preretrieve` for `force:source:retrieve`)
+- postpull (`postretrieve` for `force:source:pull`)
+- postretrieve (`postretrieve` for `force:source:retrieve`)
+
+I'm guessing movement away from the legacy hook result types over time as they're not exactly ideal - see this issue: TODO
+
 ### Configuration
 
 Hooks can be configured for a project in multiple ways, outlined below:
@@ -336,7 +354,7 @@ This module can export a single handle for all hooks or an export for each hook 
 ```typescript
 import { PostOrgCreateResult, PreDeployResult, SfdxHookContext } from "../types";
 
-export const predeploy = async (context: SfdxHookContext<PreDeployResult>): Promise<void> => {
+export const prepush = async (context: SfdxHookContext<PreDeployResult>): Promise<void> => {
     const { ux, result } = context;
     ux.log('Pre Deploy - need to do something meaningful with this');
     ux.logJson(result);
@@ -359,8 +377,6 @@ You can place a module under the `sfdx.flexi.hooks` project directory with the n
 A Fires after the CLI converts your source files to Metadata API format but before it sends the files to the org.
 
 Please see the [sfdx hooks documentation](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm) for more details.
-
-*NOTE: The `force:source:push` / `force:source:deploy` and `force:source:pull` / `force:source:retrieve`  hooks no longer receive the same payload and this example needs to be updated to cover both `force:source:push` and `force:source:deploy` examples.
 
 The following example modifies profiles to remove certain user permissions when they're being deployed.
 

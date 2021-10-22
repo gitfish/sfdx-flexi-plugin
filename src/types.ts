@@ -2,11 +2,16 @@ import { Command, Hook, IConfig } from '@oclif/config';
 import { UX } from '@salesforce/command';
 import { ConfigAggregator, Logger, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { DeployResult } from 'jsforce';
+import { DeployResult as MDApiDeployResult } from 'jsforce';
+import { DeployResult, FileResponse, MetadataComponent } from '@salesforce/source-deploy-retrieve';
 
 export enum HookType {
+  prepush = 'prepush',
+  postpush = 'postpush',
   predeploy = 'predeploy',
   postdeploy = 'postdeploy',
+  prepull = 'prepull',
+  postpull = 'postpull',
   preretrieve = 'preretrieve',
   postretrieve = 'postretrieve',
   postsourceupdate = 'postsourceupdate',
@@ -21,14 +26,16 @@ export interface WorkspaceElement {
   deleteSupported: boolean;
 }
 
-export interface PreDeployItem {
+export interface PrePushItem {
   mdapiFilePath: string;
   workspaceElements: WorkspaceElement[];
 }
 
-export interface PreDeployResult {
-  [itemName: string]: PreDeployItem;
+export interface PrePushResult {
+  [itemName: string]: PrePushItem;
 }
+
+export type PreDeployHookResult = PrePushResult | MetadataComponent[];
 
 export interface PostSourceUpdateItem {
   workspaceElements: WorkspaceElement[];
@@ -38,9 +45,11 @@ export interface PostSourceUpdateResult {
   [itemName: string]: PostSourceUpdateItem;
 }
 
-export interface PreRetrieveResult {
+export interface PrePullResult {
   packageXmlPath: string;
 }
+
+export type PreRetrieveHookResult = PrePullResult | MetadataComponent[];
 
 export interface PostOrgCreateResult {
   accessToken: string;
@@ -55,15 +64,19 @@ export interface PostOrgCreateResult {
   username: string;
 }
 
-export interface PostRetrieveItem {
+export interface PostPullItem {
   mdapiFilePath: string;
 }
 
-export interface PostRetrieveResult {
-  [itemName: string]: PostRetrieveItem;
+export interface PostPullResult {
+  [itemName: string]: PostPullItem;
 }
 
-export type PostDeployResult = DeployResult;
+export type PostRetrieveHookResult = PostPullResult | FileResponse[]
+
+export type PostPushResult = MDApiDeployResult;
+
+export type PostDeployHookResult = PostPushResult | DeployResult
 
 export interface StandardFlags {
   json?: boolean;
@@ -72,25 +85,16 @@ export interface StandardFlags {
   targetdevhubusername?: string;
 }
 
-
-export type HookResult =
-  | PreDeployResult
-  | PostDeployResult
-  | PreRetrieveResult
-  | PostRetrieveResult
-  | PostOrgCreateResult
-  | PostSourceUpdateResult;
-
-export interface HookOptions<R extends HookResult> {
+export interface HookOptions<HookResult = unknown> {
   Command: Command.Class;
   argv: string[];
   commandId: string;
-  result?: R;
+  result?: HookResult;
 }
 
-export type HookFunction<R extends HookResult> = (
+export type HookFunction<HookResult = unknown> = (
   this: Hook.Context,
-  options: HookOptions<R>
+  options: HookOptions<HookResult>
 ) => Promise<unknown>;
 
 export interface SfdxContext {
@@ -103,11 +107,11 @@ export interface SfdxContext {
   config?: IConfig;
 }
 
-export interface SfdxHookContext<R extends HookResult = HookResult> extends SfdxContext {
+export interface SfdxHookContext<HookResult = unknown> extends SfdxContext {
   context?: Hook.Context; // the original hook context
   type: HookType;
   commandId: string;
-  result: R;
+  result: HookResult;
   argv?: string[]; // these were the args provided to the original command
 }
 

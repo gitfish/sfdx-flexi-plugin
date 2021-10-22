@@ -1,8 +1,8 @@
-import { PostOrgCreateResult, PreDeployResult, SfdxHookContext } from "../types";
+import { PostOrgCreateResult, PrePushResult, SfdxHookContext } from "../types";
 
-export const predeploy = async (context: SfdxHookContext<PreDeployResult>): Promise<void> => {
+export const prepush = async (context: SfdxHookContext<PrePushResult>): Promise<void> => {
     const { ux, result } = context;
-    ux.log('Pre Deploy - need to do something meaningful with this');
+    ux.log('Pre Push - need to do something meaningful with this');
     ux.logJson(result);
 };
 

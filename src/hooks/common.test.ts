@@ -3,7 +3,7 @@ import { JsonMap } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { FileServiceRef } from '../common/fs';
 import { RequireFunctionRef } from '../common/require';
-import { HookType, PreDeployResult, SfdxHookContext } from '../types';
+import { HookType, PrePushResult, SfdxHookContext } from '../types';
 import {
   createHookDelegate, getTargetDevHubUsername, getTargetUsername, HOOKS_DIR, isJson, JS_HOOKS_MODULE, TS_HOOKS_MODULE
 } from './common';
@@ -81,7 +81,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: SfdxHookContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PrePushResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -92,17 +92,17 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxHookContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PrePushResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createHookDelegate<PreDeployResult>({
+    const predeploy = createHookDelegate<PrePushResult>({
       type: HookType.predeploy
     });
     expect(predeploy).toBeTruthy();
 
-    const preDeployResult: PreDeployResult = {
+    const preDeployResult: PrePushResult = {
       woo: {
         mdapiFilePath: 'poo/woo/xml',
         workspaceElements: [
@@ -193,7 +193,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: SfdxHookContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PrePushResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -204,17 +204,17 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxHookContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PrePushResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createHookDelegate<PreDeployResult>({
+    const predeploy = createHookDelegate<PrePushResult>({
       type: HookType.predeploy
     });
     expect(predeploy).toBeTruthy();
 
-    const preDeployResult: PreDeployResult = {
+    const preDeployResult: PrePushResult = {
       woo: {
         mdapiFilePath: 'poo/woo/xml',
         workspaceElements: [
@@ -307,7 +307,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: SfdxHookContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PrePushResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -318,17 +318,17 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxHookContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PrePushResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createHookDelegate<PreDeployResult>({
+    const predeploy = createHookDelegate<PrePushResult>({
       type: HookType.predeploy
     });
     expect(predeploy).toBeTruthy();
 
-    const preDeployResult: PreDeployResult = {
+    const preDeployResult: PrePushResult = {
       woo: {
         mdapiFilePath: 'poo/woo/xml',
         workspaceElements: [
@@ -427,7 +427,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: SfdxHookContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PrePushResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -438,17 +438,17 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxHookContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PrePushResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createHookDelegate<PreDeployResult>({
+    const predeploy = createHookDelegate<PrePushResult>({
       type: HookType.predeploy
     });
     expect(predeploy).toBeTruthy();
 
-    const preDeployResult: PreDeployResult = {
+    const preDeployResult: PrePushResult = {
       woo: {
         mdapiFilePath: 'poo/woo/xml',
         workspaceElements: [
@@ -542,7 +542,7 @@ describe('Hook Common', () => {
     };
 
     let requiredId: string;
-    let runContext: SfdxHookContext<PreDeployResult>;
+    let runContext: SfdxHookContext<PrePushResult>;
     let tsNodeRegisterOpts;
     RequireFunctionRef.current = (id: string) => {
       if (id === 'ts-node') {
@@ -553,17 +553,17 @@ describe('Hook Common', () => {
         };
       }
       requiredId = id;
-      return (context: SfdxHookContext<PreDeployResult>) => {
+      return (context: SfdxHookContext<PrePushResult>) => {
         runContext = context;
       };
     };
 
-    const predeploy = createHookDelegate<PreDeployResult>({
+    const predeploy = createHookDelegate<PrePushResult>({
       type: HookType.predeploy
     });
     expect(predeploy).toBeTruthy();
 
-    const preDeployResult: PreDeployResult = {
+    const preDeployResult: PrePushResult = {
       woo: {
         mdapiFilePath: 'poo/woo/xml',
         workspaceElements: [
