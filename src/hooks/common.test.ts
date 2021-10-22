@@ -1,4 +1,4 @@
-import { Org, SfdxProject } from '@salesforce/core';
+import { ConfigAggregator, Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { FileServiceRef } from '../common/fs';
@@ -53,6 +53,10 @@ describe('Hook Common', () => {
     });
 
     SfdxProject.resolve = mockResolveProject;
+
+    const mockAggCreate = jest.fn();
+    mockAggCreate.mockResolvedValue({});
+    ConfigAggregator.create = mockAggCreate;
 
     const mockOrgCreate = jest.fn();
     mockOrgCreate.mockResolvedValue({
@@ -166,6 +170,10 @@ describe('Hook Common', () => {
     });
 
     SfdxProject.resolve = mockResolveProject;
+
+    const mockAggCreate = jest.fn();
+    mockAggCreate.mockResolvedValue({});
+    ConfigAggregator.create = mockAggCreate;
 
     const mockOrgCreate = jest.fn();
     mockOrgCreate.mockResolvedValue({
@@ -287,6 +295,10 @@ describe('Hook Common', () => {
       }
     });
 
+    const mockAggCreate = jest.fn();
+    mockAggCreate.mockResolvedValue({});
+    ConfigAggregator.create = mockAggCreate;
+
     Org.create = mockOrgCreate;
 
     const readFilePaths: string[] = [];
@@ -399,6 +411,10 @@ describe('Hook Common', () => {
     });
 
     SfdxProject.resolve = mockResolveProject;
+
+    const mockAggCreate = jest.fn();
+    mockAggCreate.mockResolvedValue({});
+    ConfigAggregator.create = mockAggCreate;
 
     const mockOrgCreate = jest.fn();
     mockOrgCreate.mockResolvedValue({
@@ -521,6 +537,10 @@ describe('Hook Common', () => {
         return 'test-org-id';
       }
     });
+
+    const mockAggCreate = jest.fn();
+    mockAggCreate.mockResolvedValue({});
+    ConfigAggregator.create = mockAggCreate;
 
     Org.create = mockOrgCreate;
 
