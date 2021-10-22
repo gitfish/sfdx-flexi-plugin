@@ -1,4 +1,4 @@
-import { promises as fsp } from 'fs';
+import * as fs from 'fs';
 import { parseStringPromise, Builder } from 'xml2js';
 import { NamedPackageDir, SfdxProject } from '@salesforce/core';
 import * as pathUtils from 'path';
@@ -51,7 +51,7 @@ const globPromise = async (pattern: string, options: glob.IOptions): Promise<str
 };
 
 const updateVersion = async (path: string, rootElement: string, version: string): Promise<void> => {
-    const source = await fsp.readFile(path, { encoding: "utf8" });
+    const source = await fs.promises.readFile(path, { encoding: "utf8" });
     const wrapper = await parseStringPromise(source);
     const root = wrapper[rootElement];
     if (root && root.apiVersion && root.apiVersion.length > 0) {
@@ -70,7 +70,7 @@ const updateVersion = async (path: string, rootElement: string, version: string)
                     newline: '\n'
                 }
             }).buildObject(wrapper);
-            await fsp.writeFile(path, xml);
+            await fs.promises.writeFile(path, xml);
         }
     }
 };
@@ -102,7 +102,11 @@ const updateProjectMetaVersions = async (project: SfdxProject, version?: string)
     }));
 };
 
-export default async (ctx: SfdxRunContext): Promise<void> => {
-    const { project, args: varargs } = ctx;
-    await updateProjectMetaVersions(project, varargs.version as string);
+interface UpdateMetaVersionArgs {
+    version?: string;
+}
+
+export default async (ctx: SfdxRunContext<UpdateMetaVersionArgs>): Promise<void> => {
+    const { project, args } = ctx;
+    await updateProjectMetaVersions(project, args.version);
 };

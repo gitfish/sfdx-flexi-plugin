@@ -1,7 +1,5 @@
 import * as fs from 'fs';
 import { Ref } from './ref';
-import { tmpdir } from 'os';
-import * as pathUtils from 'path';
 
 /**
  * File service interface used by commands - this is abstracted for testing as mocking the fs module's a bit messy
@@ -11,10 +9,8 @@ export interface FileService {
     readFile(path: string): Promise<string>;
     readdir(path: string): Promise<string[]>;
     mkdir(path: string): Promise<string>;
-    mkdtemp(path: string): Promise<string>;
     unlink(path: string): Promise<void>;
     writeFile(path: string, content: string): Promise<void>;
-    copyFile(src: string, dest: string): Promise<void>;
 }
 
 /**
@@ -38,17 +34,11 @@ export class DefaultFileService implements FileService {
     public mkdir(path: string): Promise<string> {
         return fs.promises.mkdir(path, { recursive: true });
     }
-    public mkdtemp(path: string): Promise<string> {
-        return fs.promises.mkdtemp(pathUtils.join(tmpdir(), path));
-    }
     public unlink(path: string): Promise<void> {
         return fs.promises.unlink(path);
     }
     public writeFile(path: string, content: string): Promise<void> {
         return fs.promises.writeFile(path, content);
-    }
-    public copyFile(src: string, dest: string): Promise<void> {
-        return fs.promises.copyFile(src, dest);
     }
 }
 

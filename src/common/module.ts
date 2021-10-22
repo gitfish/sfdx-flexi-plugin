@@ -75,7 +75,7 @@ export const getFunction = <T>(module: any, exportName?: string): T => {
   }
 
   const defaultExport = module.default;
-  if(defaultExport) {
+  if(defaultExport && typeof defaultExport === 'function') {
     return defaultExport;
   }
 
