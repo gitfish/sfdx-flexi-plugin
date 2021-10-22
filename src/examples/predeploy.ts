@@ -1,4 +1,4 @@
-import { PreDeployItem, PreDeployResult, SfdxHookContext } from "../types";
+import { PrePushItem, PrePushResult, SfdxHookContext } from "../types";
 import { parseStringPromise, Builder } from "xml2js";
 import { promises as fsp } from "fs";
 
@@ -23,7 +23,7 @@ if (envRemove) {
     });
 }
 
-const getMetadataName = (item: PreDeployItem): string => {
+const getMetadataName = (item: PrePushItem): string => {
     return item.workspaceElements && item.workspaceElements.length > 0
         ? item.workspaceElements[0].metadataName
         : undefined;
@@ -68,7 +68,7 @@ export const removeUserPermissions = async (path: string, permissionsToRemove: s
     return modified;
 };
 
-const removePermissions = async (item: PreDeployItem, context: SfdxHookContext) => {
+const removePermissions = async (item: PrePushItem, context: SfdxHookContext) => {
     const name = getMetadataName(item);
     // only looking at profiles and permission sets
     if (name !== "Profile" && name !== "PermissionSet") {
@@ -82,7 +82,7 @@ const removePermissions = async (item: PreDeployItem, context: SfdxHookContext) 
     }
 };
 
-export default async (context: SfdxHookContext<PreDeployResult>): Promise<void> => {
+export default async (context: SfdxHookContext<PrePushResult>): Promise<void> => {
     const result = context.result;
     const itemKeys = Object.keys(result);
     for (const key of itemKeys) {
