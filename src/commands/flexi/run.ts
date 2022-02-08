@@ -73,7 +73,7 @@ export class RunCommand extends SfdxCommand {
     const func: SfdxRunFunction = getModuleFunction(modulePath, {
       resolvePath: this.basePath,
       exportName: this.flags.export,
-      tsCompilerOptions: pluginConfig?.tsCompilerOptions
+      tsConfig: pluginConfig?.tsConfig
     });
 
     if (func) {

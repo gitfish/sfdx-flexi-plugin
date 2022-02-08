@@ -67,7 +67,7 @@ const resolveDelegate = async (opts: ResolveDelegateOptions): Promise<SfdxHookFu
     if (modulePath) {
       return getModuleFunction(modulePath, {
         resolvePath: project.getPath(),
-        tsCompilerOptions: flexiConfig.tsCompilerOptions
+        tsConfig: flexiConfig.tsConfig
       });
     }
   }

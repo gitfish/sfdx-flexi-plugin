@@ -2,6 +2,23 @@
 
 The script command allows execution of a function exported by a typescript or javascript module. The function is provided with the sfdx context including such items as the current project, the target org and so on.
 
+## Configuration
+If you're using typescript, you can specify any custom ts config values with a plugin entry in `sfdx-project.json` - e.g.:
+
+```json
+{
+    ...
+    "plugins": {
+        "flexi": {
+            "tsConfig": {
+                "module": "es2020"
+            }
+        }
+    }
+    ...
+}
+```
+
 ## Module structure
 The command will resolve the first exported function from the module - where that's `default` or named - i.e. the following are equivalent:
 
@@ -130,12 +147,12 @@ In this example, you can see that we're retrieving DeployRequest records using t
 The following (typescript) example is used to update the metadata api version of metadata within an sfdx project.
 
 ```typescript
-import { promises as fsp } from 'fs';
+import * as fs from 'node:fs/promises';
 import { parseStringPromise, Builder } from 'xml2js';
 import { NamedPackageDir, SfdxProject } from '@salesforce/core';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import { SfdxContext } from 'sfdx-flexi-plugin/lib/types';
-import * as glob from 'glob';
+import { globby } from 'globby';
 
 interface TypeConfig {
     type: string;
@@ -170,18 +187,6 @@ const typeConfigs: TypeConfig[] = [
     }
 ];
 
-const globPromise = async (pattern: string, options: glob.IOptions): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
-        glob(pattern, options, (err, matches) => {
-            if(err) {
-                reject(err);
-            } else {
-                resolve(matches);
-            }
-        });
-    });
-};
-
 const updateVersion = async (path: string, rootElement: string, version: string): Promise<void> => {
     const source = await fsp.readFile(path, { encoding: "utf8" });
     const wrapper = await parseStringPromise(source);
@@ -208,7 +213,7 @@ const updateVersion = async (path: string, rootElement: string, version: string)
 };
 
 const updateTypeMetaVersions = async (packageDir: NamedPackageDir, pattern: string, type: string, version: string): Promise<void> => {
-    const items = await globPromise(pattern, { cwd: packageDir.fullPath });
+    const items = await globby(pattern, { cwd: packageDir.fullPath });
     if (items) {
         await Promise.all(items.map(item => {
             return updateVersion(pathUtils.join(packageDir.fullPath, item), type, version);

@@ -285,5 +285,5 @@ export interface FlexiHooksConfig {
 
 export interface FlexiPluginConfig {
   hooks?: FlexiHooksConfig;
-  tsCompilerOptions?: any;
+  tsConfig?: any; // eslint-disable-line
 }

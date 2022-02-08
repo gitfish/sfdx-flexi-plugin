@@ -5,11 +5,26 @@ import { RequireFunctionRef } from './require';
 
 export interface ModuleLoadOptions {
   resolvePath?: string;
-  tsCompilerOptions?: any; 
+  tsConfig?: any; // eslint-disable-line
 }
 
 export const defaultModuleLoadOptions: ModuleLoadOptions = {
   resolvePath: process.cwd(),
+};
+
+export const tsConfigDefault = {
+  transpileOnly: true,
+  skipProject: true,
+  compilerOptions: {
+    target: 'es2021',
+    module: 'CommonJS',
+    strict: false,
+    skipLibCheck: true,
+    skipDefaultLibCheck: true,
+    moduleResolution: 'node',
+    allowJs: true,
+    esModuleInterop: true
+  }
 };
 
 /**
@@ -32,20 +47,27 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
     });
     if (tsNodeModule) {
       const tsNode = requireFunc(tsNodeModule);
+      let registerOpts = {
+        ...tsConfigDefault
+      };
+      if(opts.tsConfig) {
+        // this is a bit of a mess - we need a deep merge
+        const tsConfig = { ...opts.tsConfig };
+        const tsCompilerOptions = tsConfig.compilerOptions;
+        delete tsConfig.compilerOptions;
+        registerOpts = {
+          ...registerOpts,
+          ...tsConfig
+        };
+        if(tsCompilerOptions) {
+          registerOpts.compilerOptions = {
+            ...registerOpts.compilerOptions,
+            ...tsCompilerOptions
+          };
+        }
+      }
       tsNode.register({
-        transpileOnly: true,
-        skipProject: true,
-        compilerOptions: {
-          target: 'es2021',
-          module: 'commonjs',
-          strict: false,
-          skipLibCheck: true,
-          skipDefaultLibCheck: true,
-          moduleResolution: 'node',
-          allowJs: true,
-          esModuleInterop: true,
-          ...opts?.tsCompilerOptions
-        },
+        ...registerOpts,
         files: [path]
       });
     } else {
