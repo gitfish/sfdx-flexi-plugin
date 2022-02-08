@@ -285,4 +285,5 @@ export interface FlexiHooksConfig {
 
 export interface FlexiPluginConfig {
   hooks?: FlexiHooksConfig;
+  tsCompilerOptions?: any;
 }

@@ -1,5 +1,5 @@
 import { Org, SfdxProject } from '@salesforce/core';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import {
   bourneDefaults,
   BourneImportRequest,

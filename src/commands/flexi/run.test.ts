@@ -1,5 +1,5 @@
 import { Org, SfdxProject } from '@salesforce/core';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import { FileServiceRef } from '../../common/fs';
 import { RequireFunctionRef } from '../../common/require';
 import { SfdxRunContext } from '../../types';

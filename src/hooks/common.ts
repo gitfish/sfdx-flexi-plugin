@@ -1,10 +1,8 @@
 import { ConfigAggregator, SfdxProject, Org, Logger } from '@salesforce/core';
 import { UX } from '@salesforce/command';
-import { FlexiPluginConfig, HookFunction, HookOptions, HookResult, HookType, SfdxHookContext, SfdxHookFunction } from '../types';
-import * as pathUtils from 'path';
-import { FileService, FileServiceRef } from '../common/fs';
-import { getFunction, getModuleFunction, loadModule } from '../common/module';
-import { RequireFunc, RequireFunctionRef } from '../common/require';
+import { HookFunction, HookOptions, HookResult, HookType, SfdxHookContext, SfdxHookFunction } from '../types';
+import { getModuleFunction } from '../common/module';
+import { getPluginConfig } from '../common/project';
 
 enum FlagType {
   string = 'string',
@@ -37,7 +35,7 @@ const getFlagValue = (argv: string[], spec: FlagSpec): boolean | string => {
     }
 
     if (argv.length > idx + 1) {
-      return argv[idx + 1];
+      return argv[idx + 1].trim();
     }
   }
 };
@@ -54,68 +52,29 @@ export const isJson = (argv: string[]): boolean => {
   return <boolean>getFlagValue(argv, jsonSpec);
 };
 
-export const PLUGIN_KEY = 'flexi';
-export const JS_HOOKS_MODULE = 'sfdx.flexi.hooks.js';
-export const TS_HOOKS_MODULE = 'sfdx.flexi.hooks.ts';
-export const HOOKS_DIR = 'sfdx.flexi.hooks';
+interface ResolveDelegateOptions {
+  type: HookType;
+  project: SfdxProject;
+}
 
-const resolveDelegate = async (resolvePath: string, type: HookType, project: SfdxProject, opts: ServiceOptions): Promise<SfdxHookFunction> => {
-  const { fs, requireFunc } = opts;
+const resolveDelegate = async (opts: ResolveDelegateOptions): Promise<SfdxHookFunction> => {
+  const { type, project } = opts;
 
-  // first we check the project if present
-  if (project) {
-    const pc = await project.resolveProjectConfig();
-    const flexiConfig: FlexiPluginConfig = pc?.plugins?.[PLUGIN_KEY];
-    if (flexiConfig) {
-      const modulePath = flexiConfig.hooks?.[type];
-      if (modulePath) {
-        return getModuleFunction(modulePath, {
-          resolvePath
-        });
-      }
-    }
-  }
-
-  const getModuleHandler = async (modulePath: string): Promise<SfdxHookFunction> => {
-    if (await fs.pathExists(modulePath)) {
-      const module = loadModule(modulePath, {
-        resolvePath,
-        requireFunc
+  // grab the config from the project
+  const flexiConfig = await getPluginConfig(project);
+  if (flexiConfig) {
+    const modulePath = flexiConfig.hooks?.[type];
+    if (modulePath) {
+      return getModuleFunction(modulePath, {
+        resolvePath: project.getPath(),
+        tsCompilerOptions: flexiConfig.tsCompilerOptions
       });
-      let typeHandler: SfdxHookFunction = getFunction(module, type);
-      if (!typeHandler) {
-        typeHandler = getFunction(module);
-      }
-      if (typeHandler) {
-        return typeHandler;
-      }
-    }
-  };
-
-  // the module paths to check
-  const checkModulePaths: string[] = [
-    pathUtils.join(resolvePath, JS_HOOKS_MODULE),
-    pathUtils.join(resolvePath, TS_HOOKS_MODULE),
-    pathUtils.join(resolvePath, HOOKS_DIR, `${type}.js`),
-    pathUtils.join(resolvePath, HOOKS_DIR, `${type}.ts`)
-  ];
-
-  for(const checkModulePath of checkModulePaths) {
-    const r = await getModuleHandler(checkModulePath);
-    if(r) {
-      return r;
     }
   }
 };
 
-export interface ServiceOptions {
-  fs?: FileService;
-  requireFunc?: RequireFunc;
-}
-
-export interface CreateHookDelegateOptions<R extends HookResult = HookResult> extends ServiceOptions {
+export interface CreateHookDelegateOptions<R extends HookResult = HookResult> {
   type: HookType;
-  noProject?: boolean;
   noOrg?: boolean;
   noHubOrg?: boolean;
   getOrgUsername?: (opts: HookOptions<R>) => string;
@@ -131,54 +90,36 @@ export const createHookDelegate = <R extends HookResult = HookResult>(
   opts: CreateHookDelegateOptions<R>
 ): HookFunction<R> => {
 
-  const { type, noOrg, noHubOrg, noProject, getOrgUsername, getHubOrgUsername } = opts;
-
-  const fs = opts.fs || FileServiceRef.current;
-  const requireFunc = opts.requireFunc || RequireFunctionRef.current;
+  const { type, getOrgUsername, getHubOrgUsername } = opts;
 
   // Note that we're using a standard function as arrow functions are bound to the current 'this'.
   // tslint:disable-next-line: only-arrow-functions
   return async function (hookOpts: HookOptions<R>) {
     const argv = hookOpts.argv;
 
-    let project: SfdxProject;
-    if (!noProject) {
-      try {
-        project = await SfdxProject.resolve();
-      } catch (err) {
-        if (err.name !== 'InvalidProjectWorkspace') {
-          throw err;
-        }
-      }
-    }
+    // resolve our project
+    const project = await SfdxProject.resolve();
 
-    const resolvePath = project?.getPath() || process.cwd();
     // find a handler for our hook type
-    const delegate = await resolveDelegate(resolvePath, type, project, { fs, requireFunc });
+    const delegate = await resolveDelegate({ type, project });
 
     if (delegate) {
       const configAggregator = await ConfigAggregator.create();
 
-      let org: Org;
-      let hubOrg: Org;
-
-      if (!noOrg) {
-        const aliasOrUsername = getOrgUsername ? getOrgUsername(hookOpts) : getTargetUsername(argv);
-        org = await Org.create({
-          aggregator: configAggregator,
-          aliasOrUsername
-        });
-      }
-
-      if (!noHubOrg) {
-        const aliasOrUsername = getHubOrgUsername ? getHubOrgUsername(hookOpts) : getTargetDevHubUsername(argv);
-        hubOrg = await Org.create({
-          aggregator: configAggregator,
-          aliasOrUsername,
-          isDevHub: true
-        });
-      }
-
+      // TODO: these can probably be done in parallel
+      const aliasOrUsername = getOrgUsername ? getOrgUsername(hookOpts) : getTargetUsername(argv);
+      const org = await Org.create({
+        aggregator: configAggregator,
+        aliasOrUsername
+      });
+      
+      const hubAliasOrUsername = getHubOrgUsername ? getHubOrgUsername(hookOpts) : getTargetDevHubUsername(argv);
+      const hubOrg = await Org.create({
+        aggregator: configAggregator,
+        aliasOrUsername: hubAliasOrUsername,
+        isDevHub: true
+      });
+      
       const commandId = hookOpts.commandId || hookOpts.Command?.id;
 
       const logger = await Logger.child(`${commandId}-flexi-hook-${type}`);

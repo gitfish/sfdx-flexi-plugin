@@ -1,11 +1,11 @@
 import { SfdxError } from '@salesforce/core';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import { sync as resolveSync } from 'resolve';
-import { RequireFunc, RequireFunctionRef } from './require';
+import { RequireFunctionRef } from './require';
 
 export interface ModuleLoadOptions {
   resolvePath?: string;
-  requireFunc?: RequireFunc;
+  tsCompilerOptions?: any; 
 }
 
 export const defaultModuleLoadOptions: ModuleLoadOptions = {
@@ -22,7 +22,7 @@ export const defaultModuleLoadOptions: ModuleLoadOptions = {
 export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   opts = { ...defaultModuleLoadOptions, ...opts };
   const { resolvePath } = opts;
-  const requireFunc = opts.requireFunc || RequireFunctionRef.current;
+  const requireFunc = RequireFunctionRef.current;
   path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
 
   if (path.endsWith('.ts')) {
@@ -43,7 +43,8 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
           skipDefaultLibCheck: true,
           moduleResolution: 'node',
           allowJs: true,
-          esModuleInterop: true
+          esModuleInterop: true,
+          ...opts?.tsCompilerOptions
         },
         files: [path]
       });

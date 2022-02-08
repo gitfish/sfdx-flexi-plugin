@@ -1,7 +1,7 @@
 import { Org, SfdxProject } from '@salesforce/core';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { Record } from 'jsforce';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import { defaultConfig } from '../../helper/data';
 import { FileServiceRef } from '../../common/fs';
 import { DataConfig, ObjectSaveResult } from '../../types';

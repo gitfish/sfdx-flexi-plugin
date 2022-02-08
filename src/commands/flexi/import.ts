@@ -8,7 +8,7 @@ import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import * as colors from 'colors';
 import { Record } from 'jsforce';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import bourneImport from '../../bourne/import';
 import {
   defaultConfig,
