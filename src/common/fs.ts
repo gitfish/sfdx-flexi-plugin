@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'node:fs/promises';
 import { Ref } from './ref';
 
 /**
@@ -19,26 +19,26 @@ export interface FileService {
 export class DefaultFileService implements FileService {
     public async pathExists(path: string): Promise<boolean> {
         try {
-            await fs.promises.stat(path);
+            await fs.stat(path);
             return true;
         } catch(err) {
             return false;
         }
     }
     public readFile(path: string): Promise<string> {
-        return fs.promises.readFile(path, { encoding: 'utf8' });
+        return fs.readFile(path, { encoding: 'utf8' });
     }
     public readdir(path: string): Promise<string[]> {
-        return fs.promises.readdir(path);
+        return fs.readdir(path);
     }
     public mkdir(path: string): Promise<string> {
-        return fs.promises.mkdir(path, { recursive: true });
+        return fs.mkdir(path, { recursive: true });
     }
     public unlink(path: string): Promise<void> {
-        return fs.promises.unlink(path);
+        return fs.unlink(path);
     }
     public writeFile(path: string, content: string): Promise<void> {
-        return fs.promises.writeFile(path, content);
+        return fs.writeFile(path, content);
     }
 }
 

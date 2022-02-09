@@ -1,8 +1,9 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import { getModuleFunction } from '../../common/module';
+import { getPluginConfig } from '../../common/project';
 import { RunFlags, SfdxRunContext, SfdxRunFunction } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -66,10 +67,13 @@ export class RunCommand extends SfdxCommand {
       config: this.config
     };
 
+    const pluginConfig = await getPluginConfig(this.project);
+
     // resolve our handler func
     const func: SfdxRunFunction = getModuleFunction(modulePath, {
       resolvePath: this.basePath,
-      exportName: this.flags.export
+      exportName: this.flags.export,
+      tsConfig: pluginConfig?.tsConfig
     });
 
     if (func) {

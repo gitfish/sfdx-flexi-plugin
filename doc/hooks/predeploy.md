@@ -6,7 +6,21 @@ Please see the [sfdx hooks documentation](https://developer.salesforce.com/docs/
 
 ## Configuration
 
-The default paths are `hooks/predeploy.ts` or `hooks/predeploy.js` and this can be overridden in `sfdx-project.json` with a `predeploy` entry under `hooks`.
+The hooks can be configured with a plugin entry in `sfdx-project.json` - e.g.:
+
+```json
+{
+    ...
+    "plugins": {
+        "flexi": {
+            "hooks": {
+                "predeploy": "<path to predeploy hook>"
+            }
+        }
+    }
+    ...
+}
+```
 
 ## Example
 

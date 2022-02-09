@@ -1,6 +1,7 @@
 import { Org, SfdxProject } from '@salesforce/core';
-import * as pathUtils from 'path';
+import * as pathUtils from 'node:path';
 import { FileServiceRef } from '../../common/fs';
+import { tsConfigDefault } from '../../common/module';
 import { RequireFunctionRef } from '../../common/require';
 import { SfdxRunContext } from '../../types';
 import RunCommand from './run';
@@ -26,6 +27,9 @@ describe('flexi:script', () => {
         mockResolveProject.mockResolvedValue({
             getPath() {
                 return projectPath;
+            },
+            resolveProjectConfig: async () => {
+                return {};
             }
         });
 
@@ -87,6 +91,9 @@ describe('flexi:script', () => {
         mockResolveProject.mockResolvedValue({
             getPath() {
                 return projectPath;
+            },
+            resolveProjectConfig: async () => {
+                return {};
             }
         });
 
@@ -151,6 +158,9 @@ describe('flexi:script', () => {
         mockResolveProject.mockResolvedValue({
             getPath() {
                 return projectPath;
+            },
+            resolveProjectConfig: async () => {
+                return {};
             }
         });
 
@@ -204,6 +214,9 @@ describe('flexi:script', () => {
         mockResolveProject.mockResolvedValue({
             getPath() {
                 return projectPath;
+            },
+            resolveProjectConfig: async () => {
+                return {};
             }
         });
 
@@ -264,6 +277,9 @@ describe('flexi:script', () => {
         mockResolveProject.mockResolvedValue({
             getPath() {
                 return projectPath;
+            },
+            resolveProjectConfig: async () => {
+                return {};
             }
         });
 
@@ -311,12 +327,90 @@ describe('flexi:script', () => {
         await RunCommand.run(['--path', 'test.ts', '--export', 'main', '--targetusername', 'woo@test.com']);
 
         expect(tsNodeRegisterOpts).toBeTruthy();
+        expect(tsNodeRegisterOpts.compilerOptions).toEqual(tsConfigDefault.compilerOptions);
         expect(requiredId).toBe(pathUtils.join(projectPath, 'test.ts'));
         expect(runContext).toBeTruthy();
         expect(runContext.org.getOrgId()).toBe('test-org-id');
         expect(runContext.project.getPath()).toBe(projectPath);
         expect(runContext.flags.path).toBe('test.ts');
         expect(runContext.flags.export).toBe('main');
+        expect(runContext.flags.targetusername).toBe('woo@test.com');
+    });
+
+    test('ts module func with custom ts config', async () => {
+        const projectPath = `${pathUtils.sep}test-project`;
+
+        const tsConfig = {
+            compilerOptions: {
+                module: 'commonjs'
+            }
+        };
+
+        const mockResolveProject = jest.fn();
+        mockResolveProject.mockResolvedValue({
+            getPath() {
+                return projectPath;
+            },
+            resolveProjectConfig: async () => {
+                return {
+                    plugins: {
+                        flexi: {
+                            tsConfig
+                        }
+                    }
+                };
+            }
+        });
+
+        SfdxProject.resolve = mockResolveProject;
+
+        const mockOrgCreate = jest.fn();
+        mockOrgCreate.mockResolvedValue({
+            getOrgId() {
+                return 'test-org-id';
+            }
+        });
+
+        Org.create = mockOrgCreate;
+
+        FileServiceRef.current = {
+            async pathExists() {
+                return true;
+            },
+            readFile: throwInvalidCall,
+            mkdir: throwInvalidCall,
+            readdir: throwInvalidCall,
+            unlink: throwInvalidCall,
+            writeFile: throwInvalidCall
+        };
+
+        let requiredId: string;
+        let runContext: SfdxRunContext;
+        let tsNodeRegisterOpts;
+        RequireFunctionRef.current = (id: string) => {
+            if (id === 'ts-node') {
+                return {
+                    register(opts) {
+                        tsNodeRegisterOpts = opts;
+                    }
+                };
+            }
+            requiredId = id;
+            return (context: SfdxRunContext) => {
+                runContext = context;
+            };
+        };
+
+        await RunCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com']);
+
+        expect(tsNodeRegisterOpts).toBeTruthy();
+        // the custom config should be merged into the default config
+        expect(tsNodeRegisterOpts.compilerOptions).toEqual({...tsConfigDefault.compilerOptions, ...tsConfig.compilerOptions });
+        expect(requiredId).toBe(pathUtils.join(projectPath, 'test.ts'));
+        expect(runContext).toBeTruthy();
+        expect(runContext.org.getOrgId()).toBe('test-org-id');
+        expect(runContext.project.getPath()).toBe(projectPath);
+        expect(runContext.flags.path).toBe('test.ts');
         expect(runContext.flags.targetusername).toBe('woo@test.com');
     });
 });
