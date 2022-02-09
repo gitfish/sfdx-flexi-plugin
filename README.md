@@ -13,8 +13,22 @@ sfdx-flexi-plugin
 
 <!-- tocstop -->
 
+<!-- tocstop -->
+
 <!-- install -->
 <!-- usage -->
+```sh-session
+$ npm install -g sfdx-flexi-plugin
+$ sfdx COMMAND
+running command...
+$ sfdx (-v|--version|version)
+sfdx-flexi-plugin/26.0.0 win32-x64 node-v16.13.2
+$ sfdx --help [COMMAND]
+USAGE
+  $ sfdx COMMAND
+...
+```
+<!-- usagestop -->
 ```sh-session
 $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
@@ -29,6 +43,49 @@ USAGE
 <!-- usagestop -->
 
 <!-- commands -->
+* [`sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+
+## `sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
+Executes a function resolved from a js or ts module with a provided sfdx context
+
+```
+USAGE
+  $ sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
+  [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+
+OPTIONS
+  -p, --path=path                                                                   The script module path to load the
+                                                                                    function from
+
+  -u, --targetusername=targetusername                                               username or alias for the target
+                                                                                    org; overrides default target org
+
+  -v, --targetdevhubusername=targetdevhubusername                                   username or alias for the dev hub
+                                                                                    org; overrides default dev hub org
+
+  -x, --export=export                                                               The module export to execute
+
+  --apiversion=apiversion                                                           override the api version used for
+                                                                                    api requests made by this command
+
+  --json                                                                            format output as json
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging level for
+                                                                                    this command invocation
+
+ALIASES
+  $ sfdx flexi:script
+  $ sfdx flexi:execute
+  $ sfdx flexi:exec
+
+EXAMPLES
+  $ sfdx flexi:run --path <module path>
+  $ sfdx flexi:run --path <module path> --export <module export name>
+```
+
+_See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v26.0.0/src/commands/flexi/run.ts)_
+<!-- commandsstop -->
 * [`sfdx flexi:export [name=value...] -c <string> [-o <array>] [-d <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiexport-namevalue--c-string--o-array--d-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx flexi:import [name=value...] -c <string> [-o <array>] [-d <string>] [-r] [-p] [-h <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexiimport-namevalue--c-string--o-array--d-string--r--p--h-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 * [`sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
@@ -168,9 +225,5 @@ _See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plu
 ## Additional Documentation
 
 - [Run Command](./doc/commands/flexi/run.md)
-
-- [Import Command](./doc/commands/flexi/import.md)
-
-- [Export Command](./doc/commands/flexi/export.md)
 
 - [Pre Deploy Hook](./doc/hooks/predeploy.md)

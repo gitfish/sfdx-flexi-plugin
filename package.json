@@ -1,7 +1,7 @@
 {
   "name": "sfdx-flexi-plugin",
   "description": "The sfdx flexible plugin",
-  "version": "25.1.0",
+  "version": "26.0.0",
   "author": "Michael Fisher",
   "bugs": "https://github.com/gitfish/sfdx-flexi-plugin/issues",
   "dependencies": {
@@ -55,15 +55,7 @@
       "preretrieve": "./lib/hooks/preretrieve",
       "postretrieve": "./lib/hooks/postretrieve",
       "postsourceupdate": "./lib/hooks/postsourceupdate",
-      "postorgcreate": "./lib/hooks/postorgcreate",
-      "preimport": "./lib/hooks/preimport",
-      "preimportobject": "./lib/hooks/preimportobject",
-      "postimportobject": "./lib/hooks/postimportobject",
-      "postimport": "./lib/hooks/postimport",
-      "preexport": "./lib/hooks/preexport",
-      "preexportobject": "./lib/hooks/preexportobject",
-      "postexportobject": "./lib/hooks/postexportobject",
-      "postexport": "./lib/hooks/postexport"
+      "postorgcreate": "./lib/hooks/postorgcreate"
     },
     "devPlugins": [
       "@oclif/plugin-help"
