@@ -1,28 +1,6 @@
-# Pre Deploy Hook
+# Pre Deploy Example
 
 Fires after the CLI converts your source files to Metadata API format but before it sends the files to the org.
-
-Please see the [sfdx hooks documentation](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm) for more details.
-
-## Configuration
-
-The hooks can be configured with a plugin entry in `sfdx-project.json` - e.g.:
-
-```json
-{
-    ...
-    "plugins": {
-        "flexi": {
-            "hooks": {
-                "predeploy": "<path to predeploy hook>"
-            }
-        }
-    }
-    ...
-}
-```
-
-## Example
 
 The following example modifies profiles to remove certain user permissions when they're being deployed.
 
@@ -119,4 +97,25 @@ export default async (context: SfdxHookContext<PreDeployResult>): Promise<void> 
         await removePermissions(item, context);
     }
 };
+```
+
+If this file were present in the project under the `hooks/postorgcreate.ts` folder, we can configure it in `sfdx-project.json` as follows:
+
+
+## Configuration
+
+The hooks can be configured with a plugin entry in `sfdx-project.json` - e.g.:
+
+```json
+{
+    ...
+    "plugins": {
+        "flexi": {
+            "hooks": {
+                "predeploy": "hooks/postorgcreate.ts"
+            }
+        }
+    }
+    ...
+}
 ```
