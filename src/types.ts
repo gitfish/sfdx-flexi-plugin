@@ -209,7 +209,8 @@ export type HookResult =
   | PreExportResult
   | PreExportObjectResult
   | PostExportObjectResult
-  | PostExportResult;
+  | PostExportResult
+  | any; // eslint-disable-line
 
 export interface HookOptions<R extends HookResult> {
   Command: Command.Class;
@@ -273,14 +274,6 @@ export interface FlexiHooksConfig {
   postretrieve?: string;
   postsourceupdate?: string;
   postorgcreate?: string;
-  preimport?: string;
-  preimportobject?: string;
-  postimportobject?: string;
-  postimport?: string;
-  preexport?: string;
-  preexportobject?: string;
-  postexportobject?: string;
-  postexport?: string;
 }
 
 export interface FlexiPluginConfig {
