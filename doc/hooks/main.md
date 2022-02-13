@@ -28,5 +28,5 @@ The hooks can be configured with a `flexi` plugin entry in `sfdx-project.json` -
 
 ## Examples
 
+- [Post Org Create](./postorgcreate.md)
 - [Pre Deploy](./predeploy.md)
-
