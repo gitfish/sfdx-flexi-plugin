@@ -99,7 +99,7 @@ export default async (context: SfdxHookContext<PreDeployResult>): Promise<void> 
 };
 ```
 
-If this file were present in the project under the `hooks/postorgcreate.ts` folder, we can configure it in `sfdx-project.json` as follows:
+If this file were present in the project under the `hooks/predeploy.ts` folder, we can configure it in `sfdx-project.json` as follows:
 
 
 ## Configuration
@@ -108,14 +108,12 @@ The hooks can be configured with a plugin entry in `sfdx-project.json` - e.g.:
 
 ```json
 {
-    ...
     "plugins": {
         "flexi": {
             "hooks": {
-                "predeploy": "hooks/postorgcreate.ts"
+                "predeploy": "hooks/predeploy.ts"
             }
         }
     }
-    ...
 }
 ```

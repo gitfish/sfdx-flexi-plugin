@@ -10,7 +10,6 @@ The hooks can be configured with a `flexi` plugin entry in `sfdx-project.json` -
 
 ```json
 {
-    ...
     "plugins": {
         "flexi": {
             "hooks": {
@@ -24,7 +23,6 @@ The hooks can be configured with a `flexi` plugin entry in `sfdx-project.json` -
             }
         }
     }
-    ...
 }
 ```
 
