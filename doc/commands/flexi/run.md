@@ -3,11 +3,10 @@
 The run command allows execution of a function exported by a typescript or javascript module. The function is provided with the sfdx context including such items as the current project, the target org, dev hub org and so on.
 
 ## Configuration
-If you're using typescript, you can specify any custom ts config values with a plugin entry in `sfdx-project.json` - e.g.:
+If you're using typescript, you need to install `ts-node` and you can specify any custom ts config values with a plugin entry in `sfdx-project.json` - e.g.:
 
 ```json
 {
-    ...
     "plugins": {
         "flexi": {
             "tsConfig": {
@@ -15,7 +14,6 @@ If you're using typescript, you can specify any custom ts config values with a p
             }
         }
     }
-    ...
 }
 ```
 

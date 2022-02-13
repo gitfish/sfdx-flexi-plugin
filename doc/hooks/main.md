@@ -26,6 +26,8 @@ The hooks can be configured with a `flexi` plugin entry in `sfdx-project.json` -
 }
 ```
 
+As per the run command, to support typescript modules, you'll need to have `ts-config` installed.
+
 ## Examples
 
 - [Post Org Create](./postorgcreate.md)
