@@ -67,6 +67,14 @@ export class RunCommand extends SfdxCommand {
       config: this.config
     };
 
+    if(!context.org) {
+      this.ux.warn(messages.getMessage('noOrgResolvedWarning'));
+    }
+
+    if(!context.hubOrg) {
+      this.ux.warn(messages.getMessage('noHubOrgResolvedWarning'));
+    }
+
     const pluginConfig = await getPluginConfig(this.project);
 
     // resolve our handler func
