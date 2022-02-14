@@ -68,11 +68,11 @@ export class RunCommand extends SfdxCommand {
     };
 
     if(!context.org) {
-      this.ux.warn(messages.getMessage('noOrgResolvedWarning'));
+      this.ux.warn(messages.getMessage('noOrgWarning'));
     }
 
     if(!context.hubOrg) {
-      this.ux.warn(messages.getMessage('noHubOrgResolvedWarning'));
+      this.ux.warn(messages.getMessage('noHubOrgWarning'));
     }
 
     const pluginConfig = await getPluginConfig(this.project);
