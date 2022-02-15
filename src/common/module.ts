@@ -1,4 +1,5 @@
 import { SfdxError } from '@salesforce/core';
+import * as pathUtils from 'path';
 import { RequireFunctionRef, ResolveFunctionRef } from './require';
 
 export interface ModuleLoadOptions {
@@ -37,6 +38,7 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   const { resolvePath } = opts;
   const requireFunc = RequireFunctionRef.current;
   const resolveFunc = ResolveFunctionRef.current;
+  let modulePath = path;
 
   if (path.endsWith('.ts')) {
     // resolve the path to ts node
@@ -64,9 +66,10 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
           };
         }
       }
+      modulePath = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
       tsNode.register({
         ...registerOpts,
-        files: [path]
+        files: [modulePath]
       });
     } else {
       throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
@@ -77,7 +80,7 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
     }
   }
 
-  const resolvedPath = resolveFunc(path, {
+  const resolvedPath = resolveFunc(modulePath, {
     paths: [resolvePath]
   });
 
