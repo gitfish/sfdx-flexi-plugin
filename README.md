@@ -20,7 +20,7 @@ $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-sfdx-flexi-plugin/27.0.0 darwin-x64 node-v16.14.0
+sfdx-flexi-plugin/27.1.0 darwin-x64 node-v16.14.0
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -72,7 +72,7 @@ EXAMPLES
   $ sfdx flexi:run --path <module path> --export <module export name>
 ```
 
-_See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v27.0.0/src/commands/flexi/run.ts)_
+_See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v27.1.0/src/commands/flexi/run.ts)_
 <!-- commandsstop -->
 
 ## Additional Documentation

@@ -13,6 +13,21 @@ Messages.importMessagesDirectory(__dirname);
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'run');
 
+// eslint-disable-next-line
+const createErrorProxy = <T extends object>(messageKey: string): T => {
+  return new Proxy<T>(null, {
+    apply: function() {
+      throw new SfdxError(messages.getMessage(messageKey));
+    },
+    get: function() {
+      throw new SfdxError(messages.getMessage(messageKey));
+    },
+    set: function() {
+      throw new SfdxError(messages.getMessage(messageKey))
+    }
+  });
+};
+
 export class RunCommand extends SfdxCommand {
 
   get basePath(): string {
@@ -72,11 +87,11 @@ export class RunCommand extends SfdxCommand {
     };
 
     if(!context.org) {
-      this.ux.warn(messages.getMessage('noOrgWarning'));
+      context.org = createErrorProxy('noOrgWarning');
     }
 
     if(!context.hubOrg) {
-      this.ux.warn(messages.getMessage('noHubOrgWarning'));
+      context.hubOrg = createErrorProxy('noHubOrgWarning');
     }
 
     const pluginConfig = await getPluginConfig(this.project);
