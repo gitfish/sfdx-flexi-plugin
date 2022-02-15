@@ -1,10 +1,10 @@
 import { SfdxError } from '@salesforce/core';
-import * as pathUtils from 'node:path';
-import { sync as resolveSync } from 'resolve';
-import { RequireFunctionRef } from './require';
+import * as pathUtils from 'path';
+import { RequireFunctionRef, ResolveFunctionRef } from './require';
 
 export interface ModuleLoadOptions {
   resolvePath?: string;
+  isNode?: boolean;
   tsConfig?: any; // eslint-disable-line
 }
 
@@ -36,17 +36,17 @@ export const tsConfigDefault = {
 // eslint-disable-next-line
 export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   opts = { ...defaultModuleLoadOptions, ...opts };
-  const { resolvePath } = opts;
+  const { resolvePath, isNode } = opts;
   const requireFunc = RequireFunctionRef.current;
-  path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
+  const resolveFunc = ResolveFunctionRef.current;
 
   if (path.endsWith('.ts')) {
-    const tsNodeModule = resolveSync('ts-node', {
-      basedir: resolvePath,
-      preserveSymLinks: true
+    // resolve the path to ts node
+    const tsNodePath = resolveFunc('ts-node', {
+      paths: [resolvePath]
     });
-    if (tsNodeModule) {
-      const tsNode = requireFunc(tsNodeModule);
+    if (tsNodePath) {
+      const tsNode = requireFunc(tsNodePath);
       let registerOpts = {
         ...tsConfigDefault
       };
@@ -79,7 +79,15 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
     }
   }
 
-  return requireFunc(path);
+  if(!isNode) {
+    path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
+  }
+
+  const resolvedPath = resolveFunc(path, {
+    paths: [resolvePath]
+  });
+
+  return requireFunc(resolvedPath);
 };
 
 /**

@@ -1,7 +1,7 @@
 import { promises as fsp } from 'fs';
 import { parseStringPromise, Builder } from 'xml2js';
 import { NamedPackageDir, SfdxProject } from '@salesforce/core';
-import * as pathUtils from 'node:path';
+import * as pathUtils from 'path';
 import { SfdxRunContext } from '../types';
 import * as glob from 'glob';
 

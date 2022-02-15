@@ -5,9 +5,9 @@ Fires after the CLI converts your source files to Metadata API format but before
 The following example modifies profiles to remove certain user permissions when they're being deployed.
 
 ```typescript
-import { PreDeployItem, PreDeployResult, SfdxContext } from "sfdx-flexi-plugin/lib/types";
-import { parseStringPromise, Builder } from "xml2js";
-import { promises as fsp } from "fs";
+import { PreDeployItem, PreDeployResult, SfdxContext } from 'sfdx-flexi-plugin/lib/types';
+import { parseStringPromise, Builder } from 'xml2js';
+import * as fs from 'fs/promises';
 
 const DEFAULT_PERMISSION_TO_REMOVE = [
     "ManageDashboards",
@@ -44,7 +44,7 @@ const getMetadataName = (item: PreDeployItem): string => {
  * @returns 
  */
 export const removeUserPermissions = async (path: string, permissionsToRemove: string[]): Promise<boolean> => {
-    const source = await fsp.readFile(path, { encoding: "utf8" });
+    const source = await fs.readFile(path, { encoding: "utf8" });
     const wrapper = await parseStringPromise(source);
     const root = wrapper?.Profile || wrapper?.PermissionSet;
     const userPermissions = root?.userPermissions;
@@ -69,7 +69,7 @@ export const removeUserPermissions = async (path: string, permissionsToRemove: s
 
     if (modified) {
         const xml = new Builder().buildObject(wrapper);
-        await fsp.writeFile(path, xml);
+        await fs.writeFile(path, xml);
     }
 
     return modified;
