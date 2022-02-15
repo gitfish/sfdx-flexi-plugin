@@ -4,6 +4,7 @@ import { AnyJson } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { getModuleFunction } from '../../common/module';
 import { getPluginConfig } from '../../common/project';
+import { createErrorProxy } from '../../common/proxy';
 import { RunFlags, SfdxRunContext, SfdxRunFunction } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -12,21 +13,6 @@ Messages.importMessagesDirectory(__dirname);
 // Load the specific messages for this file. Messages from @salesforce/command, @salesforce/core,
 // or any library that is using the messages framework can also be loaded this way.
 const messages = Messages.loadMessages('sfdx-flexi-plugin', 'run');
-
-// eslint-disable-next-line
-const createErrorProxy = <T extends object>(messageKey: string): T => {
-  return new Proxy<T>(null, {
-    apply: function() {
-      throw new SfdxError(messages.getMessage(messageKey));
-    },
-    get: function() {
-      throw new SfdxError(messages.getMessage(messageKey));
-    },
-    set: function() {
-      throw new SfdxError(messages.getMessage(messageKey))
-    }
-  });
-};
 
 export class RunCommand extends SfdxCommand {
 
@@ -87,11 +73,11 @@ export class RunCommand extends SfdxCommand {
     };
 
     if(!context.org) {
-      context.org = createErrorProxy('noOrgWarning');
+      context.org = createErrorProxy(messages.getMessage('noOrgWarning'));
     }
 
     if(!context.hubOrg) {
-      context.hubOrg = createErrorProxy('noHubOrgWarning');
+      context.hubOrg = createErrorProxy(messages.getMessage('noHubOrgWarning'));
     }
 
     const pluginConfig = await getPluginConfig(this.project);

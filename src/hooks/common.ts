@@ -3,6 +3,7 @@ import { UX } from '@salesforce/command';
 import { HookFunction, HookOptions, HookResult, HookType, SfdxHookContext, SfdxHookFunction } from '../types';
 import { getModuleFunction } from '../common/module';
 import { getPluginConfig } from '../common/project';
+import { createErrorProxy } from '../common/proxy';
 
 enum FlagType {
   string = 'string',
@@ -118,8 +119,8 @@ export const createHookDelegate = <R extends HookResult = HookResult>(
           aliasOrUsername // if this is blank, the org will be the default org configured - if there is one
         });
       } catch(err) {
-        // warn when we can't resolve the org
-        ux.warn(`Unable to resolve Org: ${err}`);
+        // create an error proxy when we can't resolve
+        org = createErrorProxy(`Unable to resolve Org: ${err}`);
       }
       
       let hubOrg: Org;
@@ -131,8 +132,7 @@ export const createHookDelegate = <R extends HookResult = HookResult>(
           isDevHub: true
         });
       } catch(err) {
-        // warn when we can't resolve the hub org
-        ux.warn(`Unable to resolve Hub Org: ${err}`);
+        hubOrg = createErrorProxy(`Unable to resolve Hub Org: ${err}`);
       }
 
       const context: SfdxHookContext = {
