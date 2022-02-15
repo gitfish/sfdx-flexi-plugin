@@ -1,7 +1,6 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import * as pathUtils from 'path';
 import { getModuleFunction } from '../../common/module';
 import { getPluginConfig } from '../../common/project';
 import { createErrorProxy } from '../../common/proxy';
@@ -22,7 +21,7 @@ export class RunCommand extends SfdxCommand {
 
   public static description = messages.getMessage('commandDescription');
 
-  public static aliases = ['flexi:script', 'flexi:execute', 'flexi:exec'];
+  public static aliases = ['flexi:script', 'flexi:execute', 'flexi:exec', 'flexi:call'];
 
   public static examples = [
     '$ sfdx flexi:run --path <module path>',
@@ -42,24 +41,15 @@ export class RunCommand extends SfdxCommand {
     path: flags.string({
       char: 'p',
       description: messages.getMessage('pathFlagDescription'),
-      required: false
+      required: true
     }),
     export: flags.string({
       char: 'x',
       description: messages.getMessage('exportFlagDescription')
-    }),
-    nodemodule: flags.boolean({
-      char: 'n',
-      description: messages.getMessage('nodemoduleFlagDescription')
     })
   };
 
   public override async run(): Promise<AnyJson> {
-    let modulePath: string = this.flags.path;
-    if(!pathUtils.isAbsolute(modulePath) && !this.flags.nodemodule) {
-      modulePath = pathUtils.join(this.basePath, modulePath);
-    }
-
     const context: SfdxRunContext = {
       configAggregator: this.configAggregator,
       logger: this.logger,
@@ -83,9 +73,8 @@ export class RunCommand extends SfdxCommand {
     const pluginConfig = await getPluginConfig(this.project);
 
     // resolve our handler func
-    const func: SfdxRunFunction = getModuleFunction(modulePath, {
+    const func: SfdxRunFunction = getModuleFunction(this.flags.path, {
       resolvePath: this.basePath,
-      isNode: this.flags.nodemodule,
       exportName: this.flags.export,
       tsConfig: pluginConfig?.tsConfig
     });
@@ -95,7 +84,7 @@ export class RunCommand extends SfdxCommand {
       return <AnyJson>result;
     }
 
-    throw new SfdxError(`Unable to resolve function from ${modulePath}${this.flags.export ? ':' : ''}${this.flags.export || ''}`);
+    throw new SfdxError(`Unable to resolve function from ${this.flags.path}${this.flags.export ? ':' : ''}${this.flags.export || ''}`);
   }
 
   protected override async assignProject(): Promise<void> {

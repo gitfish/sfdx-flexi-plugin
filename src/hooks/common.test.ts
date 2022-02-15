@@ -140,7 +140,7 @@ describe('Hook Common', () => {
       )
     );
 
-    expect(requiredId).toBe(pathUtils.join(projectPath, 'woo.js'));
+    expect(requiredId).toBe('woo.js');
     expect(runContext).toBeTruthy();
     expect(runContext.commandId).toBe('hook:parent');
     expect(runContext.type).toBe(HookType.predeploy);
@@ -259,7 +259,7 @@ describe('Hook Common', () => {
       )
     );
 
-    expect(requiredId).toBe(pathUtils.join(projectPath, 'woo.ts'));
+    expect(requiredId).toBe(pathUtils.join(runContext.project.getPath(), 'woo.ts'));
     expect(runContext).toBeTruthy();
     expect(runContext.commandId).toBe('hook:parent');
     expect(runContext.type).toBe(HookType.predeploy);

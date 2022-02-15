@@ -20,7 +20,7 @@ $ npm install -g sfdx-flexi-plugin
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-sfdx-flexi-plugin/27.1.0 darwin-x64 node-v16.14.0
+sfdx-flexi-plugin/28.0.0 darwin-x64 node-v16.14.0
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -29,22 +29,19 @@ USAGE
 <!-- usagestop -->
 
 <!-- commands -->
-* [`sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-n] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--n--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:run [name=value...] -p <string> [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
-## `sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-n] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:run [name=value...] -p <string> [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Executes a function resolved from a js or ts module with a provided sfdx context
 
 ```
 USAGE
-  $ sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-n] [-v <string>] [-u <string>] [--apiversion <string>] 
+  $ sfdx flexi:run [name=value...] -p <string> [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
   [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -n, --nodemodule                                                                  Indicates that the module specified
-                                                                                    is a node module
-
-  -p, --path=path                                                                   The module path
+  -p, --path=path                                                                   (required) The module path
 
   -u, --targetusername=targetusername                                               username or alias for the target
                                                                                     org; overrides default target org
@@ -66,13 +63,14 @@ ALIASES
   $ sfdx flexi:script
   $ sfdx flexi:execute
   $ sfdx flexi:exec
+  $ sfdx flexi:call
 
 EXAMPLES
   $ sfdx flexi:run --path <module path>
   $ sfdx flexi:run --path <module path> --export <module export name>
 ```
 
-_See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v27.1.0/src/commands/flexi/run.ts)_
+_See code: [src/commands/flexi/run.ts](https://github.com/gitfish/sfdx-flexi-plugin/blob/v28.0.0/src/commands/flexi/run.ts)_
 <!-- commandsstop -->
 
 ## Additional Documentation

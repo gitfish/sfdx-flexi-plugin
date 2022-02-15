@@ -4,7 +4,6 @@ import { RequireFunctionRef, ResolveFunctionRef } from './require';
 
 export interface ModuleLoadOptions {
   resolvePath?: string;
-  isNode?: boolean;
   tsConfig?: any; // eslint-disable-line
 }
 
@@ -36,9 +35,10 @@ export const tsConfigDefault = {
 // eslint-disable-next-line
 export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   opts = { ...defaultModuleLoadOptions, ...opts };
-  const { resolvePath, isNode } = opts;
+  const { resolvePath } = opts;
   const requireFunc = RequireFunctionRef.current;
   const resolveFunc = ResolveFunctionRef.current;
+  let modulePath = path;
 
   if (path.endsWith('.ts')) {
     // resolve the path to ts node
@@ -66,9 +66,10 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
           };
         }
       }
+      modulePath = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
       tsNode.register({
         ...registerOpts,
-        files: [path]
+        files: [modulePath]
       });
     } else {
       throw new SfdxError(`In order to use TypeScript, you need to install "ts-node" module:
@@ -79,11 +80,7 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
     }
   }
 
-  if(!isNode) {
-    path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
-  }
-
-  const resolvedPath = resolveFunc(path, {
+  const resolvedPath = resolveFunc(modulePath, {
     paths: [resolvePath]
   });
 
