@@ -1,5 +1,8 @@
 {
     "commandDescription": "Executes a function resolved from a js or ts module with a provided sfdx context",
-    "pathFlagDescription": "The script module path to load the function from",
-    "exportFlagDescription": "The module export to execute"
+    "pathFlagDescription": "The module path",
+    "exportFlagDescription": "The module export to execute",
+    "nodemoduleFlagDescription": "Indicates that the module specified is a node module",
+    "noOrgWarning": "An org could not be resolved - if you require an org, please set a default or specify a target org at the command line",
+    "noHubOrgWarning": "A hub org could not be resolved - if you require a hub org, please set a default or specify a target hub org at the command line"
 }

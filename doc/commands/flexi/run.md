@@ -1,13 +1,12 @@
-# Script Command
+# Run Command
 
-The script command allows execution of a function exported by a typescript or javascript module. The function is provided with the sfdx context including such items as the current project, the target org and so on.
+The run command allows execution of a function exported by a typescript or javascript module. The function is provided with the sfdx context including such items as the current project, the target org, dev hub org and so on.
 
 ## Configuration
-If you're using typescript, you can specify any custom ts config values with a plugin entry in `sfdx-project.json` - e.g.:
+If you're using typescript, you need to install `ts-node` and you can specify any custom ts config values with a plugin entry in `sfdx-project.json` - e.g.:
 
 ```json
 {
-    ...
     "plugins": {
         "flexi": {
             "tsConfig": {
@@ -15,7 +14,6 @@ If you're using typescript, you can specify any custom ts config values with a p
             }
         }
     }
-    ...
 }
 ```
 
@@ -129,9 +127,9 @@ export default async (context: SfdxRunContext): Promise<void> => {
 };
 ```
 
-Suppose this script was saved in the project at `tasks/deploymentsummary.ts` then we'd execute this function using the following command:
+Suppose this module was saved in the project at `tasks/deploymentsummary.ts` then we'd execute this function using the following command:
 
-    sfdx flexi:script -p tasks/deploymentsummary.ts -u ORGNAME limit=13
+    sfdx flexi:run -p tasks/deploymentsummary.ts -u ORGNAME limit=13
 
 where
 

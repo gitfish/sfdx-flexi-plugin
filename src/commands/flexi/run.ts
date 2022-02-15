@@ -1,7 +1,7 @@
 import { flags, FlagsConfig, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError, SfdxProject } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import * as pathUtils from 'node:path';
+import * as pathUtils from 'path';
 import { getModuleFunction } from '../../common/module';
 import { getPluginConfig } from '../../common/project';
 import { RunFlags, SfdxRunContext, SfdxRunFunction } from '../../types';
@@ -46,12 +46,16 @@ export class RunCommand extends SfdxCommand {
     export: flags.string({
       char: 'x',
       description: messages.getMessage('exportFlagDescription')
+    }),
+    nodemodule: flags.boolean({
+      char: 'n',
+      description: messages.getMessage('nodemoduleFlagDescription')
     })
   };
 
   public override async run(): Promise<AnyJson> {
     let modulePath: string = this.flags.path;
-    if(!pathUtils.isAbsolute(modulePath)) {
+    if(!pathUtils.isAbsolute(modulePath) && !this.flags.nodemodule) {
       modulePath = pathUtils.join(this.basePath, modulePath);
     }
 
@@ -67,11 +71,20 @@ export class RunCommand extends SfdxCommand {
       config: this.config
     };
 
+    if(!context.org) {
+      this.ux.warn(messages.getMessage('noOrgWarning'));
+    }
+
+    if(!context.hubOrg) {
+      this.ux.warn(messages.getMessage('noHubOrgWarning'));
+    }
+
     const pluginConfig = await getPluginConfig(this.project);
 
     // resolve our handler func
     const func: SfdxRunFunction = getModuleFunction(modulePath, {
       resolvePath: this.basePath,
+      isNode: this.flags.nodemodule,
       exportName: this.flags.export,
       tsConfig: pluginConfig?.tsConfig
     });

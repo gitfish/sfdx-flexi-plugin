@@ -1,8 +1,8 @@
 import { Org, SfdxProject } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import * as pathUtils from 'node:path';
+import * as pathUtils from 'path';
 import { FileServiceRef } from '../common/fs';
-import { RequireFunctionRef } from '../common/require';
+import { RequireFunctionRef, ResolveFunctionRef } from '../common/require';
 import { HookType, PreDeployResult, SfdxHookContext } from '../types';
 import {
   createHookDelegate, getTargetDevHubUsername, getTargetUsername, isJson
@@ -102,6 +102,10 @@ describe('Hook Common', () => {
       return (context: SfdxHookContext<PreDeployResult>) => {
         runContext = context;
       };
+    };
+
+    ResolveFunctionRef.current = (id: string) => {
+      return id;
     };
 
     const predeploy = createHookDelegate<PreDeployResult>({
@@ -217,6 +221,10 @@ describe('Hook Common', () => {
       return (context: SfdxHookContext<PreDeployResult>) => {
         runContext = context;
       };
+    };
+
+    ResolveFunctionRef.current = (id: string) => {
+      return id;
     };
 
     const predeploy = createHookDelegate<PreDeployResult>({

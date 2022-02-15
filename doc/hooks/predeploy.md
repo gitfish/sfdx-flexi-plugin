@@ -1,35 +1,13 @@
-# Pre Deploy Hook
+# Pre Deploy Example
 
 Fires after the CLI converts your source files to Metadata API format but before it sends the files to the org.
-
-Please see the [sfdx hooks documentation](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm) for more details.
-
-## Configuration
-
-The hooks can be configured with a plugin entry in `sfdx-project.json` - e.g.:
-
-```json
-{
-    ...
-    "plugins": {
-        "flexi": {
-            "hooks": {
-                "predeploy": "<path to predeploy hook>"
-            }
-        }
-    }
-    ...
-}
-```
-
-## Example
 
 The following example modifies profiles to remove certain user permissions when they're being deployed.
 
 ```typescript
-import { PreDeployItem, PreDeployResult, SfdxContext } from "sfdx-flexi-plugin/lib/types";
-import { parseStringPromise, Builder } from "xml2js";
-import { promises as fsp } from "fs";
+import { PreDeployItem, PreDeployResult, SfdxContext } from 'sfdx-flexi-plugin/lib/types';
+import { parseStringPromise, Builder } from 'xml2js';
+import * as fs from 'fs/promises';
 
 const DEFAULT_PERMISSION_TO_REMOVE = [
     "ManageDashboards",
@@ -66,7 +44,7 @@ const getMetadataName = (item: PreDeployItem): string => {
  * @returns 
  */
 export const removeUserPermissions = async (path: string, permissionsToRemove: string[]): Promise<boolean> => {
-    const source = await fsp.readFile(path, { encoding: "utf8" });
+    const source = await fs.readFile(path, { encoding: "utf8" });
     const wrapper = await parseStringPromise(source);
     const root = wrapper?.Profile || wrapper?.PermissionSet;
     const userPermissions = root?.userPermissions;
@@ -91,7 +69,7 @@ export const removeUserPermissions = async (path: string, permissionsToRemove: s
 
     if (modified) {
         const xml = new Builder().buildObject(wrapper);
-        await fsp.writeFile(path, xml);
+        await fs.writeFile(path, xml);
     }
 
     return modified;
@@ -119,4 +97,23 @@ export default async (context: SfdxHookContext<PreDeployResult>): Promise<void> 
         await removePermissions(item, context);
     }
 };
+```
+
+If this file were present in the project under the `hooks/predeploy.ts` folder, we can configure it in `sfdx-project.json` as follows:
+
+
+## Configuration
+
+The hooks can be configured with a plugin entry in `sfdx-project.json` - e.g.:
+
+```json
+{
+    "plugins": {
+        "flexi": {
+            "hooks": {
+                "predeploy": "hooks/predeploy.ts"
+            }
+        }
+    }
+}
 ```

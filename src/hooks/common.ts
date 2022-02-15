@@ -104,26 +104,36 @@ export const createHookDelegate = <R extends HookResult = HookResult>(
     const delegate = await resolveDelegate({ type, project });
 
     if (delegate) {
-      const configAggregator = await ConfigAggregator.create();
-
-      // TODO: these can probably be done in parallel
-      const aliasOrUsername = getOrgUsername ? getOrgUsername(hookOpts) : getTargetUsername(argv);
-      const org = await Org.create({
-        aggregator: configAggregator,
-        aliasOrUsername
-      });
-      
-      const hubAliasOrUsername = getHubOrgUsername ? getHubOrgUsername(hookOpts) : getTargetDevHubUsername(argv);
-      const hubOrg = await Org.create({
-        aggregator: configAggregator,
-        aliasOrUsername: hubAliasOrUsername,
-        isDevHub: true
-      });
-      
       const commandId = hookOpts.commandId || hookOpts.Command?.id;
-
       const logger = await Logger.child(`${commandId}-flexi-hook-${type}`);
       const ux = new UX(logger, !isJson(argv));
+
+      const configAggregator = await ConfigAggregator.create();
+
+      let org: Org;
+      const aliasOrUsername = getOrgUsername ? getOrgUsername(hookOpts) : getTargetUsername(argv);
+      try {
+        org = await Org.create({
+          aggregator: configAggregator,
+          aliasOrUsername // if this is blank, the org will be the default org configured - if there is one
+        });
+      } catch(err) {
+        // warn when we can't resolve the org
+        ux.warn(`Unable to resolve Org: ${err}`);
+      }
+      
+      let hubOrg: Org;
+      const hubAliasOrUsername = getHubOrgUsername ? getHubOrgUsername(hookOpts) : getTargetDevHubUsername(argv);
+      try {
+        hubOrg = await Org.create({
+          aggregator: configAggregator,
+          aliasOrUsername: hubAliasOrUsername,
+          isDevHub: true
+        });
+      } catch(err) {
+        // warn when we can't resolve the hub org
+        ux.warn(`Unable to resolve Hub Org: ${err}`);
+      }
 
       const context: SfdxHookContext = {
         logger,

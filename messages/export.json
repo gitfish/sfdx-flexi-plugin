@@ -1,6 +1,0 @@
-{
-    "commandDescription": "Export data from your org.",
-    "objectFlagDescription": "The sobject(s) that you wish to export data for.",
-    "configFileFlagDescription": "The configuration file location.",
-    "dataDirFlagDescription": "The path where the data resides."
-  }

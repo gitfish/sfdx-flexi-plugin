@@ -1,4 +1,4 @@
-import * as pathUtils from 'node:path';
+import * as pathUtils from 'path';
 import { FileServiceRef } from './fs';
 
 describe('File Service', () => {
