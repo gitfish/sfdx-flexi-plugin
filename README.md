@@ -29,21 +29,18 @@ USAGE
 <!-- usagestop -->
 
 <!-- commands -->
-* [`sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-n] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--n--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-flexirun-namevalue--p-string--x-string--v-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
-## `sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-n] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+## `sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
 Executes a function resolved from a js or ts module with a provided sfdx context
 
 ```
 USAGE
-  $ sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-n] [-v <string>] [-u <string>] [--apiversion <string>] 
+  $ sfdx flexi:run [name=value...] [-p <string>] [-x <string>] [-v <string>] [-u <string>] [--apiversion <string>] 
   [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
 
 OPTIONS
-  -n, --nodemodule                                                                  Indicates that the module specified
-                                                                                    is a node module
-
   -p, --path=path                                                                   The module path
 
   -u, --targetusername=targetusername                                               username or alias for the target
@@ -66,6 +63,7 @@ ALIASES
   $ sfdx flexi:script
   $ sfdx flexi:execute
   $ sfdx flexi:exec
+  $ sfdx flexi:call
 
 EXAMPLES
   $ sfdx flexi:run --path <module path>

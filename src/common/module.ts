@@ -1,10 +1,8 @@
 import { SfdxError } from '@salesforce/core';
-import * as pathUtils from 'path';
 import { RequireFunctionRef, ResolveFunctionRef } from './require';
 
 export interface ModuleLoadOptions {
   resolvePath?: string;
-  isNode?: boolean;
   tsConfig?: any; // eslint-disable-line
 }
 
@@ -36,7 +34,7 @@ export const tsConfigDefault = {
 // eslint-disable-next-line
 export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
   opts = { ...defaultModuleLoadOptions, ...opts };
-  const { resolvePath, isNode } = opts;
+  const { resolvePath } = opts;
   const requireFunc = RequireFunctionRef.current;
   const resolveFunc = ResolveFunctionRef.current;
 
@@ -77,10 +75,6 @@ export const loadModule = (path: string, opts?: ModuleLoadOptions): any => {
           yarn add -D ts-node
         `);
     }
-  }
-
-  if(!isNode) {
-    path = pathUtils.isAbsolute(path) ? path : pathUtils.join(resolvePath, path);
   }
 
   const resolvedPath = resolveFunc(path, {
