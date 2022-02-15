@@ -18,7 +18,7 @@ const throwInvalidCall = async () => {
     throw new Error('Invalid Call');
 };
 
-describe('flexi:script', () => {
+describe('flexi:run', () => {
 
     test('js module func', async () => {
         const projectPath = `${pathUtils.sep}test-project`;
@@ -369,9 +369,7 @@ describe('flexi:script', () => {
             writeFile: throwInvalidCall
         };
 
-        ResolveFunctionRef.current = (id: string): string => {
-            return id;
-        };
+        ResolveFunctionRef.current = (id: string) => id;
 
         RequireFunctionRef.current = () => {
             return {
@@ -449,7 +447,7 @@ describe('flexi:script', () => {
         await RunCommand.run(['--path', 'test.ts', '--targetusername', 'woo@test.com']);
 
         expect(tsNodeRegisterOpts).toBeTruthy();
-        expect(requiredId).toBe('test.ts');
+        expect(requiredId).toBe(pathUtils.join(runContext.project.getPath(), 'test.ts'));
         expect(runContext).toBeTruthy();
         expect(runContext.org.getOrgId()).toBe('test-org-id');
         expect(runContext.project.getPath()).toBe(projectPath);
@@ -495,6 +493,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: SfdxRunContext;
         let tsNodeRegisterOpts;
+        ResolveFunctionRef.current = (id: string) => id;
         RequireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
@@ -515,7 +514,7 @@ describe('flexi:script', () => {
 
         expect(tsNodeRegisterOpts).toBeTruthy();
         expect(tsNodeRegisterOpts.compilerOptions).toEqual(tsConfigDefault.compilerOptions);
-        expect(requiredId).toBe('test.ts');
+        expect(requiredId).toBe(pathUtils.join(runContext.project.getPath(), 'test.ts'));
         expect(runContext).toBeTruthy();
         expect(runContext.org.getOrgId()).toBe('test-org-id');
         expect(runContext.project.getPath()).toBe(projectPath);
@@ -574,6 +573,7 @@ describe('flexi:script', () => {
         let requiredId: string;
         let runContext: SfdxRunContext;
         let tsNodeRegisterOpts;
+        ResolveFunctionRef.current = (id: string) => id;
         RequireFunctionRef.current = (id: string) => {
             if (id === 'ts-node') {
                 return {
@@ -593,7 +593,7 @@ describe('flexi:script', () => {
         expect(tsNodeRegisterOpts).toBeTruthy();
         // the custom config should be merged into the default config
         expect(tsNodeRegisterOpts.compilerOptions).toEqual({...tsConfigDefault.compilerOptions, ...tsConfig.compilerOptions });
-        expect(requiredId).toBe('test.ts');
+        expect(requiredId).toBe(pathUtils.join(runContext.project.getPath(), 'test.ts'));
         expect(runContext).toBeTruthy();
         expect(runContext.org.getOrgId()).toBe('test-org-id');
         expect(runContext.project.getPath()).toBe(projectPath);

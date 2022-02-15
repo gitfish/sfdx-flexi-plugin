@@ -41,7 +41,7 @@ export class RunCommand extends SfdxCommand {
     path: flags.string({
       char: 'p',
       description: messages.getMessage('pathFlagDescription'),
-      required: false
+      required: true
     }),
     export: flags.string({
       char: 'x',
