@@ -4,6 +4,7 @@ import { AnyJson } from '@salesforce/ts-types';
 import * as pathUtils from 'path';
 import { getModuleFunction } from '../../common/module';
 import { getPluginConfig } from '../../common/project';
+import { createErrorProxy } from '../../common/proxy';
 import { RunFlags, SfdxRunContext, SfdxRunFunction } from '../../types';
 
 // Initialize Messages with the current plugin directory
@@ -72,11 +73,11 @@ export class RunCommand extends SfdxCommand {
     };
 
     if(!context.org) {
-      this.ux.warn(messages.getMessage('noOrgWarning'));
+      context.org = createErrorProxy(messages.getMessage('noOrgWarning'));
     }
 
     if(!context.hubOrg) {
-      this.ux.warn(messages.getMessage('noHubOrgWarning'));
+      context.hubOrg = createErrorProxy(messages.getMessage('noHubOrgWarning'));
     }
 
     const pluginConfig = await getPluginConfig(this.project);

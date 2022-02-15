@@ -96,6 +96,87 @@ describe('flexi:script', () => {
         expect(runContext.flags.targetusername).toBe('woo@test.com');
     });
 
+    test('js module func org error proxy', async () => {
+        const projectPath = `${pathUtils.sep}test-project`;
+
+        const mockResolveProject = jest.fn();
+        mockResolveProject.mockResolvedValue({
+            getPath() {
+                return projectPath;
+            },
+            resolveProjectConfig: async () => {
+                return {};
+            }
+        });
+
+        SfdxProject.resolve = mockResolveProject;
+
+        const mockOrgCreate = jest.fn();
+        mockOrgCreate.mockResolvedValue(null);
+
+        Org.create = mockOrgCreate;
+
+        FileServiceRef.current = {
+            async pathExists() {
+                return true;
+            },
+            readFile: throwInvalidCall,
+            mkdir: throwInvalidCall,
+            readdir: throwInvalidCall,
+            unlink: throwInvalidCall,
+            writeFile: throwInvalidCall
+        };
+
+        let resolveId: string;
+        let resolveOpts: ResolveOptions;
+        let requiredId: string;
+        let runContext: SfdxRunContext;
+        let tsNodeRegisterOpts;
+
+        RequireFunctionRef.current = (id: string) => {
+            if (id === 'ts-node') {
+                return {
+                    register(opts) {
+                        tsNodeRegisterOpts = opts;
+                    }
+                };
+            }
+            requiredId = id;
+            return (context: SfdxRunContext) => {
+                runContext = context;
+            };
+        };
+
+        ResolveFunctionRef.current = (id: string, opts?: ResolveOptions): string => {
+            resolveId = id;
+            resolveOpts = opts;
+            return id;
+        };
+
+        await RunCommand.run(['--path', 'test.js', '--targetusername', 'woo@test.com']);
+
+        expect(tsNodeRegisterOpts).toBeFalsy();
+        expect(resolveId).toBe(pathUtils.join(projectPath, 'test.js'));
+        expect(resolveOpts).toBeTruthy();
+        expect(resolveOpts.paths.length).toBe(1);
+        expect(resolveOpts.paths[0]).toBe(runContext.project.getPath());
+        expect(requiredId).toBe(pathUtils.join(projectPath, 'test.js'));
+        expect(runContext).toBeTruthy();
+        expect(runContext.org).toBeTruthy();
+
+        // invoking anything on the org proxy should throw an error
+        let orgError;
+        try {
+            runContext.org.getOrgId();
+        } catch(err) {
+            orgError = err;
+        }
+        expect(orgError).toBeTruthy();
+        expect(runContext.project.getPath()).toBe(projectPath);
+        expect(runContext.flags.path).toBe('test.js');
+        expect(runContext.flags.targetusername).toBe('woo@test.com');
+    });
+
     test('js module func from node', async () => {
         const projectPath = `${pathUtils.sep}test-project`;
 
